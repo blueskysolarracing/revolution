@@ -1,0 +1,66 @@
+# Revolution Makefile
+
+CXXFLAGS=-std=gnu++2a
+
+SYNCER_NAME=syncer
+SYNCER_OBJECTS=app.o
+
+DISPLAY_DRIVER_NAME=display_driver
+DISPLAY_DRIVER_OBJECTS=app.o slave.o
+MISC_CONTROLLER_NAME=misc_controller
+MISC_CONTROLLER_OBJECTS=app.o slave.o
+MOTOR_CONTROLLER_NAME=motor_controller
+MOTOR_CONTROLLER_OBJECTS=app.o slave.o
+POWER_SENSOR_NAME=power_sensor
+POWER_SENSOR_OBJECTS=app.o slave.o
+TELEMETER_NAME=telemeter
+TELEMETER_OBJECTS=app.o slave.o
+VOLTAGE_CONTROLLER_NAME=voltage_controller
+VOLTAGE_CONTROLLER_OBJECTS=app.o slave.o
+
+CLIENT_NAME=client
+CLIENT_OBJECTS=app.o
+ECHO_NAME=echo
+ECHO_OBJECTS=app.o
+
+NAMES=$(SYNCER_NAME) $(DISPLAY_DRIVER_NAME) $(MISC_CONTROLLER_NAME) \
+      $(MOTOR_CONTROLLER_NAME) $(POWER_SENSOR_NAME) $(TELEMETER_NAME) \
+      $(VOLTAGE_CONTROLLER_NAME) $(CLIENT_NAME) $(ECHO_NAME)
+
+all: $(NAMES)
+	@echo ""
+	@echo "Run 'make test' to begin integration tests"
+	@echo ""
+
+test: all
+	@echo "TODO: TEST"
+
+clean:
+	-rm -f *.o $(NAMES)
+
+# syncer
+$(SYNCER_NAME): $(SYNCER_OBJECTS)
+
+# display_driver
+$(DISPLAY_DRIVER_NAME): $(DISPLAY_DRIVER_OBJECTS)
+
+# misc_controller
+$(MISC_CONTROLLER_NAME): $(MISC_CONTROLLER_OBJECTS)
+
+# motor_controller
+$(MOTOR_CONTROLLER_NAME): $(MOTOR_CONTROLLER_OBJECTS)
+
+# power_sensor
+$(POWER_SENSOR_NAME): $(POWER_SENSOR_OBJECTS)
+
+# telemeter
+$(TELEMETER_NAME): $(TELEMETER_OBJECTS)
+
+# voltage_controller
+$(VOLTAGE_CONTROLLER_NAME): $(VOLTAGE_CONTROLLER_OBJECTS)
+
+# client
+$(CLIENT_NAME): $(CLIENT_OBJECTS)
+
+# echo
+$(ECHO_NAME): $(ECHO_OBJECTS)
