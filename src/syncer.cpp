@@ -7,7 +7,7 @@ unsigned int revolution::Syncer::getPriority() {
 	return priority_;
 }
 
-revolution::Syncer::Syncer() : App{"syncer"} {} // TODO: DO NOT HARD-CODE
+revolution::Syncer::Syncer() : App{"syncer"} {}  // TODO: DO NOT HARD-CODE
 
 int main() {
 	revolution::Syncer &syncer = revolution::Syncer::getInstance();

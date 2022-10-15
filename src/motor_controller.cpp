@@ -7,7 +7,7 @@ unsigned int revolution::MotorController::getPriority() {
 	return priority_;
 }
 
-revolution::MotorController::MotorController() : Slave{"motorController"} {} // TODO: DO NOT HARD-CODE
+revolution::MotorController::MotorController() : Slave{"motorController"} {}  // TODO: DO NOT HARD-CODE
 
 int main() {
 	revolution::MotorController &motorController = revolution::MotorController::getInstance();

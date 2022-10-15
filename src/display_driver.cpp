@@ -7,7 +7,7 @@ unsigned int revolution::DisplayDriver::getPriority() {
 	return priority_;
 }
 
-revolution::DisplayDriver::DisplayDriver() : Slave{"displayDriver"} {} // TODO: DO NOT HARD-CODE
+revolution::DisplayDriver::DisplayDriver() : Slave{"displayDriver"} {}  // TODO: DO NOT HARD-CODE
 
 int main() {
 	revolution::DisplayDriver &displayDriver = revolution::DisplayDriver::getInstance();

@@ -7,11 +7,11 @@ void revolution::Client::run() {
 	std::thread thread(&revolution::Client::helpRun, this);
 	std::string message;
 
-	do {
+	while (message != "exit") {
 		getline(std::cin, message);
 
 		send(message, "echo");  // TODO: DO NOT HARD-CODE
-	} while (message != "exit"); 
+	}
 
 	exit_.store(true);
 	thread.join();
@@ -21,7 +21,7 @@ unsigned int revolution::Client::getPriority() {
 	return priority_;
 }
 
-revolution::Client::Client() : App{"client"} {} // TODO: DO NOT HARD-CODE
+revolution::Client::Client() : App{"client"} {}  // TODO: DO NOT HARD-CODE
 
 void revolution::Client::helpRun() {
 	while (!exit_.load()) {

@@ -19,7 +19,7 @@ std::string revolution::App::getName() {
 std::string revolution::App::receive() {
 	return helpReceive([this] (boost::interprocess::message_queue &messageQueue) -> std::string {
 		std::string message;
-		boost::interprocess::message_queue::size_type receivedSize;
+		boost::interprocess::message_queue::size_type receivedSize = 0;
 		unsigned int priority;
 
 		message.resize(maxMessageSize_);
@@ -38,7 +38,7 @@ std::string revolution::App::receive() {
 std::string revolution::App::tryReceive() {
 	return helpReceive([this] (boost::interprocess::message_queue &messageQueue) -> std::string {
 		std::string message;
-		boost::interprocess::message_queue::size_type receivedSize;
+		boost::interprocess::message_queue::size_type receivedSize = 0;
 		unsigned int priority;
 
 		message.resize(maxMessageSize_);
@@ -57,7 +57,7 @@ std::string revolution::App::tryReceive() {
 std::string revolution::App::timedReceive(const boost::posix_time::ptime &absTime) {
 	return helpReceive([this, &absTime] (boost::interprocess::message_queue &messageQueue) -> std::string {
 		std::string message;
-		boost::interprocess::message_queue::size_type receivedSize;
+		boost::interprocess::message_queue::size_type receivedSize = 0;
 		unsigned int priority;
 
 		message.resize(maxMessageSize_);
@@ -83,8 +83,6 @@ void revolution::App::send(const std::string &message, const std::string &recipi
 			maxMessageSize_
 		);
 		messageQueue.send(message.data(), message.size(), getPriority());
-
-		std::cout << "Sent message: " << message << std::endl;
 	} BOOST_CATCH (boost::interprocess::interprocess_exception &exception) {
 		std::cout << "ERROR: " << exception.what() << std::endl;
 	} BOOST_CATCH_END
@@ -101,8 +99,6 @@ std::string revolution::App::helpReceive(std::function<std::string(boost::interp
 			maxMessageSize_
 		);
 		message = receiver(messageQueue);
-
-		std::cout << "Received message: " << message << std::endl;
 	} BOOST_CATCH (boost::interprocess::interprocess_exception &exception) {
 		std::cout << "ERROR: " << exception.what() << std::endl;
 	} BOOST_CATCH_END

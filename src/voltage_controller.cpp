@@ -7,7 +7,7 @@ unsigned int revolution::VoltageController::getPriority() {
 	return priority_;
 }
 
-revolution::VoltageController::VoltageController() : Slave{"voltageController"} {} // TODO: DO NOT HARD-CODE
+revolution::VoltageController::VoltageController() : Slave{"voltageController"} {}  // TODO: DO NOT HARD-CODE
 
 int main() {
 	revolution::VoltageController &voltageController = revolution::VoltageController::getInstance();

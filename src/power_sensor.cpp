@@ -7,7 +7,7 @@ unsigned int revolution::PowerSensor::getPriority() {
 	return priority_;
 }
 
-revolution::PowerSensor::PowerSensor() : Slave{"powerSensor"} {} // TODO: DO NOT HARD-CODE
+revolution::PowerSensor::PowerSensor() : Slave{"powerSensor"} {}  // TODO: DO NOT HARD-CODE
 
 int main() {
 	revolution::PowerSensor &powerSensor = revolution::PowerSensor::getInstance();

@@ -7,7 +7,7 @@ unsigned int revolution::Telemeter::getPriority() {
 	return priority_;
 }
 
-revolution::Telemeter::Telemeter() : Slave{"telemeter"} {} // TODO: DO NOT HARD-CODE
+revolution::Telemeter::Telemeter() : Slave{"telemeter"} {}  // TODO: DO NOT HARD-CODE
 
 int main() {
 	revolution::Telemeter &telemeter = revolution::Telemeter::getInstance();

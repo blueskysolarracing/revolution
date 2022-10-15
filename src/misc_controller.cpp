@@ -7,7 +7,7 @@ unsigned int revolution::MiscController::getPriority() {
 	return priority_;
 }
 
-revolution::MiscController::MiscController() : Slave{"miscController"} {} // TODO: DO NOT HARD-CODE
+revolution::MiscController::MiscController() : Slave{"miscController"} {}  // TODO: DO NOT HARD-CODE
 
 int main() {
 	revolution::MiscController &miscController = revolution::MiscController::getInstance();

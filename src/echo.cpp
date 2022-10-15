@@ -4,9 +4,13 @@ void revolution::Echo::run() {
 	std::string message;
 
 	while (message != "exit") {
-		message = receive();
+		boost::posix_time::ptime absTime = boost::posix_time::microsec_clock::local_time() + pollingPeriod;
+		message = timedReceive(absTime);
 
-		send(message, "client");  // TODO: DO NOT HARD-CODE
+		if (!message.empty()) {
+			std::cout << "Echoing message: " << message << std::endl;
+			send(message, "client");  // TODO: DO NOT HARD-CODE
+		}
 	}
 }
 
@@ -14,7 +18,7 @@ unsigned int revolution::Echo::getPriority() {
 	return priority_;
 }
 
-revolution::Echo::Echo() : App{"echo"} {} // TODO: DO NOT HARD-CODE
+revolution::Echo::Echo() : App{"echo"} {}  // TODO: DO NOT HARD-CODE
 
 int main() {
 	revolution::Echo &echo = revolution::Echo::getInstance();
