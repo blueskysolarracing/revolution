@@ -4,15 +4,15 @@ void revolution::MiscController::run() {  // TODO: ADD PROGRAM LOGIC
 }
 
 unsigned int revolution::MiscController::getPriority() const {
-	return priority_;
+  return priority_;
 }
 
 revolution::MiscController::MiscController() : Slave{"miscController"} {}  // TODO: DO NOT HARD-CODE
 
 int main() {
-	revolution::MiscController &miscController = revolution::MiscController::getInstance();
+  revolution::MiscController &miscController = revolution::MiscController::getInstance();
 
-	miscController.run();
+  miscController.run();
 
-	return 0;
+  return 0;
 }

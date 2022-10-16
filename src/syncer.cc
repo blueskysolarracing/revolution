@@ -4,15 +4,15 @@ void revolution::Syncer::run() {  // TODO: ADD PROGRAM LOGIC
 }
 
 unsigned int revolution::Syncer::getPriority() const {
-	return priority_;
+  return priority_;
 }
 
 revolution::Syncer::Syncer() : App{"syncer"} {}  // TODO: DO NOT HARD-CODE
 
 int main() {
-	revolution::Syncer &syncer = revolution::Syncer::getInstance();
+  revolution::Syncer &syncer = revolution::Syncer::getInstance();
 
-	syncer.run();
+  syncer.run();
 
-	return 0;
+  return 0;
 }

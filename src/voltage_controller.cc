@@ -4,15 +4,15 @@ void revolution::VoltageController::run() {  // TODO: ADD PROGRAM LOGIC
 }
 
 unsigned int revolution::VoltageController::getPriority() const {
-	return priority_;
+  return priority_;
 }
 
 revolution::VoltageController::VoltageController() : Slave{"voltageController"} {}  // TODO: DO NOT HARD-CODE
 
 int main() {
-	revolution::VoltageController &voltageController = revolution::VoltageController::getInstance();
+  revolution::VoltageController &voltageController = revolution::VoltageController::getInstance();
 
-	voltageController.run();
+  voltageController.run();
 
-	return 0;
+  return 0;
 }

@@ -4,15 +4,15 @@ void revolution::MotorController::run() {  // TODO: ADD PROGRAM LOGIC
 }
 
 unsigned int revolution::MotorController::getPriority() const {
-	return priority_;
+  return priority_;
 }
 
 revolution::MotorController::MotorController() : Slave{"motorController"} {}  // TODO: DO NOT HARD-CODE
 
 int main() {
-	revolution::MotorController &motorController = revolution::MotorController::getInstance();
+  revolution::MotorController &motorController = revolution::MotorController::getInstance();
 
-	motorController.run();
+  motorController.run();
 
-	return 0;
+  return 0;
 }

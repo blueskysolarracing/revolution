@@ -8,27 +8,27 @@
 namespace revolution {
 class Client : public App {
 public:
-	static Client &getInstance() {
-		static Client client;
+  static Client &getInstance() {
+    static Client client;
 
-		return client;
-	}
+    return client;
+  }
 
-	void run() override;
+  void run() override;
 protected:
-	unsigned int getPriority() const override;
+  unsigned int getPriority() const override;
 private:
-	static constexpr unsigned int priority_ = 0;
-	static constexpr boost::posix_time::time_duration pollingPeriod = boost::posix_time::milliseconds(100);
+  static constexpr unsigned int priority_ = 0;
+  static constexpr boost::posix_time::time_duration pollingPeriod = boost::posix_time::milliseconds(100);
 
-	Client();
-	Client(Client const &) = delete;
+  Client();
+  Client(Client const &) = delete;
 
-	void operator=(Client const &) = delete;
+  void operator=(Client const &) = delete;
 
-	void helpRun();
+  void helpRun();
 
-	std::atomic_bool exit_;
+  std::atomic_bool exit_;
 };
 }
 

@@ -6,22 +6,22 @@
 namespace revolution {
 class MiscController : public Slave {
 public:
-	static MiscController &getInstance() {
-		static MiscController miscController;
+  static MiscController &getInstance() {
+    static MiscController miscController;
 
-		return miscController;
-	}
+    return miscController;
+  }
 
-	void run() override;
+  void run() override;
 protected:
-	unsigned int getPriority() const override;
+  unsigned int getPriority() const override;
 private:
-	static constexpr unsigned int priority_ = 0;
+  static constexpr unsigned int priority_ = 0;
 
-	MiscController();
-	MiscController(MiscController const &) = delete;
+  MiscController();
+  MiscController(MiscController const &) = delete;
 
-	void operator=(MiscController const &) = delete;
+  void operator=(MiscController const &) = delete;
 };
 }
 

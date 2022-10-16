@@ -4,15 +4,15 @@ void revolution::DisplayDriver::run() {  // TODO: ADD PROGRAM LOGIC
 }
 
 unsigned int revolution::DisplayDriver::getPriority() const {
-	return priority_;
+  return priority_;
 }
 
 revolution::DisplayDriver::DisplayDriver() : Slave{"displayDriver"} {}  // TODO: DO NOT HARD-CODE
 
 int main() {
-	revolution::DisplayDriver &displayDriver = revolution::DisplayDriver::getInstance();
+  revolution::DisplayDriver &displayDriver = revolution::DisplayDriver::getInstance();
 
-	displayDriver.run();
+  displayDriver.run();
 
-	return 0;
+  return 0;
 }

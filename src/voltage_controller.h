@@ -6,22 +6,22 @@
 namespace revolution {
 class VoltageController : public Slave {
 public:
-	static VoltageController &getInstance() {
-		static VoltageController voltageController;
+  static VoltageController &getInstance() {
+    static VoltageController voltageController;
 
-		return voltageController;
-	}
+    return voltageController;
+  }
 
-	void run() override;
+  void run() override;
 protected:
-	unsigned int getPriority() const override;
+  unsigned int getPriority() const override;
 private:
-	static constexpr unsigned int priority_ = 0;
+  static constexpr unsigned int priority_ = 0;
 
-	VoltageController();
-	VoltageController(VoltageController const &) = delete;
+  VoltageController();
+  VoltageController(VoltageController const &) = delete;
 
-	void operator=(VoltageController const &) = delete;
+  void operator=(VoltageController const &) = delete;
 };
 }
 

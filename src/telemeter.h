@@ -6,22 +6,22 @@
 namespace revolution {
 class Telemeter : public Slave {
 public:
-	static Telemeter &getInstance() {
-		static Telemeter telemeter;
+  static Telemeter &getInstance() {
+    static Telemeter telemeter;
 
-		return telemeter;
-	}
+    return telemeter;
+  }
 
-	void run() override;
+  void run() override;
 protected:
-	unsigned int getPriority() const override;
+  unsigned int getPriority() const override;
 private:
-	static constexpr unsigned int priority_ = 0;
+  static constexpr unsigned int priority_ = 0;
 
-	Telemeter();
-	Telemeter(Telemeter const &) = delete;
+  Telemeter();
+  Telemeter(Telemeter const &) = delete;
 
-	void operator=(Telemeter const &) = delete;
+  void operator=(Telemeter const &) = delete;
 };
 }
 

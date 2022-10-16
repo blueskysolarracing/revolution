@@ -6,22 +6,22 @@
 namespace revolution {
 class PowerSensor : public Slave {
 public:
-	static PowerSensor &getInstance() {
-		static PowerSensor powerSensor;
+  static PowerSensor &getInstance() {
+    static PowerSensor powerSensor;
 
-		return powerSensor;
-	}
+    return powerSensor;
+  }
 
-	void run() override;
+  void run() override;
 protected:
-	unsigned int getPriority() const override;
+  unsigned int getPriority() const override;
 private:
-	static constexpr unsigned int priority_ = 0;
+  static constexpr unsigned int priority_ = 0;
 
-	PowerSensor();
-	PowerSensor(PowerSensor const &) = delete;
+  PowerSensor();
+  PowerSensor(PowerSensor const &) = delete;
 
-	void operator=(PowerSensor const &) = delete;
+  void operator=(PowerSensor const &) = delete;
 };
 }
 

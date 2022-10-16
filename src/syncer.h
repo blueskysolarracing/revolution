@@ -6,22 +6,22 @@
 namespace revolution {
 class Syncer : public App {
 public:
-	static Syncer &getInstance() {
-		static Syncer syncer;
+  static Syncer &getInstance() {
+    static Syncer syncer;
 
-		return syncer;
-	}
+    return syncer;
+  }
 
-	void run() override;
+  void run() override;
 protected:
-	unsigned int getPriority() const override;
+  unsigned int getPriority() const override;
 private:
-	static constexpr unsigned int priority_ = 0;
+  static constexpr unsigned int priority_ = 0;
 
-	Syncer();
-	Syncer(Syncer const &) = delete;
+  Syncer();
+  Syncer(Syncer const &) = delete;
 
-	void operator=(Syncer const &) = delete;
+  void operator=(Syncer const &) = delete;
 };
 }
 

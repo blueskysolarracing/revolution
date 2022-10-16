@@ -6,22 +6,22 @@
 namespace revolution {
 class DisplayDriver : public Slave {
 public:
-	static DisplayDriver &getInstance() {
-		static DisplayDriver displayDriver;
+  static DisplayDriver &getInstance() {
+    static DisplayDriver displayDriver;
 
-		return displayDriver;
-	}
+    return displayDriver;
+  }
 
-	void run() override;
+  void run() override;
 protected:
-	unsigned int getPriority() const override;
+  unsigned int getPriority() const override;
 private:
-	static constexpr unsigned int priority_ = 0;
+  static constexpr unsigned int priority_ = 0;
 
-	DisplayDriver();
-	DisplayDriver(DisplayDriver const &) = delete;
+  DisplayDriver();
+  DisplayDriver(DisplayDriver const &) = delete;
 
-	void operator=(DisplayDriver const &) = delete;
+  void operator=(DisplayDriver const &) = delete;
 };
 }
 

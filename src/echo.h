@@ -6,23 +6,23 @@
 namespace revolution {
 class Echo : public App {
 public:
-	static Echo &getInstance() {
-		static Echo echo;
+  static Echo &getInstance() {
+    static Echo echo;
 
-		return echo;
-	}
+    return echo;
+  }
 
-	void run() override;
+  void run() override;
 protected:
-	unsigned int getPriority() const override;
+  unsigned int getPriority() const override;
 private:
-	static constexpr unsigned int priority_ = 0;
-	static constexpr boost::posix_time::time_duration pollingPeriod = boost::posix_time::milliseconds(100);
+  static constexpr unsigned int priority_ = 0;
+  static constexpr boost::posix_time::time_duration pollingPeriod = boost::posix_time::milliseconds(100);
 
-	Echo();
-	Echo(Echo const &) = delete;
+  Echo();
+  Echo(Echo const &) = delete;
 
-	void operator=(Echo const &) = delete;
+  void operator=(Echo const &) = delete;
 };
 }
 

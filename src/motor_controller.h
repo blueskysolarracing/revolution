@@ -6,22 +6,22 @@
 namespace revolution {
 class MotorController : public Slave {
 public:
-	static MotorController &getInstance() {
-		static MotorController motorController;
+  static MotorController &getInstance() {
+    static MotorController motorController;
 
-		return motorController;
-	}
+    return motorController;
+  }
 
-	void run() override;
+  void run() override;
 protected:
-	unsigned int getPriority() const override;
+  unsigned int getPriority() const override;
 private:
-	static constexpr unsigned int priority_ = 0;
+  static constexpr unsigned int priority_ = 0;
 
-	MotorController();
-	MotorController(MotorController const &) = delete;
+  MotorController();
+  MotorController(MotorController const &) = delete;
 
-	void operator=(MotorController const &) = delete;
+  void operator=(MotorController const &) = delete;
 };
 }
 
