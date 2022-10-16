@@ -1,16 +1,18 @@
 #include "echo.h"
 
 void revolution::Echo::run() {
-	std::string message;
+	bool status = true;
 
-	while (message != "exit") {
+	while (status) {
 		boost::posix_time::ptime absTime = boost::posix_time::microsec_clock::local_time() + pollingPeriod;
-		message = timedReceive(absTime);
+		Message message = timedReceive(absTime);
 
-		if (!message.empty()) {
-			std::cout << "Echoing message: " << message << std::endl;
-			send(message, "client");  // TODO: DO NOT HARD-CODE
+		if (!message.getContent().empty()) {
+			std::cout << "Echoing message from " << message.getSenderName() << ": " << message.getContent() << std::endl;
+			send(message.getContent(), "client");  // TODO: DO NOT HARD-CODE
 		}
+
+		status = message.getContent() != "exit";
 	}
 }
 

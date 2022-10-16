@@ -26,10 +26,10 @@ revolution::Client::Client() : App{"client"} {}  // TODO: DO NOT HARD-CODE
 void revolution::Client::helpRun() {
 	while (!exit_.load()) {
 		boost::posix_time::ptime absTime = boost::posix_time::microsec_clock::local_time() + pollingPeriod;
-		std::string message = timedReceive(absTime);
+		revolution::Message message = timedReceive(absTime);
 
-		if (!message.empty())
-			std::cout << message << std::endl;
+		if (!message.getContent().empty())
+			std::cout << message.getContent() << std::endl;
 	}
 }
 

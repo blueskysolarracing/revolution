@@ -2,6 +2,28 @@
 
 #include "app.h"
 
+revolution::Message revolution::Message::deserialize(const std::string &rawMessage) {
+	std::size_t index = rawMessage.find('\0');
+	std::string senderName = rawMessage.substr(0, index),
+		content = rawMessage.substr(index + 1);
+
+	return Message{senderName, content};
+}
+
+revolution::Message::Message(const std::string &senderName, const std::string &content) : senderName_{senderName}, content_{content} {}
+
+const std::string &revolution::Message::getSenderName() const {
+	return senderName_;
+}
+
+const std::string &revolution::Message::getContent() const {
+	return content_;
+}
+
+std::string revolution::Message::serialize() const {
+	return getSenderName() + '\0' + getContent();
+}
+
 revolution::App::App(const std::string &name) : name_{name} {
 	std::cout << "Starting " << getName() << "..." << std::endl;
 }
@@ -16,65 +38,68 @@ const std::string &revolution::App::getName() const {
 	return name_;
 }
 
-std::string revolution::App::receive() const {
+revolution::Message revolution::App::receive() const {
 	return helpReceive([this] (boost::interprocess::message_queue &messageQueue) {
-		std::string message;
+		std::string rawMessage;
 		boost::interprocess::message_queue::size_type receivedSize = 0;
 		unsigned int priority;
 
-		message.resize(maxMessageSize_);
+		rawMessage.resize(maxMessageSize_);
 		messageQueue.receive(
-			message.data(),
-			message.size(),
+			rawMessage.data(),
+			rawMessage.size(),
 			receivedSize,
 			priority
 		);
-		message.resize(receivedSize);
+		rawMessage.resize(receivedSize);
 
-		return message;
+		return rawMessage;
 	});
 }
 
-std::string revolution::App::tryReceive() const {
+revolution::Message revolution::App::tryReceive() const {
 	return helpReceive([this] (boost::interprocess::message_queue &messageQueue) {
-		std::string message;
+		std::string rawMessage;
 		boost::interprocess::message_queue::size_type receivedSize = 0;
 		unsigned int priority;
 
-		message.resize(maxMessageSize_);
+		rawMessage.resize(maxMessageSize_);
 		messageQueue.try_receive(
-			message.data(),
-			message.size(),
+			rawMessage.data(),
+			rawMessage.size(),
 			receivedSize,
 			priority
 		);
-		message.resize(receivedSize);
+		rawMessage.resize(receivedSize);
 
-		return message;
+		return rawMessage;
 	});
 }
 
-std::string revolution::App::timedReceive(const boost::posix_time::ptime &absTime) const {
+revolution::Message revolution::App::timedReceive(const boost::posix_time::ptime &absTime) const {
 	return helpReceive([this, &absTime] (boost::interprocess::message_queue &messageQueue) {
-		std::string message;
+		std::string rawMessage;
 		boost::interprocess::message_queue::size_type receivedSize = 0;
 		unsigned int priority;
 
-		message.resize(maxMessageSize_);
+		rawMessage.resize(maxMessageSize_);
 		messageQueue.timed_receive(
-			message.data(),
-			message.size(),
+			rawMessage.data(),
+			rawMessage.size(),
 			receivedSize,
 			priority,
 			absTime
 		);
-		message.resize(receivedSize);
+		rawMessage.resize(receivedSize);
 
-		return message;
+		return rawMessage;
 	});
 }
 
-void revolution::App::send(const std::string &message, const std::string &recipientName) const {
+void revolution::App::send(const std::string &content, const std::string &recipientName) const {
+	Message message{getName(), content};
+	std::string rawMessage = message.serialize();
+
 	BOOST_TRY {
 		boost::interprocess::message_queue messageQueue(
 			boost::interprocess::open_or_create,
@@ -82,14 +107,14 @@ void revolution::App::send(const std::string &message, const std::string &recipi
 			maxMessageCount_,
 			maxMessageSize_
 		);
-		messageQueue.send(message.data(), message.size(), getPriority());
+		messageQueue.send(rawMessage.data(), rawMessage.size(), getPriority());
 	} BOOST_CATCH (boost::interprocess::interprocess_exception &exception) {
 		std::cout << "ERROR: " << exception.what() << std::endl;
 	} BOOST_CATCH_END
 }
 
-std::string revolution::App::helpReceive(std::function<std::string(boost::interprocess::message_queue &)> receiver) const {
-	std::string message;
+revolution::Message revolution::App::helpReceive(std::function<std::string(boost::interprocess::message_queue &)> receiver) const {
+	std::string rawMessage;
 
 	BOOST_TRY {
 		boost::interprocess::message_queue messageQueue(
@@ -98,10 +123,10 @@ std::string revolution::App::helpReceive(std::function<std::string(boost::interp
 			maxMessageCount_,
 			maxMessageSize_
 		);
-		message = receiver(messageQueue);
+		rawMessage = receiver(messageQueue);
 	} BOOST_CATCH (boost::interprocess::interprocess_exception &exception) {
 		std::cout << "ERROR: " << exception.what() << std::endl;
 	} BOOST_CATCH_END
 
-	return message;
+	return Message::deserialize(rawMessage);
 }
