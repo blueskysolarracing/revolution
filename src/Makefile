@@ -3,7 +3,7 @@
 CXXFLAGS=-std=gnu++2a
 
 SYNCER_NAME=syncer
-SYNCER_OBJECTS=app.o
+SYNCER_OBJECTS=app.o commands.o
 
 DISPLAY_DRIVER_NAME=display_driver
 DISPLAY_DRIVER_OBJECTS=app.o slave.o
