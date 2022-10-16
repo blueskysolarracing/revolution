@@ -10,7 +10,7 @@
 namespace revolution {
 class App {
 public:
-	App(std::string name);
+	App(const std::string &name);
 	~App();
 
 	virtual void run() = 0;

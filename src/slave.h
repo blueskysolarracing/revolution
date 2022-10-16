@@ -6,10 +6,10 @@
 namespace revolution {
 class Slave : public App {
 public:
-	Slave(std::string name);
+	Slave(const std::string &name);
 	~Slave();
 protected:
-	void sendMaster(std::string message) const;
+	void sendMaster(const std::string &message) const;
 };
 }
 

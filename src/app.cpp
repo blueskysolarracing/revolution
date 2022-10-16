@@ -2,7 +2,7 @@
 
 #include "app.h"
 
-revolution::App::App(std::string name) : name_{name} {
+revolution::App::App(const std::string &name) : name_{name} {
 	std::cout << "Starting " << getName() << "..." << std::endl;
 }
 
