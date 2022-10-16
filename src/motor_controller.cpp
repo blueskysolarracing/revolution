@@ -3,7 +3,7 @@
 void revolution::MotorController::run() {  // TODO: ADD PROGRAM LOGIC
 }
 
-unsigned int revolution::MotorController::getPriority() {
+unsigned int revolution::MotorController::getPriority() const {
 	return priority_;
 }
 

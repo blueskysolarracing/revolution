@@ -3,7 +3,7 @@
 void revolution::DisplayDriver::run() {  // TODO: ADD PROGRAM LOGIC
 }
 
-unsigned int revolution::DisplayDriver::getPriority() {
+unsigned int revolution::DisplayDriver::getPriority() const {
 	return priority_;
 }
 

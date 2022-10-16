@@ -9,7 +9,7 @@ public:
 	Slave(std::string name);
 	~Slave();
 protected:
-	void sendMaster(std::string message);
+	void sendMaster(std::string message) const;
 };
 }
 

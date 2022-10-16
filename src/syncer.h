@@ -14,7 +14,7 @@ public:
 
 	void run() override;
 protected:
-	unsigned int getPriority() override;
+	unsigned int getPriority() const override;
 private:
 	static constexpr unsigned int priority_ = 0;
 

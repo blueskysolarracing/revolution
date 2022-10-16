@@ -12,12 +12,12 @@ revolution::App::~App() {
 	std::cout << "Exiting " << getName() << "..." << std::endl;
 }
 
-std::string revolution::App::getName() {
+const std::string &revolution::App::getName() const {
 	return name_;
 }
 
-std::string revolution::App::receive() {
-	return helpReceive([this] (boost::interprocess::message_queue &messageQueue) -> std::string {
+std::string revolution::App::receive() const {
+	return helpReceive([this] (boost::interprocess::message_queue &messageQueue) {
 		std::string message;
 		boost::interprocess::message_queue::size_type receivedSize = 0;
 		unsigned int priority;
@@ -35,8 +35,8 @@ std::string revolution::App::receive() {
 	});
 }
 
-std::string revolution::App::tryReceive() {
-	return helpReceive([this] (boost::interprocess::message_queue &messageQueue) -> std::string {
+std::string revolution::App::tryReceive() const {
+	return helpReceive([this] (boost::interprocess::message_queue &messageQueue) {
 		std::string message;
 		boost::interprocess::message_queue::size_type receivedSize = 0;
 		unsigned int priority;
@@ -54,8 +54,8 @@ std::string revolution::App::tryReceive() {
 	});
 }
 
-std::string revolution::App::timedReceive(const boost::posix_time::ptime &absTime) {
-	return helpReceive([this, &absTime] (boost::interprocess::message_queue &messageQueue) -> std::string {
+std::string revolution::App::timedReceive(const boost::posix_time::ptime &absTime) const {
+	return helpReceive([this, &absTime] (boost::interprocess::message_queue &messageQueue) {
 		std::string message;
 		boost::interprocess::message_queue::size_type receivedSize = 0;
 		unsigned int priority;
@@ -74,7 +74,7 @@ std::string revolution::App::timedReceive(const boost::posix_time::ptime &absTim
 	});
 }
 
-void revolution::App::send(const std::string &message, const std::string &recipientName) {
+void revolution::App::send(const std::string &message, const std::string &recipientName) const {
 	BOOST_TRY {
 		boost::interprocess::message_queue messageQueue(
 			boost::interprocess::open_or_create,
@@ -88,7 +88,7 @@ void revolution::App::send(const std::string &message, const std::string &recipi
 	} BOOST_CATCH_END
 }
 
-std::string revolution::App::helpReceive(std::function<std::string(boost::interprocess::message_queue &)> receiver) {
+std::string revolution::App::helpReceive(std::function<std::string(boost::interprocess::message_queue &)> receiver) const {
 	std::string message;
 
 	BOOST_TRY {

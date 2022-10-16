@@ -3,7 +3,7 @@
 void revolution::Syncer::run() {  // TODO: ADD PROGRAM LOGIC
 }
 
-unsigned int revolution::Syncer::getPriority() {
+unsigned int revolution::Syncer::getPriority() const {
 	return priority_;
 }
 

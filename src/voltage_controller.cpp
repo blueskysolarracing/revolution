@@ -3,7 +3,7 @@
 void revolution::VoltageController::run() {  // TODO: ADD PROGRAM LOGIC
 }
 
-unsigned int revolution::VoltageController::getPriority() {
+unsigned int revolution::VoltageController::getPriority() const {
 	return priority_;
 }
 

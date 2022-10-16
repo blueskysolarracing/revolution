@@ -16,7 +16,7 @@ public:
 
 	void run() override;
 protected:
-	unsigned int getPriority() override;
+	unsigned int getPriority() const override;
 private:
 	static constexpr unsigned int priority_ = 0;
 	static constexpr boost::posix_time::time_duration pollingPeriod = boost::posix_time::milliseconds(100);

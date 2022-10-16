@@ -3,7 +3,7 @@
 void revolution::MiscController::run() {  // TODO: ADD PROGRAM LOGIC
 }
 
-unsigned int revolution::MiscController::getPriority() {
+unsigned int revolution::MiscController::getPriority() const {
 	return priority_;
 }
 

@@ -17,7 +17,7 @@ void revolution::Client::run() {
 	thread.join();
 }
 
-unsigned int revolution::Client::getPriority() {
+unsigned int revolution::Client::getPriority() const {
 	return priority_;
 }
 

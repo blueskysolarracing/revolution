@@ -3,7 +3,7 @@
 void revolution::Telemeter::run() {  // TODO: ADD PROGRAM LOGIC
 }
 
-unsigned int revolution::Telemeter::getPriority() {
+unsigned int revolution::Telemeter::getPriority() const {
 	return priority_;
 }
 

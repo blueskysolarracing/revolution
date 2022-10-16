@@ -1,10 +1,11 @@
 #ifndef REVOLUTION_APP_H_
 #define REVOLUTION_APP_H_
 
-#include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/interprocess/ipc/message_queue.hpp>
 #include <functional>
 #include <string>
+
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/interprocess/ipc/message_queue.hpp>
 
 namespace revolution {
 class App {
@@ -14,18 +15,18 @@ public:
 
 	virtual void run() = 0;
 protected:
-	std::string getName();
-	virtual unsigned int getPriority() = 0;
+	const std::string &getName() const;
+	virtual unsigned int getPriority() const = 0;
 
-	std::string receive();
-	std::string tryReceive();
-	std::string timedReceive(const boost::posix_time::ptime &absTime);
+	std::string receive() const;
+	std::string tryReceive() const;
+	std::string timedReceive(const boost::posix_time::ptime &absTime) const;
 
-	void send(const std::string &message, const std::string &recipientName);
+	void send(const std::string &message, const std::string &recipientName) const;
 private:
 	static constexpr std::size_t maxMessageCount_ = 1000, maxMessageSize_ = 1000;
 
-	std::string helpReceive(std::function<std::string(boost::interprocess::message_queue &)> receiver);
+	std::string helpReceive(std::function<std::string(boost::interprocess::message_queue &)> receiver) const;
 
 	std::string name_;
 };

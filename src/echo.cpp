@@ -14,7 +14,7 @@ void revolution::Echo::run() {
 	}
 }
 
-unsigned int revolution::Echo::getPriority() {
+unsigned int revolution::Echo::getPriority() const {
 	return priority_;
 }
 

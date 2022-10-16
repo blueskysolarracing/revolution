@@ -3,7 +3,7 @@
 void revolution::PowerSensor::run() {  // TODO: ADD PROGRAM LOGIC
 }
 
-unsigned int revolution::PowerSensor::getPriority() {
+unsigned int revolution::PowerSensor::getPriority() const {
 	return priority_;
 }
 
