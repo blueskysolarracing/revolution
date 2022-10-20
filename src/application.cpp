@@ -1,6 +1,6 @@
 #include "application.h"
 
-namespace revolution {
+namespace Revolution {
 Application::Application(const std::string &name)
     : name_{name}, messageQueue_{name} {
   getLogger(LogLevel::INFO) << "Starting " << getName() << "..." << std::endl;

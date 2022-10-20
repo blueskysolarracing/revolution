@@ -1,10 +1,10 @@
 #ifndef REVOLUTION_APPLICATION_H
 #define REVOLUTION_APPLICATION_H
 
-#include "message_queue.h"
 #include "logger.h"
+#include "messenger.h"
 
-namespace revolution {
+namespace Revolution {
 class Application {
 public:
   explicit Application(const std::string &name);

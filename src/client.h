@@ -1,11 +1,9 @@
 #ifndef REVOLUTION_CLIENT_H
 #define REVOLUTION_CLIENT_H
 
-#include <atomic>
-
 #include "application.h"
 
-namespace revolution {
+namespace Revolution {
 class Client : public Application {
 public:
   explicit Client(const std::string &name, const std::string &recipientName);

@@ -3,7 +3,7 @@
 
 #include "client.h"
 
-namespace revolution {
+namespace Revolution {
 Client::Client(const std::string &name, const std::string &recipientName)
 	: Application{name}, recipientName_{recipientName} {
 }
