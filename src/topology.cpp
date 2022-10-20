@@ -1,11 +1,11 @@
 #include "topology.h"
 
 namespace revolution {
-const revolution::Topology::Instance Topology::master {
+Instance Topology::master {
 	"syncer"
 };
 
-const std::vector<revolution::Topology::Instance> Topology::slaves {
+std::vector<Instance> Topology::slaves {
 	{
 		"display_driver"
 	},

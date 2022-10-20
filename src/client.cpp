@@ -1,4 +1,5 @@
 #include <thread>
+#include <sstream>
 
 #include "client.h"
 
@@ -13,20 +14,41 @@ const std::string &Client::getRecipientName() const {
 
 void Client::run() {
   std::thread thread(&Client::helpRun, this);
-  std::string typeName;
+  std::string line;
 
-  for (;;) {
-    getline(std::cin, typeName);
+  while (std::getline(std::cin, line)) {
+    if (line.empty())
+	    continue;
 
-    getMessageQueue().send(getRecipientName(), typeName);
+    std::istringstream iss(line);
+    std::string typeName;
+    std::string argument;
+    std::vector<std::string> arguments;
+
+    iss >> typeName;
+
+    while (std::getline(iss, argument, ' '))
+      if (!argument.empty())
+        arguments.push_back(argument);
+
+    getMessageQueue().send(getRecipientName(), typeName, arguments);
   }
 }
 
 void Client::helpRun() {
   for(;;) {
-    Message message = getMessageQueue().receive();
+    auto message = getMessageQueue().receive();
+    auto &logger = getLogger(LogLevel::INFO);
 
-    getLogger(LogLevel::INFO) << message.getTypeName() << std::endl;
+    logger << message.getSenderName()
+	    << ": " << message.getTypeName() << '(';
+
+    auto arguments = message.getArguments();
+    
+    for (auto &argument : arguments)
+	    logger << argument << ", ";
+
+    logger << ')' << std::endl;
   }
 }
 }

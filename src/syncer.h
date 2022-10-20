@@ -7,28 +7,21 @@
 #include "topology.h"
 
 namespace revolution {
-class Syncer : public App {
+class Commands;
+class Syncer : public Application {
 public:
   Syncer();
 
   void run() override;
-protected:
-  unsigned int getPriority() const override;
 private:
-  static constexpr unsigned int priority_ = 0;
-  static const std::vector<std::string> slaveNames_;
-  static constexpr boost::posix_time::time_duration pollingPeriod = boost::posix_time::milliseconds(100);
+  void broadcast(const std::string &typeName, const std::vector<std::string> &arguments = {});
+  void broadcastState();
+  void sendState(const std::string &slaveName);
 
-  Syncer();
-  Syncer(Syncer const &) = delete;
+  std::unordered_map<std::string, std::string> state_;
+  bool exit_;
 
-  void operator=(Syncer const &) = delete;
-
-  const std::vector<std::string> &getSlaveNames();
-  void resetSlaves();
-  void sendSlaves(const std::string &message);
-
-  boost::json::value state;
+  friend Commands;
 };
 
 class Commands {
@@ -37,7 +30,7 @@ public:
     Syncer &syncer,
     const std::string &senderName,
     const std::string &commandName,
-    const boost::json::value &arguments
+    const std::vector<std::string> &arguments
   );
 private:
   static std::unordered_map<
@@ -46,7 +39,7 @@ private:
       void(
         Syncer &syncer,
         const std::string &senderName,
-        const boost::json::value &arguments
+        const std::vector<std::string> &arguments
       )
     >
   > commands_;
@@ -54,22 +47,20 @@ private:
   static void get(
     Syncer &syncer,
     const std::string &senderName,
-    const boost::json::value &arguments
+    const std::vector<std::string> &arguments
   );
 
   static void set(
     Syncer &syncer,
     const std::string &senderName,
-    const boost::json::value &arguments
+    const std::vector<std::string> &arguments
   );
 
-  static void update(
+  static void exit(
     Syncer &syncer,
     const std::string &senderName,
-    const boost::json::value &arguments
+    const std::vector<std::string> &arguments
   );
-
-  friend Syncer;
 };
 }
 
