@@ -1,40 +1,40 @@
-#include <iostream>
 #include <thread>
 
 #include "client.h"
 
-void revolution::Client::run() {
-  std::thread thread(&revolution::Client::helpRun, this);
-  std::string message;
-
-  while (message != "exit") {
-    getline(std::cin, message);
-
-    send(message, "echo");  // TODO: DO NOT HARD-CODE
-  }
-
-  exit_.store(true);
-  thread.join();
+namespace revolution {
+Client::Client(const std::string &name, const std::string &recipientName)
+	: Application{name}, recipientName_{recipientName} {
 }
 
-unsigned int revolution::Client::getPriority() const {
-  return priority_;
+const std::string &Client::getRecipientName() const {
+	return recipientName_;
 }
 
-revolution::Client::Client() : App{"client"} {}  // TODO: DO NOT HARD-CODE
+void Client::run() {
+  std::thread thread(&Client::helpRun, this);
+  std::string typeName;
 
-void revolution::Client::helpRun() {
-  while (!exit_.load()) {
-    boost::posix_time::ptime absTime = boost::posix_time::microsec_clock::local_time() + pollingPeriod;
-    revolution::Message message = timedReceive(absTime);
+  for (;;) {
+    getline(std::cin, typeName);
 
-    if (!message.getContent().empty())
-      std::cout << message.getContent() << std::endl;
+    getMessageQueue().send(getRecipientName(), typeName);
   }
 }
 
-int main() {
-  revolution::Client &client = revolution::Client::getInstance();
+void Client::helpRun() {
+  for(;;) {
+    Message message = getMessageQueue().receive();
+
+    getLogger(LogLevel::INFO) << message.getTypeName() << std::endl;
+  }
+}
+}
+
+int main(int argc, char *argv[]) {
+  if (argc != 3) {std::cout << "invalid arg count" << std::endl; return 0; }
+  std::string name(argv[1]), recipientName(argv[2]);
+  revolution::Client client{name, recipientName};
 
   client.run();
 

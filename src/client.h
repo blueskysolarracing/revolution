@@ -3,32 +3,20 @@
 
 #include <atomic>
 
-#include "app.h"
+#include "application.h"
 
 namespace revolution {
-class Client : public App {
+class Client : public Application {
 public:
-  static Client &getInstance() {
-    static Client client;
+  explicit Client(const std::string &name, const std::string &recipientName);
 
-    return client;
-  }
+  const std::string &getRecipientName() const;
 
   void run() override;
-protected:
-  unsigned int getPriority() const override;
 private:
-  static constexpr unsigned int priority_ = 0;
-  static constexpr boost::posix_time::time_duration pollingPeriod = boost::posix_time::milliseconds(100);
-
-  Client();
-  Client(Client const &) = delete;
-
-  void operator=(Client const &) = delete;
-
   void helpRun();
 
-  std::atomic_bool exit_;
+  std::string recipientName_;
 };
 }
 
