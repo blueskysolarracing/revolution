@@ -1,6 +1,3 @@
-#include <iomanip>
-#include <ranges>
-
 #include "application.h"
 
 namespace revolution {
