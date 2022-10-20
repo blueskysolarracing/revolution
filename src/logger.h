@@ -1,5 +1,5 @@
-#ifndef REVOLUTION_LOGGER_H_
-#define REVOLUTION_LOGGER_H_
+#ifndef REVOLUTION_LOGGER_H
+#define REVOLUTION_LOGGER_H
 
 #include <iostream>
 
@@ -16,4 +16,4 @@ enum class LogLevel {
 typedef std::ostream Logger;
 }
 
-#endif  // REVOLUTION_LOGGER_H_
+#endif  // REVOLUTION_LOGGER_H

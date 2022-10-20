@@ -1,5 +1,5 @@
-#ifndef REVOLUTION_CLIENT_H_
-#define REVOLUTION_CLIENT_H_
+#ifndef REVOLUTION_CLIENT_H
+#define REVOLUTION_CLIENT_H
 
 #include <atomic>
 
@@ -20,4 +20,4 @@ private:
 };
 }
 
-#endif  // REVOLUTION_CLIENT_H_
+#endif  // REVOLUTION_CLIENT_H

@@ -1,5 +1,5 @@
-#ifndef REVOLUTION_TOPOLOGY_H_
-#define REVOLUTION_TOPOLOGY_H_
+#ifndef REVOLUTION_TOPOLOGY_H
+#define REVOLUTION_TOPOLOGY_H
 
 #include <iostream>
 #include <vector>
@@ -30,4 +30,4 @@ struct Topology {
 };
 }
 
-#endif  // REVOLUTION_TOPOLOGY_H_
+#endif  // REVOLUTION_TOPOLOGY_H

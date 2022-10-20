@@ -1,5 +1,5 @@
-#ifndef REVOLUTION_APPLICATION_H_
-#define REVOLUTION_APPLICATION_H_
+#ifndef REVOLUTION_APPLICATION_H
+#define REVOLUTION_APPLICATION_H
 
 #include "message_queue.h"
 #include "logger.h"
@@ -21,4 +21,4 @@ private:
 };
 }
 
-#endif  // REVOLUTION_APPLICATION_H_
+#endif  // REVOLUTION_APPLICATION_H

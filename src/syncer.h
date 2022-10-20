@@ -1,5 +1,5 @@
-#ifndef REVOLUTION_SYNCER_H_
-#define REVOLUTION_SYNCER_H_
+#ifndef REVOLUTION_SYNCER_H
+#define REVOLUTION_SYNCER_H
 
 #include <unordered_map>
 
@@ -64,4 +64,4 @@ private:
 };
 }
 
-#endif  // REVOLUTION_SYNCER_H_
+#endif  // REVOLUTION_SYNCER_H

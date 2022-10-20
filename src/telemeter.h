@@ -1,5 +1,5 @@
-#ifndef REVOLUTION_TELEMETER_H_
-#define REVOLUTION_TELEMETER_H_
+#ifndef REVOLUTION_TELEMETER_H
+#define REVOLUTION_TELEMETER_H
 
 #include "slave.h"
 
@@ -25,4 +25,4 @@ private:
 };
 }
 
-#endif  // REVOLUTION_TELEMETER_H_
+#endif  // REVOLUTION_TELEMETER_H

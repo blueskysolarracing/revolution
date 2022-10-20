@@ -1,5 +1,5 @@
-#ifndef REVOLUTION_SLAVE_H_
-#define REVOLUTION_SLAVE_H_
+#ifndef REVOLUTION_SLAVE_H
+#define REVOLUTION_SLAVE_H
 
 #include "app.h"
 
@@ -13,4 +13,4 @@ protected:
 };
 }
 
-#endif  // REVOLUTION_SLAVE_H_
+#endif  // REVOLUTION_SLAVE_H

@@ -1,5 +1,5 @@
-#ifndef REVOLUTION_POWER_SENSOR_H_
-#define REVOLUTION_POWER_SENSOR_H_
+#ifndef REVOLUTION_POWER_SENSOR_H
+#define REVOLUTION_POWER_SENSOR_H
 
 #include "slave.h"
 
@@ -25,4 +25,4 @@ private:
 };
 }
 
-#endif  // REVOLUTION_POWER_SENSOR_H_
+#endif  // REVOLUTION_POWER_SENSOR_H

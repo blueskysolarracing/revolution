@@ -1,5 +1,5 @@
-#ifndef REVOLUTION_MESSAGE_QUEUE_H_
-#define REVOLUTION_MESSAGE_QUEUE_H_
+#ifndef REVOLUTION_MESSAGE_QUEUE_H
+#define REVOLUTION_MESSAGE_QUEUE_H
 
 #include <chrono>
 #include <functional>
@@ -94,4 +94,4 @@ private:
 };
 }
 
-#endif  // REVOLUTION_MESSAGE_QUEUE_H_
+#endif  // REVOLUTION_MESSAGE_QUEUE_H
