@@ -33,10 +33,9 @@
 
 /src/syncer
 /src/display_driver
-/src/misc_controller
+/src/miscellanious_controller
 /src/motor_controller
 /src/power_sensor
 /src/telemeter
 /src/voltage_controller
 /src/client
-/src/echo
