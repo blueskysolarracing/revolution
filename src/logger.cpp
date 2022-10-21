@@ -34,7 +34,7 @@ namespace Revolution {
 			fstream.open(log_filename, std::fstream::out);
 
 			if (fstream.fail()) {
-				log(Log_level::error, "Failed to open log file. Using stdout instead.");
+				log(Log_level::error, "Cannot open log file. Using stdout instead.");
 			}
 		}
 	}
@@ -45,7 +45,7 @@ namespace Revolution {
 			fstream.close();
 
 			if (fstream.fail()) {
-				log(Log_level::error, "Failed to close log file.");
+				log(Log_level::error, "Cannot close log file.");
 			}
 		}
 	}
