@@ -25,7 +25,7 @@ namespace Revolution {
 
 	class Logger {
 	public:
-		Logger(const Log_level &log_level, const std::string &log_filename = "");
+		explicit Logger(const Log_level &log_level, const std::string &log_filename = "");
 		~Logger();
 
 		const Log_level &get_log_level() const;

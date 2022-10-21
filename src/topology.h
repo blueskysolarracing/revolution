@@ -8,7 +8,7 @@
 namespace Revolution {
 	class Instance {
 	public:
-		Instance(
+		explicit Instance(
 			const std::string &name,
 			const unsigned int &priority,
 			const Log_level &log_level,
