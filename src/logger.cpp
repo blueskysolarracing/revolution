@@ -27,11 +27,11 @@ namespace Revolution {
 	{
 	}
 
-	Logger::Logger(const Log_level &log_level, const std::string &filename)
+	Logger::Logger(const Log_level &log_level, const std::string &log_filename)
 		: log_level{log_level}, fstream{}
 	{
-		if (!filename.empty()) {
-			fstream.open(filename, std::fstream::out);
+		if (!log_filename.empty()) {
+			fstream.open(log_filename, std::fstream::out);
 
 			if (fstream.fail()) {
 				log(Log_level::error, "Failed to open log file. Using stdout instead.");
