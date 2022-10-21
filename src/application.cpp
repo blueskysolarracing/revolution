@@ -1,24 +1,38 @@
 #include "application.h"
 
 namespace Revolution {
-Application::Application(const std::string &name)
-    : name_{name}, messageQueue_{name} {
-  getLogger(LogLevel::INFO) << "Starting " << getName() << "..." << std::endl;
-}
+	Application::Application(const Instance &instance)
+		: instance{instance},
+		  logger{instance.get_log_level(), instance.get_log_filename()},
+		  messenger{instance.get_name(), instance.get_priority(), logger}
+	{
+		get_logger().log(Log_level::info, "Starting " + get_instance().get_name() + "...");
+	}
 
-Application::~Application() {
-  getLogger(LogLevel::INFO) << "Exiting " << getName() << "..." << std::endl;
-}
+	Application::~Application() {
+		get_logger().log(Log_level::info, "Exiting " + get_instance().get_name() + "...");
+	}
 
-Logger &Application::getLogger(LogLevel logLevel) const {
-  return std::cout;  // TODO: CHECK LOG LEVEL
-}
+	void Application::run() {
+		try {
+		} catch (std::exception &exception) {
+			get_logger().log(Log_level::fatal, exception.what());
+			throw exception;
+		}
+	}
 
-const std::string &Application::getName() const {
-  return name_;
-}
+	const Instance &Application::get_instance() const
+	{
+		return instance;
+	}
 
-MessageQueue &Application::getMessageQueue() {
-  return messageQueue_;
-}
+	Logger &Application::get_logger()
+	{
+		return logger;
+	}
+
+	Messenger &Application::get_messenger()
+	{
+		return messenger;
+	}
 }
