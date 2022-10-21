@@ -9,84 +9,91 @@
 
 #include <mqueue.h>
 
+#include "logger.h"
+
 namespace Revolution {
-class Message {
-public:
-	static Message deserialize(const std::string &raw_message);
+	class Message {
+	public:
+		static Message deserialize(const std::string &raw_message);
 
-	explicit Message(
-		const std::string &sender_name,
-		const std::string &header_name,
-		const std::vector<std::string> &arguments = {}
-	);
+		explicit Message(
+			const std::string &sender_name,
+			const std::string &header_name,
+			const std::vector<std::string> &data = {}
+		);
 
-	const std::string &get_sender_name() const;
-	const std::string &get_header_name() const;
-	const std::vector<std::string> &get_arguments() const;
+		const std::string &get_sender_name() const;
+		const std::string &get_header_name() const;
+		const std::vector<std::string> &get_data() const;
 
-	std::string serialize() const;
-private:
-	const std::string sender_name;
-	const std::string header_name;
-	const std::vector<std::string> arguments;
-};
+		std::string serialize() const;
+	private:
+		const std::string sender_name;
+		const std::string header_name;
+		const std::vector<std::string> data;
+	};
 
-class Messenger {
-public:
-	explicit MessageQueue(const std::string &name);
-	~MessageQueue();
+	class Messenger {
+	public:
+		explicit Messenger(
+			const std::string &name,
+			const unsigned int &priority,
+			Logger &logger
+		);
+		~Messenger();
 
-	Message receive() ;
-	std::optional<Message> timedReceive(
-		const std::chrono::system_clock::time_point &timeout
-	);
+		const std::string &get_name() const;
+		const unsigned int &get_priority() const;
 
-	void send(
-		const std::string &recipientName,
-		const std::string &typeName,
-		const std::vector<std::string> &arguments = {}
-	);
-	bool timedSend(
-		const std::chrono::system_clock::time_point &timeout,
-		const std::string &recipientName,
-		const std::string &typeName,
-		const std::vector<std::string> &arguments = {}
-	);
-private:
-	static const std::string namePrefix_;
-	static const std::size_t maxMessageCount_, maxMessageSize_;
-	static const int flags_, mode_;
-	static const std::chrono::system_clock::duration defaultMessageTimeout_;
-	static const unsigned int priority_;
+		Message receive();
+		std::optional<Message> receive(
+			const std::chrono::system_clock::time_point &timeout
+		);
 
-	static const std::string &getNamePrefix();
-	static const std::size_t &getMaxMessageCount();
-	static const std::size_t &getMaxMessageSize();
-	static const int getFlags();
-	static const int getMode();
-	static std::chrono::system_clock::time_point getDefaultMessageTimeout();
-	static const unsigned int &getPriority();
+		void send(
+			const std::string &recipient_name,
+			const std::string &header_name,
+			const std::vector<std::string> &data = {}
+		);
+		bool send(
+			const std::chrono::system_clock::time_point &timeout,
+			const std::string &recipient_name,
+			const std::string &header_name,
+			const std::vector<std::string> &data = {}
+		);
+	private:
+		static const std::string name_prefix;
+		static const int oflags;
+		static const mode_t mode;
 
-	const std::string &getName();
-	std::string getFullName();
-	mqd_t &getDescriptor(const std::string &name);
-	mq_attr &getAttributes(const std::string &name);
+		static const std::string &get_name_prefix();
+		static const int &get_oflags();
+		static const mode_t &get_mode();
 
-	std::optional<Message> helpReceive(
-		std::function<ssize_t(mqd_t &, std::string &, unsigned int &)> receiver
-	);
+		static std::string get_full_name(const std::string &name);
 
-	bool helpSend(
-		const std::string &recipientName,
-		const std::string &typeName,
-		const std::vector<std::string> &arguments,
-		std::function<int(mqd_t &, const std::string &, unsigned int)> sender
-	);
+		Logger &get_logger();
+		std::unordered_map<std::string, mqd_t> &get_descriptors();
 
-	const std::string name_;
-	std::unordered_map<std::string, mqd_t> descriptors_;
-	std::unordered_map<std::string, mq_attr> attributes_;
-};
+		std::string get_full_name();
+		mqd_t &get_descriptor(const std::string &name);
+
+		std::optional<Message> receive(
+			std::function<ssize_t(mqd_t &, std::string &, unsigned int &)> receiver
+		);
+
+		bool send(
+			const std::string &recipient_name,
+			const std::string &header_name,
+			const std::vector<std::string> &data,
+			std::function<int(mqd_t &, const std::string &, const unsigned int &)> sender
+		);
+
+		const std::string name;
+		const unsigned int priority;
+		Logger &logger;
+		std::unordered_map<std::string, mqd_t> descriptors;
+	};
 }
 
 #endif	// REVOLUTION_MESSENGER_H
