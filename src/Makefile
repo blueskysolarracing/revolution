@@ -1,6 +1,6 @@
 # Revolution Makefile
 
-CXXFLAGS=-std=gnu++2a
+CXXFLAGS=-std=c++23
 
 SYNCER_NAME=syncer
 SYNCER_OBJECTS=application.o logger.o message_queue.o topology.o
