@@ -67,7 +67,7 @@ namespace Revolution {
 
 	Messenger::~Messenger()
 	{
-		for (auto &[name, descriptor] : get_descriptors())
+		for (auto &[name, descriptor] : get_descriptors()) {
 			if (mq_close(descriptor) == (mqd_t) - 1)
 				get_logger().log(
 					Log_level::error,
@@ -75,14 +75,18 @@ namespace Revolution {
 					+ " (errno = " + std::to_string(errno) + ")"
 				);
 
-		std::string full_name = get_full_name();
-		
-		if (mq_unlink(full_name.data()) == (mqd_t) - 1)
-			get_logger().log(
-				Log_level::error,
-				"Cannot unlink with message queue descriptor for " + get_name()
-				+ " (errno = " + std::to_string(errno) + ")"
-			);
+			if (name != get_name())
+				continue;
+
+			std::string full_name = get_full_name();
+
+			if (mq_unlink(full_name.data()) == (mqd_t) - 1)
+				get_logger().log(
+					Log_level::error,
+					"Cannot unlink with message queue descriptor for " + get_name()
+					+ " (errno = " + std::to_string(errno) + ")"
+				);
+		}
 	}
 
 	const std::string &Messenger::get_name() const
