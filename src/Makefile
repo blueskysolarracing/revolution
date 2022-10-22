@@ -19,7 +19,7 @@ VOLTAGE_CONTROLLER_NAME=voltage_controller
 VOLTAGE_CONTROLLER_OBJECTS=application.o logger.o messenger.o topology.o
 
 CLIENT_NAME=client
-CLIENT_OBJECTS=application.o logger.o messenger.o
+CLIENT_OBJECTS=application.o logger.o messenger.o topology.o
 
 NAMES=$(SYNCER_NAME) $(DISPLAY_DRIVER_NAME) $(MISCELLANIOUS_CONTROLLER_NAME) \
       $(MOTOR_CONTROLLER_NAME) $(POWER_SENSOR_NAME) $(TELEMETER_NAME) \

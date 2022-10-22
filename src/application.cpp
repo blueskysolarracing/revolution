@@ -13,14 +13,6 @@ namespace Revolution {
 		get_logger().log(Log_level::info, "Exiting " + get_instance().get_name() + "...");
 	}
 
-	void Application::run() {
-		try {
-		} catch (std::exception &exception) {
-			get_logger().log(Log_level::fatal, exception.what());
-			throw exception;
-		}
-	}
-
 	const Instance &Application::get_instance() const
 	{
 		return instance;
