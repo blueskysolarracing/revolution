@@ -8,6 +8,7 @@
 
 namespace revolution {
 class Commands;
+
 class Syncer : public Application {
 public:
   Syncer();
@@ -19,7 +20,7 @@ private:
   void sendState(const std::string &slaveName);
 
   std::unordered_map<std::string, std::string> state_;
-  bool exit_;
+  bool status;
 
   friend Commands;
 };

@@ -1,7 +1,7 @@
 #include "syncer.h"
 
 namespace revolution {
-Syncer::Syncer() : Application{Topology::master.name}, exit_{false} {
+Syncer::Syncer() : Application{topology.syncer}, status{true} {
   std::string temp;
 
   for (const auto& slave: Topology::slaves) {
