@@ -23,8 +23,6 @@ namespace Revolution {
 		if (!log_filename.empty())
 			get_ofstream().open(log_filename, std::ofstream::app);
 
-		set_status(true);
-
 		if (get_ofstream().fail()) {
 			(*this) << Severity::error << "Cannot open log file. Using stdout instead." << std::endl;
 			get_ofstream().clear();
