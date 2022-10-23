@@ -1,19 +1,27 @@
+#include <fcntl.h>
+
 #include "configuration.h"
 
 namespace Revolution {
 	Configuration::Applications::Parameters::Parameters(
-		const std::string& name,
-		const unsigned int& priority,
-		const Logger::Severity& log_severity,
-		const std::string& log_filename,
-		const std::ofstream::openmode& log_open_mode,
+		const Logger::Severity& logger_severity,
+		const std::string& logger_filename,
+		const std::ofstream::openmode& logger_open_mode,
+		const std::string& messenger_name,
+		const int& messenger_oflags,
+		const mode_t& messenger_mode,
+		const unsigned int& messenger_priority,
+		const bool& messenger_unlink_status,
 		const std::string& pid_filename,
 		const std::string& binary_filename
-	) : name{name},
-	    priority{priority},
-	    log_severity{log_severity},
-	    log_filename{log_filename},
-	    log_open_mode{log_open_mode},
+	) : logger_severity{logger_severity},
+	    logger_filename{logger_filename},
+	    logger_open_mode{logger_open_mode},
+	    messenger_name{messenger_name},
+	    messenger_oflags{messenger_oflags},
+	    messenger_mode{messenger_mode},
+	    messenger_priority{messenger_priority},
+	    messenger_unlink_status{messenger_unlink_status},
 	    pid_filename{pid_filename},
 	    binary_filename{binary_filename}
 	{
@@ -52,65 +60,86 @@ namespace Revolution {
 	Configuration::Configuration()
 		: applications{
 			Applications::Parameters{
-				"syncer",
-				0,
 				Logger::info,
 				"./syncer.log",
 				std::ofstream::app,
+				"/revolution_syncer",
+				O_RDWR | O_CREAT,
+				0644,
+				0,
+				true,
 				"./syncer.pid",
 				"./syncer"
 			},
 			Applications::Parameters{
-				"display_driver",
-				0,
 				Logger::info,
 				"./display_driver.log",
 				std::ofstream::app,
+				"/revolution_display_driver",
+				O_RDWR | O_CREAT,
+				0644,
+				0,
+				true,
 				"./display_driver.pid",
 				"./display_driver"
 			},
 			Applications::Parameters{
-				"miscellaneous_controller",
-				0,
 				Logger::info,
 				"./miscellaneous_controller.log",
 				std::ofstream::app,
+				"/revolution_miscellaneous_controller",
+				O_RDWR | O_CREAT,
+				0644,
+				0,
+				true,
 				"./miscellaneous_controller.pid",
 				"./miscellaneous_controller"
 			},
 			Applications::Parameters{
-				"motor_controller",
-				0,
 				Logger::info,
 				"./motor_controller.log",
 				std::ofstream::app,
+				"/revolution_motor_controller",
+				O_RDWR | O_CREAT,
+				0644,
+				0,
+				true,
 				"./motor_controller.pid",
 				"./motor_controller"
 			},
 			Applications::Parameters{
-				"power_sensor",
-				0,
 				Logger::info,
 				"./power_sensor.log",
 				std::ofstream::app,
+				"/revolution_power_sensor",
+				O_RDWR | O_CREAT,
+				0644,
+				0,
+				true,
 				"./power_sensor.pid",
 				"./power_sensor"
 			},
 			Applications::Parameters{
-				"telemeter",
-				0,
 				Logger::info,
 				"./telemeter.log",
 				std::ofstream::app,
+				"/revolution_telemeter",
+				O_RDWR | O_CREAT,
+				0644,
+				0,
+				true,
 				"./telemeter.pid",
 				"./telemeter"
 			},
 			Applications::Parameters{
-				"voltage_controller",
-				0,
 				Logger::info,
 				"./voltage_controller.log",
 				std::ofstream::app,
+				"/revolution_voltage_controller",
+				O_RDWR | O_CREAT,
+				0644,
+				0,
+				true,
 				"./voltage_controller.pid",
 				"./voltage_controller"
 			}

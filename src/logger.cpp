@@ -19,12 +19,12 @@ namespace Revolution {
 
 	Logger::Logger(
 		const Severity& severity,
-		const std::string& log_filename,
+		const std::string& filename,
 		const std::ofstream::openmode& open_mode
 	) : std::ostream{nullptr}, severity{severity}, ofstream{}
 	{
-		if (!log_filename.empty())
-			get_ofstream().open(log_filename, open_mode);
+		if (!filename.empty())
+			get_ofstream().open(filename, open_mode);
 
 		if (get_ofstream().fail()) {
 			(*this) << error << "Cannot open log file. Using stdout instead." << std::endl;

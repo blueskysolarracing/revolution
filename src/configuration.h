@@ -1,6 +1,8 @@
 #ifndef REVOLUTION_TOPOLOGY_H
 #define REVOLUTION_TOPOLOGY_H
 
+#include <sys/stat.h>
+
 #include "logger.h"
 
 namespace Revolution {
@@ -8,20 +10,28 @@ namespace Revolution {
 		struct Applications {
 			struct Parameters {
 				explicit Parameters(
-					const std::string& name,
-					const unsigned int& priority,
-					const Logger::Severity& log_severity,
-					const std::string& log_filename,
-					const std::ofstream::openmode& log_open_mode,
+					const Logger::Severity& logger_severity,
+					const std::string& logger_filename,
+					const std::ofstream::openmode& logger_open_mode,
+					const std::string& messenger_name,
+					const int& messenger_oflags,
+					const mode_t& messenger_mode,
+					const unsigned int& messenger_priority,
+					const bool& messenger_unlink_status,
 					const std::string& pid_filename,
 					const std::string& binary_filename
 				);
 
-				const std::string name;
-				const unsigned int priority;
-				const Logger::Severity log_severity;
-				const std::string log_filename;
-				const std::ofstream::openmode log_open_mode;
+				const Logger::Severity logger_severity;
+				const std::string logger_filename;
+				const std::ofstream::openmode logger_open_mode;
+
+				const std::string messenger_name;
+				const int messenger_oflags;
+				const mode_t messenger_mode;
+				const unsigned int messenger_priority;
+				const bool messenger_unlink_status;
+
 				const std::string pid_filename;
 				const std::string binary_filename;
 			};

@@ -3,23 +3,23 @@
 CXXFLAGS=-std=c++23
 
 SYNCER_NAME=syncer
-SYNCER_OBJECTS=application.o logger.o messenger.o topology.o
+SYNCER_OBJECTS=application.o logger.o messenger.o configuration.o
 
 DISPLAY_DRIVER_NAME=display_driver
-DISPLAY_DRIVER_OBJECTS=application.o logger.o messenger.o topology.o
+DISPLAY_DRIVER_OBJECTS=application.o logger.o messenger.o configuration.o
 MISCELLANIOUS_CONTROLLER_NAME=miscellanious_controller
-MISCELLANIOUS_CONTROLLER_OBJECTS=application.o logger.o messenger.o topology.o
+MISCELLANIOUS_CONTROLLER_OBJECTS=application.o logger.o messenger.o configuration.o
 MOTOR_CONTROLLER_NAME=motor_controller
-MOTOR_CONTROLLER_OBJECTS=application.o logger.o messenger.o topology.o
+MOTOR_CONTROLLER_OBJECTS=application.o logger.o messenger.o configuration.o
 POWER_SENSOR_NAME=power_sensor
-POWER_SENSOR_OBJECTS=application.o logger.o messenger.o topology.o
+POWER_SENSOR_OBJECTS=application.o logger.o messenger.o configuration.o
 TELEMETER_NAME=telemeter
-TELEMETER_OBJECTS=application.o logger.o messenger.o topology.o
+TELEMETER_OBJECTS=application.o logger.o messenger.o configuration.o
 VOLTAGE_CONTROLLER_NAME=voltage_controller
-VOLTAGE_CONTROLLER_OBJECTS=application.o logger.o messenger.o topology.o
+VOLTAGE_CONTROLLER_OBJECTS=application.o logger.o messenger.o configuration.o
 
 CLIENT_NAME=client
-CLIENT_OBJECTS=application.o logger.o messenger.o topology.o
+CLIENT_OBJECTS=application.o logger.o messenger.o configuration.o
 
 NAMES=$(SYNCER_NAME) $(DISPLAY_DRIVER_NAME) $(MISCELLANIOUS_CONTROLLER_NAME) \
       $(MOTOR_CONTROLLER_NAME) $(POWER_SENSOR_NAME) $(TELEMETER_NAME) \

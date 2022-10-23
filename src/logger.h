@@ -23,7 +23,7 @@ namespace Revolution {
 
 		explicit Logger(
 			const Severity& severity,
-			const std::string& log_filename = "",
+			const std::string& filename = "",
 			const std::ofstream::openmode& open_mode = std::ofstream::app
 		);
 		~Logger();
