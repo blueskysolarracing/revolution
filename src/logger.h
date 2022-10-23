@@ -5,37 +5,34 @@
 #include <string>
 
 namespace Revolution {
-	class Log_level {
+	class Logger : public std::ostream {
 	public:
-		static const Log_level trace;
-		static const Log_level debug;
-		static const Log_level info;
-		static const Log_level warning;
-		static const Log_level error;
-		static const Log_level fatal;
+		struct Severity {
+			static const Severity trace;
+			static const Severity debug;
+			static const Severity info;
+			static const Severity warning;
+			static const Severity error;
+			static const Severity fatal;
 
-		const std::string &get_name() const;
-		const unsigned int &get_severity() const;
-	private:
-		explicit Log_level(const std::string &name, const unsigned int &severity);
+			explicit Severity(const std::string& name, const unsigned int& level);
 
-		const std::string name;
-		const unsigned int severity;
-	};
+			const std::string name;
+			const unsigned int level;
+		};
 
-	class Logger {
-	public:
-		explicit Logger(const Log_level &log_level, const std::string &log_filename = "");
+		explicit Logger(const Severity& severity, const std::string& log_filename = "");
 		~Logger();
 
-		const Log_level &get_log_level() const;
-
-		void log(const Log_level& log_level, const std::string &string);
+		Logger& operator<<(const Severity& severity);
 	private:
-		std::ostream &get_ostream();
+		const Severity& get_severity() const;
+		std::ofstream& get_ofstream();
 
-		const Log_level log_level;
-		std::fstream fstream;
+		void set_status(const bool& status);
+
+		const Severity severity;
+		std::ofstream ofstream;
 	};
 }
 

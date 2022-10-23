@@ -5,74 +5,73 @@
 #include "logger.h"
 
 namespace Revolution {
-	const Log_level Log_level::trace("trace", 0);
-	const Log_level Log_level::debug("debug", 1);
-	const Log_level Log_level::info("info", 2);
-	const Log_level Log_level::warning("warning", 3);
-	const Log_level Log_level::error("error", 4);
-	const Log_level Log_level::fatal("fatal", 5);
+	const Logger::Severity Logger::Severity::trace{"trace", 0};
+	const Logger::Severity Logger::Severity::debug{"debug", 1};
+	const Logger::Severity Logger::Severity::info{"info", 2};
+	const Logger::Severity Logger::Severity::warning{"warning", 3};
+	const Logger::Severity Logger::Severity::error{"error", 4};
+	const Logger::Severity Logger::Severity::fatal{"fatal", 5};
 
-	const std::string &Log_level::get_name() const
-	{
-		return name;
-	}
-
-	const unsigned int &Log_level::get_severity() const
-	{
-		return severity;
-	}
-
-	Log_level::Log_level(const std::string &name, const unsigned int &severity)
-		: name{name}, severity{severity}
+	Logger::Severity::Severity(const std::string& name, const unsigned int& level)
+		: name{name}, level{level}
 	{
 	}
 
-	Logger::Logger(const Log_level &log_level, const std::string &log_filename)
-		: log_level{log_level}, fstream{}
+	Logger::Logger(const Severity& severity, const std::string& log_filename)
+		: std::ostream{nullptr}, severity{severity}, ofstream{}
 	{
-		if (!log_filename.empty()) {
-			fstream.open(log_filename, std::fstream::out);
+		if (!log_filename.empty())
+			get_ofstream().open(log_filename, std::ofstream::app);
 
-			if (fstream.fail()) {
-				log(Log_level::error, "Cannot open log file. Using stdout instead.");
-			}
+		set_status(true);
+
+		if (get_ofstream().fail()) {
+			(*this) << Severity::error << "Cannot open log file. Using stdout instead." << std::endl;
+			get_ofstream().clear();
 		}
 	}
 
 	Logger::~Logger()
 	{
-		if (fstream.is_open()) {
-			fstream.close();
+		if (get_ofstream().is_open())
+			get_ofstream().close();
 
-			if (fstream.fail()) {
-				log(Log_level::error, "Cannot close log file.");
-			}
+		if (get_ofstream().fail()) {
+			(*this) << Severity::error << "Cannot close log file." << std::endl;
+			get_ofstream().clear();
 		}
 	}
 
-	const Log_level &Logger::get_log_level() const
+	Logger& Logger::operator<<(const Severity& severity)
 	{
-		return log_level;
-	}
-
-	void Logger::log(const Log_level& log_level, const std::string &string)
-	{
-		if (log_level.get_severity() < get_log_level().get_severity())
-			return;
+		set_status(severity.level >= get_severity().level);
 
 		auto time_point = std::chrono::system_clock::now();
 		auto time = std::chrono::system_clock::to_time_t(time_point);
 
-		get_ostream() << '[' << std::put_time(std::localtime(&time), "%c")
-			<< "] [" << log_level.get_name()
-			<< "]: " << string << std::endl;
+		(*this) << '[' << std::put_time(std::localtime(&time), "%c")
+			<< "] [" << severity.name << "]: ";
+
+		return *this;
 	}
 
-	std::ostream &Logger::get_ostream()
+	const Logger::Severity& Logger::get_severity() const
 	{
-		if (fstream.is_open())
-			return fstream;
+		return severity;
+	}
+
+	std::ofstream& Logger::get_ofstream()
+	{
+		return ofstream;
+	}
+
+	void Logger::set_status(const bool& status)
+	{
+		if (!status)
+			rdbuf(nullptr);
+		else if (get_ofstream().is_open())
+			rdbuf(get_ofstream().rdbuf());
 		else
-			return std::cout;
+			rdbuf(std::cout.rdbuf());
 	}
 }
