@@ -5,26 +5,29 @@
 #include "logger.h"
 
 namespace Revolution {
-	const Logger::Severity Logger::Severity::trace{"trace", 0};
-	const Logger::Severity Logger::Severity::debug{"debug", 1};
-	const Logger::Severity Logger::Severity::info{"info", 2};
-	const Logger::Severity Logger::Severity::warning{"warning", 3};
-	const Logger::Severity Logger::Severity::error{"error", 4};
-	const Logger::Severity Logger::Severity::fatal{"fatal", 5};
+	const Logger::Severity Logger::trace{"trace", 0};
+	const Logger::Severity Logger::debug{"debug", 1};
+	const Logger::Severity Logger::info{"info", 2};
+	const Logger::Severity Logger::warning{"warning", 3};
+	const Logger::Severity Logger::error{"error", 4};
+	const Logger::Severity Logger::fatal{"fatal", 5};
 
 	Logger::Severity::Severity(const std::string& name, const unsigned int& level)
 		: name{name}, level{level}
 	{
 	}
 
-	Logger::Logger(const Severity& severity, const std::string& log_filename)
-		: std::ostream{nullptr}, severity{severity}, ofstream{}
+	Logger::Logger(
+		const Severity& severity,
+		const std::string& log_filename,
+		const std::ofstream::openmode& open_mode
+	) : std::ostream{nullptr}, severity{severity}, ofstream{}
 	{
 		if (!log_filename.empty())
-			get_ofstream().open(log_filename, std::ofstream::app);
+			get_ofstream().open(log_filename, open_mode);
 
 		if (get_ofstream().fail()) {
-			(*this) << Severity::error << "Cannot open log file. Using stdout instead." << std::endl;
+			(*this) << error << "Cannot open log file. Using stdout instead." << std::endl;
 			get_ofstream().clear();
 		}
 	}
@@ -35,7 +38,7 @@ namespace Revolution {
 			get_ofstream().close();
 
 		if (get_ofstream().fail()) {
-			(*this) << Severity::error << "Cannot close log file." << std::endl;
+			(*this) << error << "Cannot close log file." << std::endl;
 			get_ofstream().clear();
 		}
 	}

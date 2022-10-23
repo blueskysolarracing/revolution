@@ -8,20 +8,24 @@ namespace Revolution {
 	class Logger : public std::ostream {
 	public:
 		struct Severity {
-			static const Severity trace;
-			static const Severity debug;
-			static const Severity info;
-			static const Severity warning;
-			static const Severity error;
-			static const Severity fatal;
-
 			explicit Severity(const std::string& name, const unsigned int& level);
 
 			const std::string name;
 			const unsigned int level;
 		};
 
-		explicit Logger(const Severity& severity, const std::string& log_filename = "");
+		static const Severity trace;
+		static const Severity debug;
+		static const Severity info;
+		static const Severity warning;
+		static const Severity error;
+		static const Severity fatal;
+
+		explicit Logger(
+			const Severity& severity,
+			const std::string& log_filename = "",
+			const std::ofstream::openmode& open_mode = std::ofstream::app
+		);
 		~Logger();
 
 		Logger& operator<<(const Severity& severity);
