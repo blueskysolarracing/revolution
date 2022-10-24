@@ -81,15 +81,20 @@ namespace Revolution {
 		get_handlers()[name] = handler;
 	}
 
+	const std::unordered_map<std::string, std::function<void(const std::vector<std::string>&)>>& Application::get_handlers() const
+	{
+		return handlers;
+	}
+
 	std::unordered_map<std::string, std::function<void(const std::vector<std::string>&)>>& Application::get_handlers()
 	{
 		return handlers;
 	}
 
-	std::optional<std::function<void(const std::vector<std::string>&)>> Application::get_handler(const std::string& name)
+	std::optional<std::function<void(const std::vector<std::string>&)>> Application::get_handler(const std::string& name) const
 	{
 		if (get_handlers().count(name))
-			return get_handlers()[name];
+			return get_handlers().at(name);
 		else
 			return std::nullopt;
 	}

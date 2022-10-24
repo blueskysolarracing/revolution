@@ -30,8 +30,9 @@ namespace Revolution {
 		void set_status(const bool& status);
 		void set_handler(const std::string& name, std::function<void(const std::vector<std::string>&)> handler);
 	private:
+		const std::unordered_map<std::string, std::function<void(const std::vector<std::string>&)>>& get_handlers() const;
 		std::unordered_map<std::string, std::function<void(const std::vector<std::string>&)>>& get_handlers();
-		std::optional<std::function<void(const std::vector<std::string>&)>> get_handler(const std::string& name);
+		std::optional<std::function<void(const std::vector<std::string>&)>> get_handler(const std::string& name) const;
 
 		void handle(const Messenger::Message& message);
 
