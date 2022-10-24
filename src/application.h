@@ -2,23 +2,46 @@
 #define REVOLUTION_APPLICATION_H
 
 #include "messenger.h"
-#include "topology.h"
 
 namespace Revolution {
 	class Application {
 	public:
-		explicit Application(const Instance &instance);
+		struct Configuration {
+			explicit Configuration(
+				const std::string& name,
+				const Logger::Configuration& logger_configuration,
+				const Messenger::Configuration& messenger_configuration
+			);
+
+			const std::string name;
+			const Logger::Configuration logger_configuration;
+			const Messenger::Configuration messenger_configuration;
+		};
+
+		explicit Application(const Configuration& configuration);
 		~Application();
 
-		virtual void run() = 0;
+		virtual void run();
 	protected:
-		const Instance &get_instance() const;
-		Logger &get_logger();
-		Messenger &get_messenger();
+		const Configuration& get_configuration() const;
+		Logger& get_logger();
+		Messenger& get_messenger();
+		const bool& get_status() const;
+		void set_status(const bool& status);
+		void set_handler(const std::string& name, std::function<void(const std::vector<std::string>&)> handler);
 	private:
-		const Instance instance;
+		std::unordered_map<std::string, std::function<void(const std::vector<std::string>&)>>& get_handlers();
+		std::optional<std::function<void(const std::vector<std::string>&)>> get_handler(const std::string& name);
+
+		void handle(const Messenger::Message& message);
+
+		void handle_exit(const std::vector<std::string>& arguments);
+
+		Configuration configuration;
 		Logger logger;
 		Messenger messenger;
+		std::unordered_map<std::string, std::function<void(const std::vector<std::string>&)>> handlers;
+		bool status;
 	};
 }
 

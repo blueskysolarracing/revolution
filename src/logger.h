@@ -14,6 +14,18 @@ namespace Revolution {
 			const unsigned int level;
 		};
 
+		struct Configuration {
+			explicit Configuration(
+				const Severity& severity,
+				const std::string& filename = "",
+				const std::ofstream::openmode& open_mode = std::ofstream::app
+			);
+
+			const Severity severity;
+			const std::string filename;
+			const std::ofstream::openmode open_mode;
+		};
+
 		static const Severity trace;
 		static const Severity debug;
 		static const Severity info;
@@ -22,20 +34,18 @@ namespace Revolution {
 		static const Severity fatal;
 
 		explicit Logger(
-			const Severity& severity,
-			const std::string& filename = "",
-			const std::ofstream::openmode& open_mode = std::ofstream::app
+			const Configuration& configuration
 		);
 		~Logger();
 
 		Logger& operator<<(const Severity& severity);
 	private:
-		const Severity& get_severity() const;
+		const Configuration& get_configuration() const;
 		std::ofstream& get_ofstream();
 
 		void set_status(const bool& status);
 
-		const Severity severity;
+		const Configuration configuration;
 		std::ofstream ofstream;
 	};
 }

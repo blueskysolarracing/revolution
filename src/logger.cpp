@@ -5,6 +5,19 @@
 #include "logger.h"
 
 namespace Revolution {
+	Logger::Severity::Severity(const std::string& name, const unsigned int& level)
+		: name{name}, level{level}
+	{
+	}
+
+	Logger::Configuration::Configuration(
+		const Severity& severity,
+		const std::string& filename,
+		const std::ofstream::openmode& open_mode
+	) : severity{severity}, filename{filename}, open_mode{open_mode}
+	{
+	}
+
 	const Logger::Severity Logger::trace{"trace", 0};
 	const Logger::Severity Logger::debug{"debug", 1};
 	const Logger::Severity Logger::info{"info", 2};
@@ -12,19 +25,15 @@ namespace Revolution {
 	const Logger::Severity Logger::error{"error", 4};
 	const Logger::Severity Logger::fatal{"fatal", 5};
 
-	Logger::Severity::Severity(const std::string& name, const unsigned int& level)
-		: name{name}, level{level}
-	{
-	}
-
 	Logger::Logger(
-		const Severity& severity,
-		const std::string& filename,
-		const std::ofstream::openmode& open_mode
-	) : std::ostream{nullptr}, severity{severity}, ofstream{}
+		const Configuration& configuration
+	) : std::ostream{nullptr}, configuration{configuration}, ofstream{}
 	{
-		if (!filename.empty())
-			get_ofstream().open(filename, open_mode);
+		if (!get_configuration().filename.empty())
+			get_ofstream().open(
+				get_configuration().filename,
+				get_configuration().open_mode
+			);
 
 		if (get_ofstream().fail()) {
 			(*this) << error << "Cannot open log file. Using stdout instead." << std::endl;
@@ -45,7 +54,7 @@ namespace Revolution {
 
 	Logger& Logger::operator<<(const Severity& severity)
 	{
-		set_status(severity.level >= get_severity().level);
+		set_status(severity.level >= get_configuration().severity.level);
 
 		auto time_point = std::chrono::system_clock::now();
 		auto time = std::chrono::system_clock::to_time_t(time_point);
@@ -56,9 +65,9 @@ namespace Revolution {
 		return *this;
 	}
 
-	const Logger::Severity& Logger::get_severity() const
+	const Logger::Configuration& Logger::get_configuration() const
 	{
-		return severity;
+		return configuration;
 	}
 
 	std::ofstream& Logger::get_ofstream()

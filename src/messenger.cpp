@@ -3,7 +3,7 @@
 #include "messenger.h"
 
 namespace Revolution {
-	Message Message::deserialize(const std::string& raw_message)
+	Messenger::Message Messenger::Message::deserialize(const std::string& raw_message)
 	{
 		std::istringstream iss(raw_message);
 		std::string sender_name;
@@ -20,7 +20,7 @@ namespace Revolution {
 		return Message{sender_name, header, data};
 	}
 
-	Message::Message(
+	Messenger::Message::Message(
 		const std::string& sender_name,
 		const std::string& header,
 		const std::vector<std::string>& data
@@ -28,47 +28,58 @@ namespace Revolution {
 	{
 	}
 
-	const std::string& Message::get_sender_name() const
-	{
-		return sender_name;
-	}
-
-	const std::string& Message::get_header() const
-	{
-		return header;
-	}
-
-	const std::vector<std::string>& Message::get_data() const
-	{
-		return data;
-	}
-
-	std::string Message::serialize() const
+	std::string Messenger::Message::serialize() const
 	{
 		std::ostringstream oss;
 
-		oss << get_sender_name() << '\0' << get_header();
+		oss << sender_name << '\0' << header << '\0';
 
-		for (const auto& datum : get_data())
-			oss << '\0' << datum;
+		for (const auto& datum : data)
+			oss << datum << '\0';
 
 		return oss.str();
 	}
 
-	Messenger::Messenger(
-		Logger& logger,
+	std::string Messenger::Message::to_string() const
+	{
+		std::ostringstream oss;
+
+		oss << "Message{"
+			<< "sender_name: \"" << sender_name << "\", "
+			<< "header: \"" << header << "\", "
+			<< "data: {";
+
+		auto it = data.cbegin();
+
+		if (it != data.end())
+			oss << '"' << *it++ << '"';
+
+		while (it != data.end())
+			oss << ", \"" << *it++ << '"';
+
+		oss << "}}";
+
+		return oss.str();
+	}
+
+	Messenger::Configuration::Configuration(
 		const std::string& name,
+		const unsigned int& priority,
 		const int& oflags,
 		const mode_t& mode,
-		const unsigned int& priority,
-		const bool& unlink_status
-	) : logger{logger},
-	    name{name},
+		const bool& unlink
+	) : name{name},
+	    priority{priority},
 	    oflags{oflags},
 	    mode{mode},
-	    priority{priority},
-	    unlink_status{unlink_status},
-	    descriptors{}
+	    unlink{unlink}
+	{
+	}
+
+	Messenger::Messenger(
+		const Configuration& configuration,
+		Logger& logger
+	) : configuration{configuration}, logger{logger}, descriptors{}
 	{
 	}
 
@@ -80,7 +91,7 @@ namespace Revolution {
 					<< "Cannot close with message queue descriptor for " << name
 					<< " (errno = " << errno << ')' << std::endl;
 
-			if (get_unlink_status() && name == get_name())
+			if (get_configuration().unlink && name == get_configuration().name)
 				if (mq_unlink(name.data()) == (mqd_t) - 1)
 					get_logger() << Logger::error
 						<< "Cannot unlink with message queue descriptor for " << name
@@ -88,7 +99,7 @@ namespace Revolution {
 		}
 	}
 
-	Message Messenger::receive()
+	Messenger::Message Messenger::receive()
 	{
 		return receive([] (
 			mqd_t& descriptor,
@@ -104,7 +115,7 @@ namespace Revolution {
 		}).value();
 	}
 
-	std::optional<Message> Messenger::receive(
+	std::optional<Messenger::Message> Messenger::receive(
 		const std::chrono::system_clock::time_point& timeout
 	)
 	{
@@ -175,29 +186,9 @@ namespace Revolution {
 		});
 	}
 
-	const std::string& Messenger::get_name() const
+	const Messenger::Configuration& Messenger::get_configuration() const
 	{
-		return name;
-	}
-
-	const int& Messenger::get_oflags() const
-	{
-		return oflags;
-	}
-
-	const mode_t& Messenger::get_mode() const
-	{
-		return mode;
-	}
-
-	const unsigned int& Messenger::get_priority() const
-	{
-		return priority;
-	}
-
-	const bool& Messenger::get_unlink_status() const
-	{
-		return unlink_status;
+		return configuration;
 	}
 
 	Logger& Messenger::get_logger()
@@ -219,8 +210,8 @@ namespace Revolution {
 
 		descriptor = mq_open(
 			name.data(),
-			get_oflags(),
-			get_mode(),
+			get_configuration().oflags,
+			get_configuration().mode,
 			NULL
 		);
 
@@ -232,16 +223,16 @@ namespace Revolution {
 		return descriptor;
 	}
 
-	std::optional<Message> Messenger::receive(
+	std::optional<Messenger::Message> Messenger::receive(
 		std::function<ssize_t(mqd_t&, std::string&, unsigned int&)> receiver
 	)
 	{
-		auto& descriptor = get_descriptor(get_name());
+		auto& descriptor = get_descriptor(get_configuration().name);
 		mq_attr attributes;
 
 		if (mq_getattr(descriptor, &attributes) == -1) {
 			get_logger() << Logger::error
-				<< "Cannot get attributes with message queue descriptor for " << get_name()
+				<< "Cannot get attributes with message queue descriptor for " << get_configuration().name
 				<< " (errno = " << errno << ')' << std::endl;
 
 			return std::nullopt;
@@ -257,7 +248,7 @@ namespace Revolution {
 
 		if (received_size == -1) {
 			get_logger() << Logger::error
-				<< "Cannot receive with message queue descriptor for " << get_name()
+				<< "Cannot receive with message queue descriptor for " << get_configuration().name
 				<< " (errno = " << errno << ')' << std::endl;
 
 			return std::nullopt;
@@ -265,7 +256,12 @@ namespace Revolution {
 
 		raw_message.resize(received_size);
 
-		return Message::deserialize(raw_message);
+		auto message = Message::deserialize(raw_message);
+
+		get_logger() << Logger::info
+			<< "Received message: " << message.to_string() << std::endl;
+
+		return message;
 	}
 
 	bool Messenger::send(
@@ -275,19 +271,22 @@ namespace Revolution {
 		std::function<int(mqd_t&, const std::string&, const unsigned int&)> sender
 	)
 	{
-		Message message{get_name(), header, data};
+		Message message{get_configuration().name, header, data};
 		std::string raw_message{message.serialize()};
 
 		int status = sender(
 			get_descriptor(name),
 			raw_message,
-			get_priority()
+			get_configuration().priority
 		);
 
 		if (status == -1)
 			get_logger() << Logger::error
 				<< "Cannot send with message queue descriptor for " << name
 				<< " (errno = " << errno << ')' << std::endl;
+		else
+			get_logger() << Logger::info
+				<< "Sent message: " << message.to_string() << std::endl;
 
 		return !status;
 	}
