@@ -18,6 +18,7 @@ namespace Revolution {
 					const mode_t& messenger_mode,
 					const unsigned int& messenger_priority,
 					const bool& messenger_unlink_status,
+					const std::string& name,
 					const std::string& pid_filename,
 					const std::string& binary_filename
 				);
@@ -32,6 +33,7 @@ namespace Revolution {
 				const unsigned int messenger_priority;
 				const bool messenger_unlink_status;
 
+				const std::string name;
 				const std::string pid_filename;
 				const std::string binary_filename;
 			};

@@ -34,17 +34,17 @@ namespace Revolution {
 		struct Configuration {
 			explicit Configuration(
 				const std::string& name,
+				const bool& unlink = false,
 				const unsigned int& priority = 0,
 				const int& oflags = O_RDWR | O_CREAT,
-				const mode_t& mode = 0644,
-				const bool& unlink = true
+				const mode_t& mode = 0644
 			);
 
 			const std::string name;
+			const bool unlink;
 			const unsigned int priority;
 			const int oflags;
 			const mode_t mode;
-			const bool unlink;
 		};
 
 		explicit Messenger(
@@ -73,7 +73,6 @@ namespace Revolution {
 		const Configuration& get_configuration() const;
 		Logger& get_logger();
 		std::unordered_map<std::string, mqd_t>& get_descriptors();
-
 		mqd_t& get_descriptor(const std::string& name);
 
 		std::optional<Message> receive(

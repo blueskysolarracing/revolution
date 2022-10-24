@@ -35,8 +35,6 @@ namespace Revolution {
 
 		void handle(const Messenger::Message& message);
 
-		void handle_exit(const std::vector<std::string>& arguments);
-
 		Configuration configuration;
 		Logger logger;
 		Messenger messenger;

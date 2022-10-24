@@ -12,6 +12,7 @@ namespace Revolution {
 		const mode_t& messenger_mode,
 		const unsigned int& messenger_priority,
 		const bool& messenger_unlink_status,
+		const std::string& name,
 		const std::string& pid_filename,
 		const std::string& binary_filename
 	) : logger_severity{logger_severity},
@@ -22,6 +23,7 @@ namespace Revolution {
 	    messenger_mode{messenger_mode},
 	    messenger_priority{messenger_priority},
 	    messenger_unlink_status{messenger_unlink_status},
+	    name{name},
 	    pid_filename{pid_filename},
 	    binary_filename{binary_filename}
 	{
@@ -68,6 +70,7 @@ namespace Revolution {
 				0644,
 				0,
 				true,
+				"syncer",
 				"./syncer.pid",
 				"./syncer"
 			},
@@ -80,6 +83,7 @@ namespace Revolution {
 				0644,
 				0,
 				true,
+				"display_driver",
 				"./display_driver.pid",
 				"./display_driver"
 			},
@@ -92,6 +96,7 @@ namespace Revolution {
 				0644,
 				0,
 				true,
+				"miscellaneous_controller",
 				"./miscellaneous_controller.pid",
 				"./miscellaneous_controller"
 			},
@@ -104,6 +109,7 @@ namespace Revolution {
 				0644,
 				0,
 				true,
+				"motor_controller",
 				"./motor_controller.pid",
 				"./motor_controller"
 			},
@@ -116,6 +122,7 @@ namespace Revolution {
 				0644,
 				0,
 				true,
+				"power_sensor",
 				"./power_sensor.pid",
 				"./power_sensor"
 			},
@@ -128,6 +135,7 @@ namespace Revolution {
 				0644,
 				0,
 				true,
+				"telemeter",
 				"./telemeter.pid",
 				"./telemeter"
 			},
@@ -140,6 +148,7 @@ namespace Revolution {
 				0644,
 				0,
 				true,
+				"voltage_controller",
 				"./voltage_controller.pid",
 				"./voltage_controller"
 			}

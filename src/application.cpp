@@ -18,8 +18,6 @@ namespace Revolution {
 		  handlers{},
 		  status{}
 	{
-		// TODO: DO NOT HARD CODE HANDLER NAMES
-		set_handler("EXIT", std::bind(&Application::handle_exit, this, std::placeholders::_1));
 	}
 
 	Application::~Application()
@@ -105,10 +103,5 @@ namespace Revolution {
 		else
 			get_logger() << Logger::warning
 				<< "Unhandled message: " << message.to_string() << std::endl;
-	}
-
-	void Application::handle_exit(const std::vector<std::string>& arguments)
-	{
-		set_status(false);
 	}
 }

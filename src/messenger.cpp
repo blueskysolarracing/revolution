@@ -64,15 +64,15 @@ namespace Revolution {
 
 	Messenger::Configuration::Configuration(
 		const std::string& name,
+		const bool& unlink,
 		const unsigned int& priority,
 		const int& oflags,
-		const mode_t& mode,
-		const bool& unlink
+		const mode_t& mode
 	) : name{name},
+	    unlink{unlink},
 	    priority{priority},
 	    oflags{oflags},
-	    mode{mode},
-	    unlink{unlink}
+	    mode{mode}
 	{
 	}
 
@@ -91,7 +91,7 @@ namespace Revolution {
 					<< "Cannot close with message queue descriptor for " << name
 					<< " (errno = " << errno << ')' << std::endl;
 
-			if (get_configuration().unlink && name == get_configuration().name)
+			if (get_configuration().unlink)
 				if (mq_unlink(name.data()) == (mqd_t) - 1)
 					get_logger() << Logger::error
 						<< "Cannot unlink with message queue descriptor for " << name
