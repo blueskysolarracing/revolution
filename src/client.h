@@ -7,7 +7,9 @@ namespace Revolution {
 	class Client : public Application {
 	public:
 		explicit Client(
-			const Configuration& configuration,
+			const std::string& name,
+			const Logger::Configuration& logger_configuration,
+			const Messenger::Configuration& messenger_configuration,
 			const std::string& recipient_name
 		);
 

@@ -1,28 +1,17 @@
 #ifndef REVOLUTION_DISPLAY_DRIVER_H
 #define REVOLUTION_DISPLAY_DRIVER_H
 
-#include "slave.h"
+#include "instance.h"
 
-namespace revolution {
-class DisplayDriver : public Slave {
-public:
-  static DisplayDriver &getInstance() {
-    static DisplayDriver displayDriver;
-
-    return displayDriver;
-  }
-
-  void run() override;
-protected:
-  unsigned int getPriority() const override;
-private:
-  static constexpr unsigned int priority_ = 0;
-
-  DisplayDriver();
-  DisplayDriver(DisplayDriver const &) = delete;
-
-  void operator=(DisplayDriver const &) = delete;
-};
+namespace Revolution {
+	class Display_driver : public Instance {
+	public:
+		Display_driver(
+			const Topology& topology,
+			const Header_space& header_space,
+			const Key_space& key_space
+		);
+	};
 }
 
-#endif  // REVOLUTION_DISPLAY_DRIVER_H
+#endif	// REVOLUTION_DISPLAY_DRIVER_H

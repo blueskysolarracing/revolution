@@ -1,18 +1,31 @@
 #include "telemeter.h"
 
-void revolution::Telemeter::run() {  // TODO: ADD PROGRAM LOGIC
+namespace Revolution {
+	Revolution::Telemeter::Telemeter(
+		const Topology& topology,
+		const Header_space& header_space,
+		const Key_space& key_space
+	) : Instance{
+		topology.telemeter.name,
+		topology.telemeter.logger_configuration,
+		topology.telemeter.messenger_configuration,
+		topology,
+		header_space,
+		key_space
+	    }
+	{
+	}
 }
-
-unsigned int revolution::Telemeter::getPriority() const {
-  return priority_;
-}
-
-revolution::Telemeter::Telemeter() : Slave{"telemeter"} {}  // TODO: DO NOT HARD-CODE
 
 int main() {
-  revolution::Telemeter &telemeter = revolution::Telemeter::getInstance();
+	Revolution::Telemeter telemeter{
+		Revolution::Topology{},
+		Revolution::Header_space{},
+		Revolution::Key_space{}
+	};
 
-  telemeter.run();
+	telemeter.run();
 
-  return 0;
+	return 0;
 }
+

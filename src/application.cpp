@@ -1,22 +1,15 @@
 #include "application.h"
 
 namespace Revolution {
-	Application::Configuration::Configuration(
+	Application::Application(
 		const std::string& name,
 		const Logger::Configuration& logger_configuration,
 		const Messenger::Configuration& messenger_configuration
 	) : name{name},
-	    logger_configuration{logger_configuration},
-	    messenger_configuration{messenger_configuration}
-	{
-	}
-
-	Application::Application(const Configuration& configuration)
-		: configuration{configuration},
-		  logger{get_configuration().logger_configuration},
-		  messenger{get_configuration().messenger_configuration, logger},
-		  handlers{},
-		  status{}
+	    logger{logger_configuration},
+	    messenger{messenger_configuration, logger},
+	    handlers{},
+	    status{}
 	{
 	}
 
@@ -27,7 +20,7 @@ namespace Revolution {
 	void Application::run()
 	{
 		get_logger() << Logger::info
-			<< "Starting " << get_configuration().name << "..." << std::endl;
+			<< "Starting " << get_name() << "..." << std::endl;
 
 		set_status(true);
 
@@ -44,12 +37,12 @@ namespace Revolution {
 		}
 
 		get_logger() << Logger::info
-			<< "Stopping " << get_configuration().name << "..." << std::endl;
+			<< "Stopping " << get_name() << "..." << std::endl;
 	}
 
-	const Application::Configuration& Application::get_configuration() const
+	const std::string& Application::get_name() const
 	{
-		return configuration;
+		return name;
 	}
 
 	Logger& Application::get_logger()
@@ -72,7 +65,7 @@ namespace Revolution {
 		this->status = status;
 	}
 
-	void Application::set_handler(const std::string& name, std::function<void(const std::vector<std::string>&)> handler)
+	void Application::set_handler(const std::string& name, std::function<void(const Messenger::Message&)> handler)
 	{
 		if (get_handlers().count(name))
 			get_logger() << Logger::warning
@@ -81,17 +74,17 @@ namespace Revolution {
 		get_handlers()[name] = handler;
 	}
 
-	const std::unordered_map<std::string, std::function<void(const std::vector<std::string>&)>>& Application::get_handlers() const
+	const std::unordered_map<std::string, std::function<void(const Messenger::Message&)>>& Application::get_handlers() const
 	{
 		return handlers;
 	}
 
-	std::unordered_map<std::string, std::function<void(const std::vector<std::string>&)>>& Application::get_handlers()
+	std::unordered_map<std::string, std::function<void(const Messenger::Message&)>>& Application::get_handlers()
 	{
 		return handlers;
 	}
 
-	std::optional<std::function<void(const std::vector<std::string>&)>> Application::get_handler(const std::string& name) const
+	std::optional<std::function<void(const Messenger::Message&)>> Application::get_handler(const std::string& name) const
 	{
 		if (get_handlers().count(name))
 			return get_handlers().at(name);
@@ -104,7 +97,7 @@ namespace Revolution {
 		auto optional_handler = get_handler(message.header);
 
 		if (optional_handler.has_value())
-			optional_handler.value()(message.data);
+			optional_handler.value()(message);
 		else
 			get_logger() << Logger::warning
 				<< "Unhandled message: " << message.to_string() << std::endl;

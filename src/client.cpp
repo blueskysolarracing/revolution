@@ -5,9 +5,17 @@
 #include "client.h"
 
 namespace Revolution {
-	Client::Client(const Configuration& configuration, const std::string& recipient_name)
-		: Application{configuration},
-		  recipient_name{recipient_name}
+	Client::Client(
+		const std::string& name,
+		const Logger::Configuration& logger_configuration,
+		const Messenger::Configuration& messenger_configuration,
+		const std::string& recipient_name
+	)
+		: Application{
+			name,
+			logger_configuration,
+			messenger_configuration
+		}, recipient_name{recipient_name}
 	{
 	}
 
@@ -55,12 +63,13 @@ int main(int argc, char *argv[])
 
 	std::string sender_name(argv[1]);
 	std::string recipient_name(argv[2]);
-	Revolution::Application::Configuration configuration{
+
+	Revolution::Client client{
 		"client",
 		Revolution::Logger::Configuration{Revolution::Logger::info},
 		Revolution::Messenger::Configuration{sender_name},
+		recipient_name
 	};
-	Revolution::Client client{configuration, recipient_name};
 
 	client.run();
 

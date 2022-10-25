@@ -1,28 +1,18 @@
 #ifndef REVOLUTION_TELEMETER_H
 #define REVOLUTION_TELEMETER_H
 
-#include "slave.h"
+#include "instance.h"
 
-namespace revolution {
-class Telemeter : public Slave {
-public:
-  static Telemeter &getInstance() {
-    static Telemeter telemeter;
-
-    return telemeter;
-  }
-
-  void run() override;
-protected:
-  unsigned int getPriority() const override;
-private:
-  static constexpr unsigned int priority_ = 0;
-
-  Telemeter();
-  Telemeter(Telemeter const &) = delete;
-
-  void operator=(Telemeter const &) = delete;
-};
+namespace Revolution {
+	class Telemeter : public Instance {
+	public:
+		Telemeter(
+			const Topology& topology,
+			const Header_space& header_space,
+			const Key_space& key_space
+		);
+	};
 }
 
-#endif  // REVOLUTION_TELEMETER_H
+#endif	// REVOLUTION_TELEMETER_H
+

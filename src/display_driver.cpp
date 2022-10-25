@@ -1,18 +1,30 @@
 #include "display_driver.h"
 
-void revolution::DisplayDriver::run() {  // TODO: ADD PROGRAM LOGIC
+namespace Revolution {
+	Revolution::Display_driver::Display_driver(
+		const Topology& topology,
+		const Header_space& header_space,
+		const Key_space& key_space
+	) : Instance{
+		topology.display_driver.name,
+		topology.display_driver.logger_configuration,
+		topology.display_driver.messenger_configuration,
+		topology,
+		header_space,
+		key_space
+	    }
+	{
+	}
 }
-
-unsigned int revolution::DisplayDriver::getPriority() const {
-  return priority_;
-}
-
-revolution::DisplayDriver::DisplayDriver() : Slave{"displayDriver"} {}  // TODO: DO NOT HARD-CODE
 
 int main() {
-  revolution::DisplayDriver &displayDriver = revolution::DisplayDriver::getInstance();
+	Revolution::Display_driver display_driver{
+		Revolution::Topology{},
+		Revolution::Header_space{},
+		Revolution::Key_space{}
+	};
 
-  displayDriver.run();
+	display_driver.run();
 
-  return 0;
+	return 0;
 }

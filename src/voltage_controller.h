@@ -1,28 +1,18 @@
 #ifndef REVOLUTION_VOLTAGE_CONTROLLER_H
 #define REVOLUTION_VOLTAGE_CONTROLLER_H
 
-#include "slave.h"
+#include "instance.h"
 
-namespace revolution {
-class VoltageController : public Slave {
-public:
-  static VoltageController &getInstance() {
-    static VoltageController voltageController;
-
-    return voltageController;
-  }
-
-  void run() override;
-protected:
-  unsigned int getPriority() const override;
-private:
-  static constexpr unsigned int priority_ = 0;
-
-  VoltageController();
-  VoltageController(VoltageController const &) = delete;
-
-  void operator=(VoltageController const &) = delete;
-};
+namespace Revolution {
+	class Voltage_controller : public Instance {
+	public:
+		Voltage_controller(
+			const Topology& topology,
+			const Header_space& header_space,
+			const Key_space& key_space
+		);
+	};
 }
 
-#endif  // REVOLUTION_VOLTAGE_CONTROLLER_H
+#endif	// REVOLUTION_VOLTAGE_CONTROLLER_H
+

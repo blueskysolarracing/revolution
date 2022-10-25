@@ -1,18 +1,31 @@
 #include "motor_controller.h"
 
-void revolution::MotorController::run() {  // TODO: ADD PROGRAM LOGIC
+namespace Revolution {
+	Revolution::Motor_controller::Motor_controller(
+		const Topology& topology,
+		const Header_space& header_space,
+		const Key_space& key_space
+	) : Instance{
+		topology.motor_controller.name,
+		topology.motor_controller.logger_configuration,
+		topology.motor_controller.messenger_configuration,
+		topology,
+		header_space,
+		key_space
+	    }
+	{
+	}
 }
-
-unsigned int revolution::MotorController::getPriority() const {
-  return priority_;
-}
-
-revolution::MotorController::MotorController() : Slave{"motorController"} {}  // TODO: DO NOT HARD-CODE
 
 int main() {
-  revolution::MotorController &motorController = revolution::MotorController::getInstance();
+	Revolution::Motor_controller motor_controller{
+		Revolution::Topology{},
+		Revolution::Header_space{},
+		Revolution::Key_space{}
+	};
 
-  motorController.run();
+	motor_controller.run();
 
-  return 0;
+	return 0;
 }
+
