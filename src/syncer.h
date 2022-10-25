@@ -14,9 +14,15 @@ namespace Revolution {
 
 		void run() override;
 	protected:
-		void broadcast();
+		void broadcast(
+			const std::string& header,
+			const std::vector<std::string>& data = {}
+		);
+		void broadcast_state();
+		void spawn(const Topology::Endpoint& endpoint);
 
 		void handle_set(const Messenger::Message& message) override;
+		void handle_exit(const Messenger::Message& message) override;
 	};
 }
 

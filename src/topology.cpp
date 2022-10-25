@@ -5,14 +5,17 @@ namespace Revolution {
 		const std::string& name,
 		const Logger::Configuration& logger_configuration,
 		const Messenger::Configuration& messenger_configuration,
-		const std::string& pid_filename,
 		const std::string& binary_filename
 	) : name{name},
-	    pid_filename{pid_filename},
-	    binary_filename{binary_filename},
 	    logger_configuration{logger_configuration},
-	    messenger_configuration{messenger_configuration}
+	    messenger_configuration{messenger_configuration},
+	    binary_filename{binary_filename}
 	{
+	}
+
+	std::string Topology::Endpoint::get_command() const
+	{
+		return binary_filename + " &";
 	}
 
 	Topology::Topology(

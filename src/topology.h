@@ -10,15 +10,15 @@ namespace Revolution {
 				const std::string& name,
 				const Logger::Configuration& logger_configuration,
 				const Messenger::Configuration& messenger_configuration,
-				const std::string& pid_filename,
 				const std::string& binary_filename
 			);
 
 			const std::string name;
 			const Logger::Configuration logger_configuration;
 			const Messenger::Configuration messenger_configuration;
-			const std::string pid_filename;
 			const std::string binary_filename;
+
+			std::string get_command() const;
 		};
 
 		explicit Topology(
@@ -32,7 +32,6 @@ namespace Revolution {
 					"/revolution_syncer",
 					true
 				},
-				"./syncer.pid",
 				"./syncer"
 			},
 			const Endpoint& display_driver = Endpoint{
@@ -44,7 +43,6 @@ namespace Revolution {
 				Messenger::Configuration{
 					"/revolution_display_driver"
 				},
-				"./display_driver.pid",
 				"./display_driver"
 			},
 			const Endpoint& miscellaneous_controller = Endpoint{
@@ -56,7 +54,6 @@ namespace Revolution {
 				Messenger::Configuration{
 					"/revolution_miscellaneous_controller"
 				},
-				"./miscellaneous_controller.pid",
 				"./miscellaneous_controller"
 			},
 			const Endpoint& motor_controller = Endpoint{
@@ -68,7 +65,6 @@ namespace Revolution {
 				Messenger::Configuration{
 					"/revolution_motor_controller"
 				},
-				"./motor_controller.pid",
 				"./motor_controller"
 			},
 			const Endpoint& power_sensor = Endpoint{
@@ -80,7 +76,6 @@ namespace Revolution {
 				Messenger::Configuration{
 					"/revolution_power_sensor"
 				},
-				"./power_sensor.pid",
 				"./power_sensor"
 			},
 			const Endpoint& telemeter = Endpoint{
@@ -92,7 +87,6 @@ namespace Revolution {
 				Messenger::Configuration{
 					"/revolution_telemeter"
 				},
-				"./telemeter.pid",
 				"./telemeter"
 			},
 			const Endpoint& voltage_controller = Endpoint{
@@ -104,7 +98,6 @@ namespace Revolution {
 				Messenger::Configuration{
 					"/revolution_voltage_controller"
 				},
-				"./voltage_controller.pid",
 				"./voltage_controller"
 			}
 		);

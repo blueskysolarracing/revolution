@@ -69,7 +69,10 @@ namespace Revolution {
 	{
 		if (get_handlers().count(name))
 			get_logger() << Logger::warning
-				<< "Overriding existing handler \"" << name << '"' << std::endl;
+				<< "Overriding existing handler \"" << name << "\"..." << std::endl;
+		else
+			get_logger() << Logger::info
+				<< "Adding handler \"" << name << "\"..." << std::endl;
 
 		get_handlers()[name] = handler;
 	}

@@ -232,8 +232,12 @@ namespace Revolution {
 		std::function<ssize_t(mqd_t&, std::string&, unsigned int&)> receiver
 	)
 	{
-		auto descriptor = open_descriptor(get_configuration().name);
+		ssize_t received_size;
+		std::string raw_message;
+		unsigned int priority;
 		mq_attr attributes;
+
+		auto descriptor = open_descriptor(get_configuration().name);
 
 		if (mq_getattr(descriptor, &attributes) == -1) {
 			get_logger() << Logger::error
@@ -243,13 +247,9 @@ namespace Revolution {
 			return std::nullopt;
 		}
 
-		ssize_t received_size;
-		std::string raw_message;
-		unsigned int priority;
-
 		raw_message.resize(attributes.mq_msgsize);
-
 		received_size = receiver(descriptor, raw_message, priority);
+
 		close_descriptor(get_configuration().name, descriptor);
 
 		if (received_size == -1) {
@@ -265,7 +265,7 @@ namespace Revolution {
 		auto message = Message::deserialize(raw_message);
 
 		get_logger() << Logger::info
-			<< "Received message: " << message.to_string() << std::endl;
+			<< "Received message from " << message.sender_name << ": " << message.to_string() << std::endl;
 
 		return message;
 	}
@@ -279,12 +279,15 @@ namespace Revolution {
 	{
 		Message message{get_configuration().name, header, data};
 		std::string raw_message{message.serialize()};
+
 		auto descriptor = open_descriptor(name);
+
 		int status = sender(
 			descriptor,
 			raw_message,
 			get_configuration().priority
 		);
+
 		close_descriptor(name, descriptor);
 
 		if (status == -1)
@@ -293,7 +296,7 @@ namespace Revolution {
 				<< " (errno = " << errno << ')' << std::endl;
 		else
 			get_logger() << Logger::info
-				<< "Sent message: " << message.to_string() << std::endl;
+				<< "Sent message to " << name << ": " << message.to_string() << std::endl;
 
 		return !status;
 	}
