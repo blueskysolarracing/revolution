@@ -79,24 +79,19 @@ namespace Revolution {
 	Messenger::Messenger(
 		const Configuration& configuration,
 		Logger& logger
-	) : configuration{configuration}, logger{logger}, descriptors{}
+	) : configuration{configuration}, logger{logger}, opened_names{}
 	{
+		mq_unlink(get_configuration().name.data());
 	}
 
 	Messenger::~Messenger()
 	{
-		for (auto& [name, descriptor] : get_descriptors()) {
-			if (mq_close(descriptor) == (mqd_t) - 1)
-				get_logger() << Logger::error
-					<< "Cannot close with message queue descriptor for " << name
-					<< " (errno = " << errno << ')' << std::endl;
-
-			if (get_configuration().unlink)
+		if (get_configuration().unlink)
+			for (auto& name : get_opened_names())
 				if (mq_unlink(name.data()) == (mqd_t) - 1)
 					get_logger() << Logger::error
 						<< "Cannot unlink with message queue descriptor for " << name
 						<< " (errno = " << errno <<  ')' << std::endl;
-		}
 	}
 
 	Messenger::Message Messenger::receive()
@@ -196,19 +191,19 @@ namespace Revolution {
 		return logger;
 	}
 
-	std::unordered_map<std::string, mqd_t>& Messenger::get_descriptors()
+	const std::unordered_set<std::string>& Messenger::get_opened_names() const
 	{
-		return descriptors;
+		return opened_names;
 	}
 
-	mqd_t& Messenger::get_descriptor(const std::string& name)
+	std::unordered_set<std::string>& Messenger::get_opened_names()
 	{
-		if (get_descriptors().count(name))
-			return get_descriptors()[name];
+		return opened_names;
+	}
 
-		auto& descriptor = get_descriptors()[name];
-
-		descriptor = mq_open(
+	mqd_t Messenger::open_descriptor(const std::string& name)
+	{
+		auto descriptor = mq_open(
 			name.data(),
 			get_configuration().oflags,
 			get_configuration().mode,
@@ -219,15 +214,25 @@ namespace Revolution {
 			get_logger() << Logger::error
 				<< "Cannot open with message queue descriptor for " << name
 				<< " (errno = " << errno << ')' << std::endl;
+		else
+			get_opened_names().insert(name);
 
 		return descriptor;
+	}
+
+	void Messenger::close_descriptor(const std::string& name, mqd_t& descriptor)
+	{
+		if (mq_close(descriptor) == (mqd_t) - 1)
+			get_logger() << Logger::error
+				<< "Cannot close with message queue descriptor for " << name
+				<< " (errno = " << errno << ')' << std::endl;
 	}
 
 	std::optional<Messenger::Message> Messenger::receive(
 		std::function<ssize_t(mqd_t&, std::string&, unsigned int&)> receiver
 	)
 	{
-		auto& descriptor = get_descriptor(get_configuration().name);
+		auto descriptor = open_descriptor(get_configuration().name);
 		mq_attr attributes;
 
 		if (mq_getattr(descriptor, &attributes) == -1) {
@@ -245,6 +250,7 @@ namespace Revolution {
 		raw_message.resize(attributes.mq_msgsize);
 
 		received_size = receiver(descriptor, raw_message, priority);
+		close_descriptor(get_configuration().name, descriptor);
 
 		if (received_size == -1) {
 			get_logger() << Logger::error
@@ -273,12 +279,13 @@ namespace Revolution {
 	{
 		Message message{get_configuration().name, header, data};
 		std::string raw_message{message.serialize()};
-
+		auto descriptor = open_descriptor(name);
 		int status = sender(
-			get_descriptor(name),
+			descriptor,
 			raw_message,
 			get_configuration().priority
 		);
+		close_descriptor(name, descriptor);
 
 		if (status == -1)
 			get_logger() << Logger::error

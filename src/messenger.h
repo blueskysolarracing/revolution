@@ -6,6 +6,7 @@
 #include <optional>
 #include <string>
 #include <vector>
+#include <unordered_set>
 
 #include <mqueue.h>
 
@@ -72,8 +73,11 @@ namespace Revolution {
 	private:
 		const Configuration& get_configuration() const;
 		Logger& get_logger();
-		std::unordered_map<std::string, mqd_t>& get_descriptors();
-		mqd_t& get_descriptor(const std::string& name);
+		const std::unordered_set<std::string>& get_opened_names() const;
+		std::unordered_set<std::string>& get_opened_names();
+
+		mqd_t open_descriptor(const std::string& name);
+		void close_descriptor(const std::string& name, mqd_t& descriptor);
 
 		std::optional<Message> receive(
 			std::function<ssize_t(mqd_t&, std::string&, unsigned int&)> receiver
@@ -88,7 +92,7 @@ namespace Revolution {
 
 		const Configuration configuration;
 		Logger& logger;
-		std::unordered_map<std::string, mqd_t> descriptors;
+		std::unordered_set<std::string> opened_names;
 	};
 }
 

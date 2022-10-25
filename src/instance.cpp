@@ -74,7 +74,10 @@ namespace Revolution {
 		std::vector<std::string> data;
 
 		for (const auto& datum : message.data)
-			data.push_back(get_states()[datum]);
+			if (get_states().count(datum))
+				data.push_back(get_states().at(datum));
+			else
+				data.push_back("");
 
 		get_messenger().send(message.sender_name, get_header_space().response, data);
 	}
@@ -86,7 +89,7 @@ namespace Revolution {
 				<< "Unpaired key \"" << message.data.back() << "\" provided. "
 				<< "This key will be ignored." << std::endl;
 
-		for (unsigned int i = 0; i < message.data.size(); i += 2)
+		for (unsigned int i = 0; i + 1 < message.data.size(); i += 2)
 			get_states()[message.data[i]] = message.data[i + 1];
 	}
 
