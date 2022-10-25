@@ -39,3 +39,4 @@
 /src/telemeter
 /src/voltage_controller
 /src/client
+/src/*.log
