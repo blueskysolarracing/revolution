@@ -11,6 +11,12 @@ namespace Revolution {
 			const Header_space& header_space,
 			const Key_space& key_space
 		);
+
+		void run() override;
+	protected:
+		void broadcast();
+
+		void handle_set(const Messenger::Message& message) override;
 	};
 }
 

@@ -23,10 +23,10 @@ namespace Revolution {
 		std::unordered_map<std::string, std::string>& get_states();
 		std::vector<std::string> get_state_data() const;
 
-		void handle_get(const Messenger::Message& message);
-		void handle_set(const Messenger::Message& message);
-		void handle_reset(const Messenger::Message& message);
-		void handle_exit(const Messenger::Message& message);
+		virtual void handle_get(const Messenger::Message& message);
+		virtual void handle_set(const Messenger::Message& message);
+		virtual void handle_reset(const Messenger::Message& message);
+		virtual void handle_exit(const Messenger::Message& message);
 	private:
 		const Topology topology;
 		const Header_space header_space;

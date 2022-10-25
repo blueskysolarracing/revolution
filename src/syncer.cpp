@@ -14,6 +14,34 @@ namespace Revolution {
 		key_space
 	    }
 	{
+		set_handler(
+			get_header_space().set,
+			std::bind(&Syncer::handle_set, this, std::placeholders::_1)
+		);
+	}
+
+	void Syncer::run()
+	{
+		Instance::run();
+	}
+
+	void Syncer::broadcast()
+	{
+		auto data = get_state_data();
+
+		for (const auto& endpoint : get_topology().get_slaves())
+			get_messenger().send(
+				endpoint.messenger_configuration.name,
+				get_header_space().reset,
+				data
+			);
+	}
+
+	void Syncer::handle_set(const Messenger::Message& message)
+	{
+		Instance::handle_set(message);
+
+		broadcast();
 	}
 }
 
