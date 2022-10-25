@@ -15,4 +15,3 @@ namespace Revolution {
 }
 
 #endif	// REVOLUTION_MOTOR_CONTROLLER_H
-

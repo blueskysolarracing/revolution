@@ -7,7 +7,7 @@ SYNCER_OBJECTS=logger.o messenger.o application.o topology.o instance.o
 
 DISPLAY_DRIVER_NAME=display_driver
 DISPLAY_DRIVER_OBJECTS=logger.o messenger.o application.o topology.o instance.o
-MISCELLANEOUS_CONTROLLER_NAME=miscellanious_controller
+MISCELLANEOUS_CONTROLLER_NAME=miscellaneous_controller
 MISCELLANEOUS_CONTROLLER_OBJECTS=logger.o messenger.o application.o topology.o instance.o
 MOTOR_CONTROLLER_NAME=motor_controller
 MOTOR_CONTROLLER_OBJECTS=logger.o messenger.o application.o topology.o instance.o
@@ -45,7 +45,7 @@ $(SYNCER_NAME): $(SYNCER_OBJECTS)
 # display_driver
 $(DISPLAY_DRIVER_NAME): $(DISPLAY_DRIVER_OBJECTS)
 
-# miscellanious_controller
+# miscellaneous_controller
 $(MISCELLANEOUS_CONTROLLER_NAME): $(MISCELLANEOUS_CONTROLLER_OBJECTS)
 
 # motor_controller

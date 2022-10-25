@@ -36,4 +36,3 @@ namespace Revolution {
 }
 
 #endif	// REVOLUTION_INSTANCE_H
-

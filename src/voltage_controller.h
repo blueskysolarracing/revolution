@@ -15,4 +15,3 @@ namespace Revolution {
 }
 
 #endif	// REVOLUTION_VOLTAGE_CONTROLLER_H
-
