@@ -37,7 +37,7 @@ test: all
 
 .PHONY: clean
 clean:
-	-rm -f *.o $(NAMES)
+	-rm -f *.o *.log $(NAMES)
 
 # syncer
 $(SYNCER_NAME): $(SYNCER_OBJECTS)
