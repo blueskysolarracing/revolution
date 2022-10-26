@@ -41,5 +41,6 @@
 /src/power_sensor
 /src/telemeter
 /src/voltage_controller
+/src/watchdog
 /src/client
 /src/*.log

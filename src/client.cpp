@@ -55,19 +55,18 @@ namespace Revolution {
 
 int main(int argc, char *argv[])
 {
-	if (argc != 3) {
+	if (argc != 2) {
 		std::cout << "Invalid number of arguments" << std::endl;
-		std::cout << "Usage: sender_name recipient_name" << std::endl;
+		std::cout << "Usage: recipient_name" << std::endl;
 		return 0;
 	}
 
-	std::string sender_name(argv[1]);
-	std::string recipient_name(argv[2]);
+	std::string recipient_name(argv[1]);
 
 	Revolution::Client client{
 		"client",
 		Revolution::Logger::Configuration{Revolution::Logger::info},
-		Revolution::Messenger::Configuration{sender_name},
+		Revolution::Messenger::Configuration{"/revolution_client"},
 		recipient_name
 	};
 

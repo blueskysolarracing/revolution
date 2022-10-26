@@ -15,6 +15,8 @@ namespace Revolution {
 			const Header_space& header_space,
 			const Key_space& key_space
 		);
+
+		void run() override;
 	protected:
 		const Topology& get_topology() const;
 		const Header_space& get_header_space() const;
@@ -23,9 +25,11 @@ namespace Revolution {
 		std::unordered_map<std::string, std::string>& get_states();
 		std::vector<std::string> get_state_data() const;
 
+		virtual void handle_status(const Messenger::Message& message);
 		virtual void handle_get(const Messenger::Message& message);
 		virtual void handle_set(const Messenger::Message& message);
 		virtual void handle_reset(const Messenger::Message& message);
+		virtual void handle_sync(const Messenger::Message& message);
 		virtual void handle_exit(const Messenger::Message& message);
 	private:
 		const Topology topology;

@@ -28,7 +28,7 @@ namespace Revolution {
 			while (get_status()) {
 				const auto message = get_messenger().receive();
 
-				handle(message);
+				update(message);
 			}
 		} catch (std::exception& exception) {
 			get_logger() << Logger::fatal
@@ -75,6 +75,12 @@ namespace Revolution {
 				<< "Adding handler \"" << name << "\"..." << std::endl;
 
 		get_handlers()[name] = handler;
+	}
+
+	void Application::update(const std::optional<Messenger::Message>& optional_message)
+	{
+		if (optional_message.has_value())
+			handle(optional_message.value());
 	}
 
 	const std::unordered_map<std::string, std::function<void(const Messenger::Message&)>>& Application::get_handlers() const

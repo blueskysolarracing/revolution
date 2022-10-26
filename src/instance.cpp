@@ -15,6 +15,10 @@ namespace Revolution {
 	    states{}
 	{
 		set_handler(
+			get_header_space().status,
+			std::bind(&Instance::handle_status, this, std::placeholders::_1)
+		);
+		set_handler(
 			get_header_space().get,
 			std::bind(&Instance::handle_get, this, std::placeholders::_1)
 		);
@@ -25,6 +29,10 @@ namespace Revolution {
 		set_handler(
 			get_header_space().reset,
 			std::bind(&Instance::handle_reset, this, std::placeholders::_1)
+		);
+		set_handler(
+			get_header_space().sync,
+			std::bind(&Instance::handle_sync, this, std::placeholders::_1)
 		);
 		set_handler(
 			get_header_space().exit,
@@ -69,6 +77,21 @@ namespace Revolution {
 		return data;
 	}
 
+	void Instance::run()
+	{
+		get_messenger().send(
+			get_topology().get_master().messenger_configuration.name,
+			get_header_space().sync
+		);
+
+		Application::run();
+	}
+
+	void Instance::handle_status(const Messenger::Message& message)
+	{
+		get_messenger().send(message.sender_name, get_header_space().response);
+	}
+
 	void Instance::handle_get(const Messenger::Message& message)
 	{
 		std::vector<std::string> data;
@@ -98,6 +121,11 @@ namespace Revolution {
 		get_states().clear();
 
 		handle_set(message);
+	}
+
+	void Instance::handle_sync(const Messenger::Message& message)
+	{
+		get_messenger().send(message.sender_name, get_header_space().reset, get_state_data());
 	}
 
 	void Instance::handle_exit(const Messenger::Message& message)

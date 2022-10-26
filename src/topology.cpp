@@ -25,14 +25,16 @@ namespace Revolution {
 		const Endpoint& motor_controller,
 		const Endpoint& power_sensor,
 		const Endpoint& telemeter,
-		const Endpoint& voltage_controller
+		const Endpoint& voltage_controller,
+		const Endpoint& watchdog
 	) : syncer{syncer},
 	    display_driver{display_driver},
 	    miscellaneous_controller{miscellaneous_controller},
 	    motor_controller{motor_controller},
 	    power_sensor{power_sensor},
 	    telemeter{telemeter},
-	    voltage_controller{voltage_controller}
+	    voltage_controller{voltage_controller},
+	    watchdog{watchdog}
 	{
 	}
 
@@ -49,18 +51,32 @@ namespace Revolution {
 			motor_controller,
 			power_sensor,
 			telemeter,
-			voltage_controller
+			voltage_controller,
+			watchdog
 		};
 	}
+
+	const std::vector<Topology::Endpoint> Topology::get_endpoints() const
+	{
+		std::vector<Topology::Endpoint> endpoints = get_slaves();
+		endpoints.push_back(get_master());
+
+		return endpoints;
+	}
+
 	Header_space::Header_space(
+		const std::string& status,
 		const std::string& get,
 		const std::string& set,
 		const std::string& reset,
+		const std::string& sync,
 		const std::string& exit,
 		const std::string& response
-	) : get{get},
+	) : status{status},
+	    get{get},
 	    set{set},
 	    reset{reset},
+	    sync{sync},
 	    exit{exit},
 	    response{response}
 	{

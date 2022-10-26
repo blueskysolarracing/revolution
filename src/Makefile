@@ -17,13 +17,15 @@ TELEMETER_NAME=telemeter
 TELEMETER_OBJECTS=logger.o messenger.o application.o topology.o instance.o
 VOLTAGE_CONTROLLER_NAME=voltage_controller
 VOLTAGE_CONTROLLER_OBJECTS=logger.o messenger.o application.o topology.o instance.o
+WATCHDOG_NAME=watchdog
+WATCHDOG_OBJECTS=logger.o messenger.o application.o topology.o instance.o
 
 CLIENT_NAME=client
 CLIENT_OBJECTS=logger.o messenger.o application.o
 
 NAMES=$(SYNCER_NAME) $(DISPLAY_DRIVER_NAME) $(MISCELLANEOUS_CONTROLLER_NAME) \
       $(MOTOR_CONTROLLER_NAME) $(POWER_SENSOR_NAME) $(TELEMETER_NAME) \
-      $(VOLTAGE_CONTROLLER_NAME) $(CLIENT_NAME)
+      $(VOLTAGE_CONTROLLER_NAME) $(CLIENT_NAME) $(WATCHDOG_NAME)
 
 .PHONY: all
 all: $(NAMES)
@@ -59,6 +61,9 @@ $(TELEMETER_NAME): $(TELEMETER_OBJECTS)
 
 # voltage_controller
 $(VOLTAGE_CONTROLLER_NAME): $(VOLTAGE_CONTROLLER_OBJECTS)
+
+# watchdog
+$(WATCHDOG_NAME): $(WATCHDOG_OBJECTS)
 
 # client
 $(CLIENT_NAME): $(CLIENT_OBJECTS)

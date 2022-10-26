@@ -99,11 +99,23 @@ namespace Revolution {
 					"/revolution_voltage_controller"
 				},
 				"./voltage_controller"
+			},
+			const Endpoint& watchdog = Endpoint{
+				"watchdog",
+				Logger::Configuration{
+					Logger::info,
+					"./watchdog.log"
+				},
+				Messenger::Configuration{
+					"/revolution_watchdog"
+				},
+				"./watchdog"
 			}
 		);
 
 		const Endpoint& get_master() const;
 		const std::vector<Endpoint> get_slaves() const;
+		const std::vector<Endpoint> get_endpoints() const;
 
 		const Endpoint syncer;
 		const Endpoint display_driver;
@@ -112,20 +124,25 @@ namespace Revolution {
 		const Endpoint power_sensor;
 		const Endpoint telemeter;
 		const Endpoint voltage_controller;
+		const Endpoint watchdog;
 	};
 
 	struct Header_space {
 		explicit Header_space(
+			const std::string& status = "STATUS",
 			const std::string& get = "GET",
 			const std::string& set = "SET",
 			const std::string& reset = "RESET",
+			const std::string& sync = "SYNC",
 			const std::string& exit = "EXIT",
 			const std::string& response = "RESPONSE"
 		);
 
+		const std::string status;
 		const std::string get;
 		const std::string set;
 		const std::string reset;
+		const std::string sync;
 		const std::string exit;
 		const std::string response;
 	};
