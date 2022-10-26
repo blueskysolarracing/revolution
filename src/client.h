@@ -10,7 +10,9 @@ namespace Revolution {
 			const std::string& name,
 			const Logger::Configuration& logger_configuration,
 			const Messenger::Configuration& messenger_configuration,
-			const std::string& recipient_name
+			const std::string& recipient_name,
+			const std::string& header,
+			const std::vector<std::string>& data
 		);
 
 		void run() override;
@@ -20,6 +22,8 @@ namespace Revolution {
 		void help_run();
 
 		std::string recipient_name;
+		std::string header;
+		std::vector<std::string> data;
 	};
 }
 

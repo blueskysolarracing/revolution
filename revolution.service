@@ -1,0 +1,13 @@
+Description=Blue Sky Solar Racing Revolution
+
+[Service]
+WorkingDirectory=/home/juho/Projects/blueskyelec-revolution/src
+Type=simple
+User=juho
+ExecStart=/home/juho/Projects/blueskyelec-revolution/src/watchdog
+ExecStop=/home/juho/Projects/blueskyelec-revolution/src/client /revolution_watchdog EXIT
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

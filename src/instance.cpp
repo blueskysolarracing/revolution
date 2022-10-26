@@ -79,10 +79,16 @@ namespace Revolution {
 
 	void Instance::run()
 	{
-		get_messenger().send(
-			get_topology().get_master().messenger_configuration.name,
-			get_header_space().sync
-		);
+		if (get_name() == get_topology().get_master().name)
+			get_messenger().send(
+				get_topology().watchdog.messenger_configuration.name,
+				get_header_space().sync
+			);
+		else
+			get_messenger().send(
+				get_topology().get_master().messenger_configuration.name,
+				get_header_space().sync
+			);
 
 		Application::run();
 	}
