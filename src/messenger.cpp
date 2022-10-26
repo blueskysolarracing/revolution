@@ -3,7 +3,9 @@
 #include "messenger.h"
 
 namespace Revolution {
-	Messenger::Message Messenger::Message::deserialize(const std::string& raw_message)
+	Messenger::Message Messenger::Message::deserialize(
+		const std::string& raw_message
+	)
 	{
 		std::istringstream iss(raw_message);
 		std::string sender_name;
@@ -64,12 +66,12 @@ namespace Revolution {
 
 	Messenger::Configuration::Configuration(
 		const std::string& name,
-		const bool& unlink,
+		const std::string& full_name_prefix,
 		const unsigned int& priority,
 		const int& oflags,
 		const mode_t& mode
 	) : name{name},
-	    unlink{unlink},
+	    full_name_prefix{full_name_prefix},
 	    priority{priority},
 	    oflags{oflags},
 	    mode{mode}
@@ -79,25 +81,14 @@ namespace Revolution {
 	Messenger::Messenger(
 		const Configuration& configuration,
 		Logger& logger
-	) : configuration{configuration}, logger{logger}, opened_names{}
+	) : configuration{configuration}, logger{logger}
 	{
-		mq_unlink(get_configuration().name.data());
 	}
 
-	Messenger::~Messenger()
-	{
-		if (get_configuration().unlink)
-			for (auto& name : get_opened_names())
-				if (mq_unlink(name.data()) == (mqd_t) - 1)
-					get_logger() << Logger::error
-						<< "Cannot unlink with message queue descriptor for " << name
-						<< " (errno = " << errno <<  ')' << std::endl;
-	}
-
-	Messenger::Message Messenger::receive()
+	Messenger::Message Messenger::receive() const
 	{
 		return receive([] (
-			mqd_t& descriptor,
+			const mqd_t& descriptor,
 			std::string& raw_message,
 			unsigned int& priority
 		) {
@@ -111,16 +102,22 @@ namespace Revolution {
 	}
 
 	std::optional<Messenger::Message> Messenger::receive(
-		const std::chrono::system_clock::time_point& timeout
-	)
+		const std::chrono::system_clock::duration& timeout
+	) const
 	{
-		auto duration = timeout.time_since_epoch();
-		auto seconds = std::chrono::duration_cast<std::chrono::seconds>(duration);
-		auto nanoseconds = std::chrono::duration_cast<std::chrono::nanoseconds>(duration - seconds);
-		auto abs_timeout = timespec{seconds.count(), nanoseconds.count()};
+		auto time_point = std::chrono::system_clock::now();
+		auto duration = time_point.time_since_epoch() + timeout;
+		auto seconds = std::chrono::duration_cast<std::chrono::seconds>(
+			duration
+		);
+		auto nanoseconds
+			= std::chrono::duration_cast<std::chrono::nanoseconds>(
+				duration - seconds
+			);
+		timespec abs_timeout{seconds.count(), nanoseconds.count()};
 
 		return receive([&abs_timeout] (
-			mqd_t& descriptor,
+			const mqd_t& descriptor,
 			std::string& raw_message,
 			unsigned int& priority
 		) {
@@ -138,10 +135,10 @@ namespace Revolution {
 		const std::string& name,
 		const std::string& header,
 		const std::vector<std::string>& data
-	)
+	) const
 	{
 		send(name, header, data, [] (
-			mqd_t& descriptor,
+			const mqd_t& descriptor,
 			const std::string& raw_message,
 			const unsigned int& priority
 		) {
@@ -155,19 +152,25 @@ namespace Revolution {
 	}
 
 	bool Messenger::send(
-		const std::chrono::system_clock::time_point& timeout,
 		const std::string& name,
 		const std::string& header,
-		const std::vector<std::string>& data
-	)
+		const std::vector<std::string>& data,
+		const std::chrono::system_clock::duration& timeout
+	) const
 	{
-		auto duration = timeout.time_since_epoch();
-		auto seconds = std::chrono::duration_cast<std::chrono::seconds>(duration);
-		auto nanoseconds = std::chrono::duration_cast<std::chrono::nanoseconds>(duration - seconds);
-		auto abs_timeout = timespec{seconds.count(), nanoseconds.count()};
+		auto time_point = std::chrono::system_clock::now();
+		auto duration = time_point.time_since_epoch() + timeout;
+		auto seconds = std::chrono::duration_cast<std::chrono::seconds>(
+			duration
+		);
+		auto nanoseconds
+			= std::chrono::duration_cast<std::chrono::nanoseconds>(
+				duration - seconds
+			);
+		timespec abs_timeout{seconds.count(), nanoseconds.count()};
 
 		return send(name, header, data, [&abs_timeout] (
-			mqd_t& descriptor,
+			const mqd_t& descriptor,
 			const std::string& raw_message,
 			const unsigned int& priority
 		) {
@@ -181,30 +184,32 @@ namespace Revolution {
 		});
 	}
 
+	bool Messenger::send(
+		const std::string& name,
+		const std::string& header,
+		const std::chrono::system_clock::duration& timeout
+	) const
+	{
+		return send(name, header, {}, timeout);
+	}
+
 	const Messenger::Configuration& Messenger::get_configuration() const
 	{
 		return configuration;
 	}
 
-	Logger& Messenger::get_logger()
+	Logger& Messenger::get_logger() const
 	{
 		return logger;
 	}
 
-	const std::unordered_set<std::string>& Messenger::get_opened_names() const
+	mqd_t Messenger::open_descriptor(const std::string& name) const
 	{
-		return opened_names;
-	}
+		std::string full_name
+			= get_configuration().full_name_prefix + name;
 
-	std::unordered_set<std::string>& Messenger::get_opened_names()
-	{
-		return opened_names;
-	}
-
-	mqd_t Messenger::open_descriptor(const std::string& name)
-	{
 		auto descriptor = mq_open(
-			name.data(),
+			full_name.data(),
 			get_configuration().oflags,
 			get_configuration().mode,
 			NULL
@@ -212,25 +217,30 @@ namespace Revolution {
 
 		if (descriptor == (mqd_t) - 1)
 			get_logger() << Logger::error
-				<< "Cannot open with message queue descriptor for " << name
-				<< " (errno = " << errno << ')' << std::endl;
-		else
-			get_opened_names().insert(name);
+				<< "Cannot open message queue descriptor of "
+				<< name << " (errno = " << errno << ')'
+				<< std::endl;
 
 		return descriptor;
 	}
 
-	void Messenger::close_descriptor(const std::string& name, mqd_t& descriptor)
+	void Messenger::close_descriptor(mqd_t& descriptor) const
 	{
 		if (mq_close(descriptor) == (mqd_t) - 1)
 			get_logger() << Logger::error
-				<< "Cannot close with message queue descriptor for " << name
-				<< " (errno = " << errno << ')' << std::endl;
+				<< "Cannot close message queue descriptor "
+				<< "(errno = " << errno << ')' << std::endl;
 	}
 
 	std::optional<Messenger::Message> Messenger::receive(
-		std::function<ssize_t(mqd_t&, std::string&, unsigned int&)> receiver
-	)
+		std::function<
+			ssize_t(
+				const mqd_t&,
+				std::string&,
+				unsigned int&
+			)
+		> receiver
+	) const
 	{
 		ssize_t received_size;
 		std::string raw_message;
@@ -241,7 +251,8 @@ namespace Revolution {
 
 		if (mq_getattr(descriptor, &attributes) == -1) {
 			get_logger() << Logger::error
-				<< "Cannot get attributes with message queue descriptor for " << get_configuration().name
+				<< "Cannot get message queue attributes of "
+				<< get_configuration().name
 				<< " (errno = " << errno << ')' << std::endl;
 
 			return std::nullopt;
@@ -250,11 +261,12 @@ namespace Revolution {
 		raw_message.resize(attributes.mq_msgsize);
 		received_size = receiver(descriptor, raw_message, priority);
 
-		close_descriptor(get_configuration().name, descriptor);
+		close_descriptor(descriptor);
 
 		if (received_size == -1) {
 			get_logger() << Logger::error
-				<< "Cannot receive with message queue descriptor for " << get_configuration().name
+				<< "Cannot receive from the message queue of "
+				<< get_configuration().name
 				<< " (errno = " << errno << ')' << std::endl;
 
 			return std::nullopt;
@@ -265,7 +277,8 @@ namespace Revolution {
 		auto message = Message::deserialize(raw_message);
 
 		get_logger() << Logger::info
-			<< "Received message from " << message.sender_name << ": " << message.to_string() << std::endl;
+			<< "Successfully Received message: "
+			<< message.to_string() << std::endl;
 
 		return message;
 	}
@@ -274,8 +287,14 @@ namespace Revolution {
 		const std::string& name,
 		const std::string& header,
 		const std::vector<std::string>& data,
-		std::function<int(mqd_t&, const std::string&, const unsigned int&)> sender
-	)
+		std::function<
+			int(
+				const mqd_t&,
+				const std::string&,
+				const unsigned int&
+			)
+		> sender
+	) const
 	{
 		Message message{get_configuration().name, header, data};
 		std::string raw_message{message.serialize()};
@@ -288,15 +307,18 @@ namespace Revolution {
 			get_configuration().priority
 		);
 
-		close_descriptor(name, descriptor);
+		close_descriptor(descriptor);
 
 		if (status == -1)
 			get_logger() << Logger::error
-				<< "Cannot send with message queue descriptor for " << name
-				<< " (errno = " << errno << ')' << std::endl;
+				<< "Cannot send to the message queue of "
+				<< name << " (errno = " << errno << ')'
+				<< std::endl;
 		else
 			get_logger() << Logger::info
-				<< "Sent message to " << name << ": " << message.to_string() << std::endl;
+				<< "Successfully Sent message to "
+				<< name << ": " << message.to_string()
+				<< std::endl;
 
 		return !status;
 	}
