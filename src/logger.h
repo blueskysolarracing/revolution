@@ -8,7 +8,10 @@ namespace Revolution {
 	class Logger : public std::ostream {
 	public:
 		struct Severity {
-			explicit Severity(const std::string& name, const unsigned int& level);
+			explicit Severity(
+				const std::string& name,
+				const unsigned int& level
+			);
 
 			const std::string name;
 			const unsigned int level;
@@ -18,7 +21,8 @@ namespace Revolution {
 			explicit Configuration(
 				const Severity& severity,
 				const std::string& filename = "",
-				const std::ofstream::openmode& open_mode = std::ofstream::app
+				const std::ofstream::openmode& open_mode
+					= std::ofstream::app
 			);
 
 			const Severity severity;

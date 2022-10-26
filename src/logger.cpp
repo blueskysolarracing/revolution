@@ -5,8 +5,10 @@
 #include "logger.h"
 
 namespace Revolution {
-	Logger::Severity::Severity(const std::string& name, const unsigned int& level)
-		: name{name}, level{level}
+	Logger::Severity::Severity(
+		const std::string& name,
+		const unsigned int& level
+	) : name{name}, level{level}
 	{
 	}
 
@@ -29,32 +31,40 @@ namespace Revolution {
 		const Configuration& configuration
 	) : std::ostream{nullptr}, configuration{configuration}, ofstream{}
 	{
-		if (!get_configuration().filename.empty())
+		if (!get_configuration().filename.empty()) {
 			get_ofstream().open(
 				get_configuration().filename,
 				get_configuration().open_mode
 			);
 
-		if (get_ofstream().fail()) {
-			(*this) << error << "Cannot open log file. Using stdout instead." << std::endl;
-			get_ofstream().clear();
+			if (get_ofstream().fail()) {
+				(*this) << error << "Cannot open log file. "
+					<< "Using stdout instead." << std::endl;
+
+				get_ofstream().clear();
+			}
 		}
 	}
 
 	Logger::~Logger()
 	{
-		if (get_ofstream().is_open())
+		if (get_ofstream().is_open()) {
 			get_ofstream().close();
 
-		if (get_ofstream().fail()) {
-			(*this) << error << "Cannot close log file." << std::endl;
-			get_ofstream().clear();
+			if (get_ofstream().fail()) {
+				(*this) << error << "Cannot close log file."
+					<< std::endl;
+
+				get_ofstream().clear();
+			}
 		}
 	}
 
 	Logger& Logger::operator<<(const Severity& severity)
 	{
-		set_status(severity.level >= get_configuration().severity.level);
+		set_status(
+			severity.level >= get_configuration().severity.level
+		);
 
 		auto time_point = std::chrono::system_clock::now();
 		auto time = std::chrono::system_clock::to_time_t(time_point);
