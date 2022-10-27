@@ -1,5 +1,3 @@
-#include <string>
-
 #include "configuration.h"
 #include "logger.h"
 #include "master.h"

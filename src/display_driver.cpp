@@ -1,5 +1,3 @@
-#include <string>
-
 #include "configuration.h"
 #include "display_driver.h"
 #include "logger.h"

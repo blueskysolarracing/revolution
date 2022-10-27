@@ -21,22 +21,22 @@ TELEMETER_OBJECTS=logger.o messenger.o configuration.o application.o slave.o
 VOLTAGE_CONTROLLER_NAME=voltage_controller
 VOLTAGE_CONTROLLER_OBJECTS=logger.o messenger.o configuration.o application.o slave.o
 
+TERMINATOR_NAME=terminator
+TERMINATOR_OBJECTS=logger.o messenger.o configuration.o
+
 CLIENT_NAME=client
 CLIENT_OBJECTS=logger.o messenger.o
 
 NAMES=$(SYNCER_NAME) $(DISPLAY_DRIVER_NAME) $(MISCELLANEOUS_CONTROLLER_NAME) \
-      $(MOTOR_CONTROLLER_NAME) $(POWER_SENSOR_NAME) $(REPLICA_NAME) \
-      $(TELEMETER_NAME) $(VOLTAGE_CONTROLLER_NAME) $(CLIENT_NAME)
+	$(MOTOR_CONTROLLER_NAME) $(POWER_SENSOR_NAME) $(REPLICA_NAME) \
+	$(TELEMETER_NAME) $(VOLTAGE_CONTROLLER_NAME) $(TERMINATOR_NAME) \
+	$(CLIENT_NAME)
 
 .PHONY: all
 all: $(NAMES)
-	@echo ""
-	@echo "Run 'make test' to begin integration tests"
-	@echo ""
 
 .PHONY: test
 test: all
-	@echo "TODO: TEST"
 
 .PHONY: clean
 clean:
@@ -65,6 +65,9 @@ $(TELEMETER_NAME): $(TELEMETER_OBJECTS)
 
 # voltage_controller
 $(VOLTAGE_CONTROLLER_NAME): $(VOLTAGE_CONTROLLER_OBJECTS)
+
+# terminator
+$(TERMINATOR_NAME): $(TERMINATOR_OBJECTS)
 
 # client
 $(CLIENT_NAME): $(CLIENT_OBJECTS)

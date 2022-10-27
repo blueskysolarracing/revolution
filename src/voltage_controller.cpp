@@ -1,10 +1,8 @@
-#include <string>
-
 #include "configuration.h"
 #include "logger.h"
 #include "messenger.h"
-#include "voltage_controller.h"
 #include "slave.h"
+#include "voltage_controller.h"
 
 namespace Revolution {
 	Voltage_controller::Voltage_controller(

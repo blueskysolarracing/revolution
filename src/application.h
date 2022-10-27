@@ -26,26 +26,27 @@ namespace Revolution {
 
 		virtual void run();
 	protected:
-		const bool& get_status() const;
 		const Topology& get_topology() const;
 		const Header_space& get_header_space() const;
 		const Key_space& get_key_space() const;
 		Logger& get_logger() const;
 		const Messenger& get_messenger() const;
-		virtual const Topology::Endpoint& get_endpoint() const = 0;
+		const bool& get_status() const;
+		void set_status(const bool& status);
 		const States& get_states() const;
 		std::vector<std::string> get_state_data() const;
-		void set_status(const bool& status);
 		void set_handler(
 			const std::string& name,
 			const Handler& handler
 		);
+		virtual const Topology::Endpoint& get_endpoint() const = 0;
 
-		void handle_status(const Messenger::Message& message);
-		void handle_get(const Messenger::Message& message);
+		void handle_status(const Messenger::Message& message) const;
+		void handle_get(const Messenger::Message& message) const;
 		virtual void handle_set(const Messenger::Message& message);
 		void handle_reset(const Messenger::Message& message);
-		void handle_sync(const Messenger::Message& message);
+		void handle_sync(const Messenger::Message& message) const;
+		void handle_hang(const Messenger::Message& message) const;
 		void handle_exit(const Messenger::Message& message);
 	private:
 		const Handlers& get_handlers() const;

@@ -1,10 +1,8 @@
-#include <string>
-
 #include "configuration.h"
 #include "logger.h"
 #include "messenger.h"
-#include "telemeter.h"
 #include "slave.h"
+#include "telemeter.h"
 
 namespace Revolution {
 	Telemeter::Telemeter(

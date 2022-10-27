@@ -42,5 +42,6 @@
 /src/replica
 /src/telemeter
 /src/voltage_controller
+/src/terminator
 /src/client
 /src/*.log

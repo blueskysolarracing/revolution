@@ -48,6 +48,7 @@ namespace Revolution {
 			const std::string& set = "SET",
 			const std::string& reset = "RESET",
 			const std::string& sync = "SYNC",
+			const std::string& hang = "HANG",
 			const std::string& exit = "EXIT",
 			const std::string& response = "RESPONSE"
 		);
@@ -57,6 +58,7 @@ namespace Revolution {
 		const std::string set;
 		const std::string reset;
 		const std::string sync;
+		const std::string hang;
 		const std::string exit;
 		const std::string response;
 	};

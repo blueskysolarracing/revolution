@@ -2,6 +2,8 @@
 #include <string>
 #include <unordered_map>
 
+#include <unistd.h>
+
 #include "application.h"
 #include "configuration.h"
 #include "logger.h"
@@ -64,6 +66,14 @@ namespace Revolution {
 			)
 		);
 		set_handler(
+			get_header_space().hang,
+			std::bind(
+				&Application::handle_hang,
+				this,
+				std::placeholders::_1
+			)
+		);
+		set_handler(
 			get_header_space().exit,
 			std::bind(
 				&Application::handle_exit,
@@ -105,11 +115,6 @@ namespace Revolution {
 			<< std::endl;
 	}
 
-	const bool& Application::get_status() const
-	{
-		return status;
-	}
-
 	const Topology& Application::get_topology() const
 	{
 		return topology;
@@ -135,6 +140,16 @@ namespace Revolution {
 		return messenger;
 	}
 
+	const bool& Application::get_status() const
+	{
+		return status;
+	}
+
+	void Application::set_status(const bool& status)
+	{
+		this->status = status;
+	}
+
 	const Application::States& Application::get_states() const
 	{
 		return states;
@@ -150,11 +165,6 @@ namespace Revolution {
 		}
 
 		return data;
-	}
-
-	void Application::set_status(const bool& status)
-	{
-		this->status = status;
 	}
 
 	void Application::set_handler(
@@ -178,7 +188,7 @@ namespace Revolution {
 		get_handlers().emplace(name, handler);
 	}
 
-	void Application::handle_status(const Messenger::Message& message)
+	void Application::handle_status(const Messenger::Message& message) const
 	{
 		get_messenger().send(
 			message.sender_name,
@@ -186,7 +196,7 @@ namespace Revolution {
 		);
 	}
 
-	void Application::handle_get(const Messenger::Message& message)
+	void Application::handle_get(const Messenger::Message& message) const
 	{
 		std::vector<std::string> data;
 
@@ -227,13 +237,18 @@ namespace Revolution {
 		handle_set(message);
 	}
 
-	void Application::handle_sync(const Messenger::Message& message)
+	void Application::handle_sync(const Messenger::Message& message) const
 	{
 		get_messenger().send(
 			message.sender_name,
 			get_header_space().reset,
 			get_state_data()
 		);
+	}
+
+	void Application::handle_hang(const Messenger::Message& message) const
+	{
+		pause();
 	}
 
 	void Application::handle_exit(const Messenger::Message& message)

@@ -16,8 +16,8 @@ namespace Revolution {
 			Logger& logger,
 			const Messenger& messenger
 		);
-		protected:
-			const Topology::Endpoint& get_endpoint() const override;
+	protected:
+		const Topology::Endpoint& get_endpoint() const override;
 	};
 }
 

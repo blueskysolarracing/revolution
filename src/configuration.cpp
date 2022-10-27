@@ -60,6 +60,7 @@ namespace Revolution {
 		const std::string& set,
 		const std::string& reset,
 		const std::string& sync,
+		const std::string& hang,
 		const std::string& exit,
 		const std::string& response
 	) : status{status},
@@ -67,6 +68,7 @@ namespace Revolution {
 	    set{set},
 	    reset{reset},
 	    sync{sync},
+	    hang{hang},
 	    exit{exit},
 	    response{response}
 	{

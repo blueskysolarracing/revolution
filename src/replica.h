@@ -1,5 +1,5 @@
-#ifndef REVOLUTION_Replica_H
-#define REVOLUTION_Replica_H
+#ifndef REVOLUTION_REPLICA_H
+#define REVOLUTION_REPLICA_H
 
 #include "configuration.h"
 #include "logger.h"
@@ -16,9 +16,9 @@ namespace Revolution {
 			Logger& logger,
 			const Messenger& messenger
 		);
-		protected:
-			const Topology::Endpoint& get_endpoint() const override;
+	protected:
+		const Topology::Endpoint& get_endpoint() const override;
 	};
 }
 
-#endif	// REVOLUTION_Replica_H
+#endif	// REVOLUTION_REPLICA_H
