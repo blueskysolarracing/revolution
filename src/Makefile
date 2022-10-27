@@ -21,7 +21,7 @@ WATCHDOG_NAME=watchdog
 WATCHDOG_OBJECTS=logger.o messenger.o application.o topology.o instance.o
 
 CLIENT_NAME=client
-CLIENT_OBJECTS=logger.o messenger.o application.o
+CLIENT_OBJECTS=logger.o messenger.o
 
 NAMES=$(SYNCER_NAME) $(DISPLAY_DRIVER_NAME) $(MISCELLANEOUS_CONTROLLER_NAME) \
       $(MOTOR_CONTROLLER_NAME) $(POWER_SENSOR_NAME) $(TELEMETER_NAME) \

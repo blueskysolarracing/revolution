@@ -2,6 +2,7 @@
 #define REVOLUTION_LOGGER_H
 
 #include <fstream>
+#include <ostream>
 #include <string>
 
 namespace Revolution {

@@ -1,89 +1,90 @@
+#include <atomic>
+#include <chrono>
 #include <iostream>
+#include <optional>
 #include <sstream>
+#include <string>
 #include <thread>
+#include <vector>
 
-#include "client.h"
+#include "logger.h"
+#include "messenger.h"
 
-namespace Revolution {
-	Client::Client(
-		const std::string& name,
-		const Logger::Configuration& logger_configuration,
-		const Messenger::Configuration& messenger_configuration,
-		const std::string& recipient_name,
-		const std::string& header,
-		const std::vector<std::string>& data
-	)
-		: Application{
-			name,
-			logger_configuration,
-			messenger_configuration
-		}, recipient_name{recipient_name},
-		header{header},
-		data{data}
-	{
-	}
+void monitor(
+	const Revolution::Messenger& messenger,
+	const std::atomic_bool& status
+)
+{
+	static constexpr std::chrono::high_resolution_clock::duration monitor_timeout
+		= std::chrono::milliseconds(100);
 
-	void Client::run()
-	{
-		if (!header.empty())
-			get_messenger().send(get_recipient_name(), header, data);
-		else {
-			std::thread thread{&Client::help_run, this};
-			Application::run();
-			thread.join();
-		}
-	}
+	while (status.load()) {
+		auto optional_message = messenger.receive(monitor_timeout);
 
-	const std::string& Client::get_recipient_name() const
-	{
-		return recipient_name;
-	}
-
-	void Client::help_run()
-	{
-		std::string input;
-
-		while (std::getline(std::cin, input)) {
-			std::istringstream iss(input);
-			std::string header;
-			std::string datum;
-			std::vector<std::string> data;
-
-			iss >> header;
-
-			while (std::getline(iss, datum, ' '))
-				if (!datum.empty())
-					data.push_back(datum);
-
-			if (!header.empty())
-				get_messenger().send(get_recipient_name(), header, data);
-		}
+		if (optional_message.has_value())
+			std::cout << optional_message.value().to_string()
+				<< std::endl;
 	}
 }
 
 int main(int argc, char *argv[])
 {
-	std::string recipient_name(argv[1]);
-	std::string header;
-	std::vector<std::string> data;
+	if (argc < 3) {
+		std::cout << "Usage: ./client "
+			<< "sender_name recipient_name "
+			<< "[header] [data...]" << std::endl;
 
-	if (argc > 2) {
-		header = argv[2];
-
-		for (int i = 3; i < argc; ++i)
-			data.emplace_back(argv[i]);
+		return 0;
 	}
 
-	Revolution::Client client{
-		"client",
-		Revolution::Logger::Configuration{Revolution::Logger::info},
-		Revolution::Messenger::Configuration{"/revolution_client"},
-		recipient_name,
-		header,
-		data
+	std::string sender_name(argv[1]);
+	std::string recipient_name(argv[2]);
+	std::string header;
+	std::vector<std::string> data;
+	Revolution::Logger logger{
+		Revolution::Logger::Configuration{Revolution::Logger::fatal}
 	};
+	Revolution::Messenger messenger{
+		Revolution::Messenger::Configuration{sender_name},
+		logger
+	};
+	std::atomic_bool status{true};
 
-	client.run();
+	if (argc > 3) {
+		header = argv[3];
+
+		for (int i = 4; i < argc; ++i)
+			data.emplace_back(argv[i]);
+
+		messenger.send(recipient_name, header, data);
+		status.store(false);
+	}
+
+	std::thread thread{monitor, messenger, std::ref(status)};
+
+	while (status.load()) {
+		std::string input;
+		std::getline(std::cin, input);
+		std::istringstream iss(input);
+
+		iss >> header;
+
+		std::string datum;
+
+		while (std::getline(iss, datum, ' '))
+			if (!datum.empty())
+				data.push_back(datum);
+
+		if (header.empty())
+			status.store(false);
+		else
+			messenger.send(recipient_name, header, data);
+
+		header.clear();
+		data.clear();
+	}
+
+	thread.join();
 
 	return 0;
 }

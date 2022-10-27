@@ -1,5 +1,15 @@
+#include <chrono>
+#include <functional>
+#include <optional>
+#include <string>
 #include <sstream>
+#include <vector>
 
+#include <fcntl.h>
+#include <mqueue.h>
+#include <sys/stat.h>
+
+#include "logger.h"
 #include "messenger.h"
 
 namespace Revolution {
@@ -102,10 +112,10 @@ namespace Revolution {
 	}
 
 	std::optional<Messenger::Message> Messenger::receive(
-		const std::chrono::system_clock::duration& timeout
+		const std::chrono::high_resolution_clock::duration& timeout
 	) const
 	{
-		auto time_point = std::chrono::system_clock::now();
+		auto time_point = std::chrono::high_resolution_clock::now();
 		auto duration = time_point.time_since_epoch() + timeout;
 		auto seconds = std::chrono::duration_cast<std::chrono::seconds>(
 			duration
@@ -155,10 +165,10 @@ namespace Revolution {
 		const std::string& name,
 		const std::string& header,
 		const std::vector<std::string>& data,
-		const std::chrono::system_clock::duration& timeout
+		const std::chrono::high_resolution_clock::duration& timeout
 	) const
 	{
-		auto time_point = std::chrono::system_clock::now();
+		auto time_point = std::chrono::high_resolution_clock::now();
 		auto duration = time_point.time_since_epoch() + timeout;
 		auto seconds = std::chrono::duration_cast<std::chrono::seconds>(
 			duration
@@ -187,7 +197,7 @@ namespace Revolution {
 	bool Messenger::send(
 		const std::string& name,
 		const std::string& header,
-		const std::chrono::system_clock::duration& timeout
+		const std::chrono::high_resolution_clock::duration& timeout
 	) const
 	{
 		return send(name, header, {}, timeout);

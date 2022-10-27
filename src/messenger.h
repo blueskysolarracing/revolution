@@ -1,13 +1,16 @@
 #ifndef REVOLUTION_MESSENGER_H
 #define REVOLUTION_MESSENGER_H
 
+#include <cerrno>
 #include <chrono>
 #include <functional>
 #include <optional>
 #include <string>
 #include <vector>
 
+#include <fcntl.h>
 #include <mqueue.h>
+#include <sys/stat.h>
 
 #include "logger.h"
 
@@ -56,7 +59,7 @@ namespace Revolution {
 
 		Message receive() const;
 		std::optional<Message> receive(
-			const std::chrono::system_clock::duration& timeout
+			const std::chrono::high_resolution_clock::duration& timeout
 		) const;
 
 		void send(
@@ -68,12 +71,12 @@ namespace Revolution {
 			const std::string& name,
 			const std::string& header,
 			const std::vector<std::string>& data,
-			const std::chrono::system_clock::duration& timeout
+			const std::chrono::high_resolution_clock::duration& timeout
 		) const;
 		bool send(
 			const std::string& name,
 			const std::string& header,
-			const std::chrono::system_clock::duration& timeout
+			const std::chrono::high_resolution_clock::duration& timeout
 		) const;
 	private:
 		using Receiver = std::function<
