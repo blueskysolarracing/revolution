@@ -76,33 +76,29 @@ namespace Revolution {
 			const std::chrono::system_clock::duration& timeout
 		) const;
 	private:
+		using Receiver = std::function<
+			ssize_t(const mqd_t&, std::string&, unsigned int&)
+		>;
+		using Sender = std::function<
+			int(
+				const mqd_t&,
+				const std::string&,
+				const unsigned int&
+			)
+		>;
+
 		const Configuration& get_configuration() const;
 		Logger& get_logger() const;
 
 		mqd_t open_descriptor(const std::string& name) const;
 		void close_descriptor(mqd_t& descriptor) const;
 
-		std::optional<Message> receive(
-			std::function<
-				ssize_t(
-					const mqd_t&,
-					std::string&,
-					unsigned int&
-				)
-			> receiver
-		) const;
-
+		std::optional<Message> receive(const Receiver& receiver) const;
 		bool send(
 			const std::string& name,
 			const std::string& header,
 			const std::vector<std::string>& data,
-			std::function<
-				int(
-					const mqd_t&,
-					const std::string&,
-					const unsigned int&
-				)
-			> sender
+			const Sender& sender
 		) const;
 
 		const Configuration configuration;

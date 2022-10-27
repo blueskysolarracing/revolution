@@ -233,13 +233,7 @@ namespace Revolution {
 	}
 
 	std::optional<Messenger::Message> Messenger::receive(
-		std::function<
-			ssize_t(
-				const mqd_t&,
-				std::string&,
-				unsigned int&
-			)
-		> receiver
+		const Receiver& receiver
 	) const
 	{
 		ssize_t received_size;
@@ -287,13 +281,7 @@ namespace Revolution {
 		const std::string& name,
 		const std::string& header,
 		const std::vector<std::string>& data,
-		std::function<
-			int(
-				const mqd_t&,
-				const std::string&,
-				const unsigned int&
-			)
-		> sender
+		const Sender& sender
 	) const
 	{
 		Message message{get_configuration().name, header, data};
