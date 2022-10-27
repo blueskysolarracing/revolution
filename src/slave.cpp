@@ -1,4 +1,3 @@
-#include <chrono>
 #include <functional>
 
 #include "application.h"

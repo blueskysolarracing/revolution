@@ -1,8 +1,6 @@
 #ifndef REVOLUTION_MASTER_H
 #define REVOLUTION_MASTER_H
 
-#include <chrono>
-
 #include "application.h"
 #include "configuration.h"
 #include "logger.h"

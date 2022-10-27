@@ -1,8 +1,6 @@
 #ifndef REVOLUTION_SLAVE_H
 #define REVOLUTION_SLAVE_H
 
-#include <chrono>
-
 #include "application.h"
 #include "configuration.h"
 #include "logger.h"
