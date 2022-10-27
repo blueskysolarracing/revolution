@@ -1,6 +1,7 @@
 # Revolution Makefile
 
-CXXFLAGS=-std=c++23
+CXXFLAGS=-std=c++17
+LOADLIBES=-lrt -lpthread
 
 SYNCER_NAME=syncer
 SYNCER_OBJECTS=logger.o messenger.o configuration.o application.o master.o
