@@ -9,20 +9,20 @@ namespace Revolution {
 	}
 
 	Topology::Topology(
-		const Endpoint& syncer,
 		const Endpoint& display_driver,
 		const Endpoint& miscellaneous_controller,
 		const Endpoint& motor_controller,
 		const Endpoint& power_sensor,
 		const Endpoint& replica,
+		const Endpoint& syncer,
 		const Endpoint& telemeter,
 		const Endpoint& voltage_controller
-	) : syncer{syncer},
-	    display_driver{display_driver},
+	) : display_driver{display_driver},
 	    miscellaneous_controller{miscellaneous_controller},
 	    motor_controller{motor_controller},
 	    power_sensor{power_sensor},
 	    replica{replica},
+	    syncer{syncer},
 	    telemeter{telemeter},
 	    voltage_controller{voltage_controller}
 	{
@@ -46,32 +46,25 @@ namespace Revolution {
 		};
 	}
 
-	const std::vector<Topology::Endpoint> Topology::get_endpoints() const
-	{
-		auto endpoints = get_slaves();
-		endpoints.push_back(get_master());
-
-		return endpoints;
-	}
-
 	Header_space::Header_space(
-		const std::string& status,
-		const std::string& get,
-		const std::string& set,
-		const std::string& reset,
-		const std::string& sync,
-		const std::string& hang,
 		const std::string& exit,
-		const std::string& response
-	) : status{status},
+		const std::string& get,
+		const std::string& hang,
+		const std::string& heartbeat,
+		const std::string& reset,
+		const std::string& response,
+		const std::string& set,
+		const std::string& status,
+		const std::string& sync
+	) : exit{exit},
 	    get{get},
-	    set{set},
-	    reset{reset},
-	    sync{sync},
 	    hang{hang},
-	    exit{exit},
-	    response{response}
+	    heartbeat{heartbeat},
+	    reset{reset},
+	    response{response},
+	    set{set},
+	    status{status},
+	    sync{sync}
 	{
 	}
 }
-

@@ -6,6 +6,7 @@
 #include <unordered_map>
 
 #include "configuration.h"
+#include "heart.h"
 #include "logger.h"
 #include "messenger.h"
 
@@ -21,7 +22,8 @@ namespace Revolution {
 			const Header_space& header_space,
 			const Key_space& key_space,
 			Logger& logger,
-			const Messenger& messenger
+			const Messenger& messenger,
+			Heart& heart
 		);
 
 		virtual void run();
@@ -31,6 +33,7 @@ namespace Revolution {
 		const Key_space& get_key_space() const;
 		Logger& get_logger() const;
 		const Messenger& get_messenger() const;
+		Heart& get_heart() const;
 		const bool& get_status() const;
 		void set_status(const bool& status);
 		const States& get_states() const;
@@ -41,13 +44,14 @@ namespace Revolution {
 		);
 		virtual const Topology::Endpoint& get_endpoint() const = 0;
 
-		void handle_status(const Messenger::Message& message) const;
-		void handle_get(const Messenger::Message& message) const;
-		virtual void handle_set(const Messenger::Message& message);
-		void handle_reset(const Messenger::Message& message);
-		void handle_sync(const Messenger::Message& message) const;
-		void handle_hang(const Messenger::Message& message) const;
 		void handle_exit(const Messenger::Message& message);
+		void handle_get(const Messenger::Message& message) const;
+		void handle_hang(const Messenger::Message& message) const;
+		void handle_heartbeat(const Messenger::Message& message) const;
+		void handle_reset(const Messenger::Message& message);
+		virtual void handle_set(const Messenger::Message& message);
+		void handle_status(const Messenger::Message& message) const;
+		void handle_sync(const Messenger::Message& message) const;
 	private:
 		const Handlers& get_handlers() const;
 		Handlers& get_handlers();
@@ -60,6 +64,7 @@ namespace Revolution {
 		const Key_space& key_space;
 		Logger& logger;
 		const Messenger& messenger;
+		Heart& heart;
 		bool status;
 		Handlers handlers;
 		States states;

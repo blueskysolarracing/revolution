@@ -1,5 +1,8 @@
+#include <chrono>
+
 #include "configuration.h"
 #include "display_driver.h"
+#include "heart.h"
 #include "logger.h"
 #include "messenger.h"
 #include "slave.h"
@@ -10,8 +13,16 @@ namespace Revolution {
 		const Header_space& header_space,
 		const Key_space& key_space,
 		Logger& logger,
-		const Messenger& messenger
-	) : Slave{topology, header_space, key_space, logger, messenger}
+		const Messenger& messenger,
+		Heart& heart
+	) : Slave{
+		topology,
+		header_space,
+		key_space,
+		logger,
+		messenger,
+		heart
+	    }
 	{
 	}
 
@@ -37,12 +48,20 @@ int main() {
 		},
 		logger
 	};
+	Revolution::Heart heart{
+		std::chrono::seconds(10),
+		[&messenger, &topology, &header_space] () {
+			messenger.send(topology.display_driver.name, header_space.heartbeat);
+		},
+		logger
+	};
 	Revolution::Display_driver display_driver{
 		topology,
 		header_space,
 		key_space,
 		logger,
-		messenger
+		messenger,
+		heart
 	};
 
 	display_driver.run();

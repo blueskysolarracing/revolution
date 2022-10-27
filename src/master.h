@@ -3,6 +3,7 @@
 
 #include "application.h"
 #include "configuration.h"
+#include "heart.h"
 #include "logger.h"
 #include "messenger.h"
 
@@ -14,7 +15,8 @@ namespace Revolution {
 			const Header_space& header_space,
 			const Key_space& key_space,
 			Logger& logger,
-			const Messenger& messenger
+			const Messenger& messenger,
+			Heart& heart
 		);
 
 		void run() override;

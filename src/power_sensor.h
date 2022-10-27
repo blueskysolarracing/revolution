@@ -2,6 +2,7 @@
 #define REVOLUTION_POWER_SENSOR_H
 
 #include "configuration.h"
+#include "heart.h"
 #include "logger.h"
 #include "messenger.h"
 #include "slave.h"
@@ -14,7 +15,8 @@ namespace Revolution {
 			const Header_space& header_space,
 			const Key_space& key_space,
 			Logger& logger,
-			const Messenger& messenger
+			const Messenger& messenger,
+			Heart& heart
 		);
 	protected:
 		const Topology::Endpoint& get_endpoint() const override;

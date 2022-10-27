@@ -3,6 +3,7 @@
 
 #include "configuration.h"
 #include "logger.h"
+#include "heart.h"
 #include "master.h"
 #include "messenger.h"
 
@@ -14,7 +15,8 @@ namespace Revolution {
 			const Header_space& header_space,
 			const Key_space& key_space,
 			Logger& logger,
-			const Messenger& messenger
+			const Messenger& messenger,
+			Heart& heart
 		);
 	protected:
 		const Topology::Endpoint& get_endpoint() const override;
