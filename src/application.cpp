@@ -2,6 +2,7 @@
 #include <string>
 #include <unordered_map>
 
+#include <stdlib.h>
 #include <unistd.h>
 
 #include "application.h"
@@ -253,7 +254,29 @@ namespace Revolution {
 
 	void Application::handle_exit(const Messenger::Message& message)
 	{
-		set_status(false);
+		if (message.data.size() > 1)
+			get_logger() << Logger::warning
+				<< "Received multiple arguments. "
+				<< "Only the first will be used as exit code."
+				<< std::endl;
+
+		if (message.data.empty()) {
+			get_logger() << Logger::warning
+				<< "Exiting gracefully..."
+				<< std::endl;
+
+			set_status(false);
+		} else {
+			int error_code = std::stoi(message.data.front());
+
+			get_logger() << Logger::warning
+				<< "Exiting immediately with error code: "
+				<< error_code
+				<< "..."
+				<< std::endl;
+
+			exit(error_code);
+		}
 	}
 
 	const Application::Handlers& Application::get_handlers() const
