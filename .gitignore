@@ -39,8 +39,8 @@
 /src/miscellaneous_controller
 /src/motor_controller
 /src/power_sensor
+/src/replica
 /src/telemeter
 /src/voltage_controller
-/src/watchdog
 /src/client
 /src/*.log

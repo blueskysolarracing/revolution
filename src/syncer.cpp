@@ -1,58 +1,50 @@
+#include <string>
+
+#include "configuration.h"
+#include "logger.h"
+#include "master.h"
+#include "messenger.h"
 #include "syncer.h"
 
 namespace Revolution {
-	Revolution::Syncer::Syncer(
+	Syncer::Syncer(
 		const Topology& topology,
 		const Header_space& header_space,
-		const Key_space& key_space
-	) : Instance{
-		topology.syncer.name,
-		topology.syncer.logger_configuration,
-		topology.syncer.messenger_configuration,
-		topology,
-		header_space,
-		key_space
-	    }
+		const Key_space& key_space,
+		Logger& logger,
+		const Messenger& messenger
+	) : Master{topology, header_space, key_space, logger, messenger}
 	{
-		set_handler(
-			get_header_space().set,
-			std::bind(&Syncer::handle_set, this, std::placeholders::_1)
-		);
 	}
 
-	void Syncer::broadcast(
-		const std::string& header,
-		const std::vector<std::string>& data
-	)
+	const Topology::Endpoint& Syncer::get_endpoint() const
 	{
-		for (const auto& endpoint : get_topology().get_slaves())
-			get_messenger().send(
-				endpoint.messenger_configuration.name,
-				header,
-				data
-			);
-	}
-
-	void Syncer::broadcast_state()
-	{
-		auto data = get_state_data();
-
-		broadcast(get_header_space().reset, data);
-	}
-
-	void Syncer::handle_set(const Messenger::Message& message)
-	{
-		Instance::handle_set(message);
-
-		broadcast_state();
+		return get_topology().syncer;
 	}
 }
 
 int main() {
+	Revolution::Topology topology;
+	Revolution::Header_space header_space;
+	Revolution::Key_space key_space;
+	Revolution::Logger logger{
+		Revolution::Logger::Configuration{
+			Revolution::Logger::info,
+			"./" + topology.syncer.name + ".log"
+		}
+	};
+	Revolution::Messenger messenger{
+		Revolution::Messenger::Configuration{
+			topology.syncer.name
+		},
+		logger
+	};
 	Revolution::Syncer syncer{
-		Revolution::Topology{},
-		Revolution::Header_space{},
-		Revolution::Key_space{}
+		topology,
+		header_space,
+		key_space,
+		logger,
+		messenger
 	};
 
 	syncer.run();

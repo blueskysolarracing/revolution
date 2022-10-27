@@ -1,27 +1,50 @@
+#include <string>
+
+#include "configuration.h"
+#include "logger.h"
+#include "messenger.h"
 #include "telemeter.h"
+#include "slave.h"
 
 namespace Revolution {
-	Revolution::Telemeter::Telemeter(
+	Telemeter::Telemeter(
 		const Topology& topology,
 		const Header_space& header_space,
-		const Key_space& key_space
-	) : Instance{
-		topology.telemeter.name,
-		topology.telemeter.logger_configuration,
-		topology.telemeter.messenger_configuration,
-		topology,
-		header_space,
-		key_space
-	    }
+		const Key_space& key_space,
+		Logger& logger,
+		const Messenger& messenger
+	) : Slave{topology, header_space, key_space, logger, messenger}
 	{
+	}
+
+	const Topology::Endpoint& Telemeter::get_endpoint() const
+	{
+		return get_topology().telemeter;
 	}
 }
 
 int main() {
+	Revolution::Topology topology;
+	Revolution::Header_space header_space;
+	Revolution::Key_space key_space;
+	Revolution::Logger logger{
+		Revolution::Logger::Configuration{
+			Revolution::Logger::info,
+			"./" + topology.telemeter.name + ".log"
+		}
+	};
+	Revolution::Messenger messenger{
+		Revolution::Messenger::Configuration{
+			topology.telemeter.name
+		},
+		logger
+	};
 	Revolution::Telemeter telemeter{
-		Revolution::Topology{},
-		Revolution::Header_space{},
-		Revolution::Key_space{}
+		topology,
+		header_space,
+		key_space,
+		logger,
+		messenger
 	};
 
 	telemeter.run();

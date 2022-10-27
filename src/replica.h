@@ -1,25 +1,24 @@
-#ifndef REVOLUTION_WATCHDOG_H
-#define REVOLUTION_WATCHDOG_H
+#ifndef REVOLUTION_Replica_H
+#define REVOLUTION_Replica_H
 
-#include "instance.h"
+#include "configuration.h"
+#include "logger.h"
+#include "messenger.h"
+#include "slave.h"
 
 namespace Revolution {
-	class Watchdog : public Instance {
+	class Replica : public Slave {
 	public:
-		Watchdog(
+		explicit Replica(
 			const Topology& topology,
 			const Header_space& header_space,
-			const Key_space& key_space
+			const Key_space& key_space,
+			Logger& logger,
+			const Messenger& messenger
 		);
-
-		void run() override;
-	protected:
-		void update(const std::optional<Messenger::Message>& optional_message) override;
-		bool is_running(const Topology::Endpoint& endpoint);
-		void start(const Topology::Endpoint& endpoint);
-		void stop(const Topology::Endpoint& endpoint);
+		protected:
+			const Topology::Endpoint& get_endpoint() const override;
 	};
 }
 
-#endif	// REVOLUTION_WATCHDOG_H
-
+#endif	// REVOLUTION_Replica_H

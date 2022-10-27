@@ -1,27 +1,50 @@
+#include <string>
+
+#include "configuration.h"
+#include "logger.h"
+#include "messenger.h"
 #include "miscellaneous_controller.h"
+#include "slave.h"
 
 namespace Revolution {
-	Revolution::Miscellaneous_controller::Miscellaneous_controller(
+	Miscellaneous_controller::Miscellaneous_controller(
 		const Topology& topology,
 		const Header_space& header_space,
-		const Key_space& key_space
-	) : Instance{
-		topology.miscellaneous_controller.name,
-		topology.miscellaneous_controller.logger_configuration,
-		topology.miscellaneous_controller.messenger_configuration,
-		topology,
-		header_space,
-		key_space
-	    }
+		const Key_space& key_space,
+		Logger& logger,
+		const Messenger& messenger
+	) : Slave{topology, header_space, key_space, logger, messenger}
 	{
+	}
+
+	const Topology::Endpoint& Miscellaneous_controller::get_endpoint() const
+	{
+		return get_topology().miscellaneous_controller;
 	}
 }
 
 int main() {
+	Revolution::Topology topology;
+	Revolution::Header_space header_space;
+	Revolution::Key_space key_space;
+	Revolution::Logger logger{
+		Revolution::Logger::Configuration{
+			Revolution::Logger::info,
+			"./" + topology.miscellaneous_controller.name + ".log"
+		}
+	};
+	Revolution::Messenger messenger{
+		Revolution::Messenger::Configuration{
+			topology.miscellaneous_controller.name
+		},
+		logger
+	};
 	Revolution::Miscellaneous_controller miscellaneous_controller{
-		Revolution::Topology{},
-		Revolution::Header_space{},
-		Revolution::Key_space{}
+		topology,
+		header_space,
+		key_space,
+		logger,
+		messenger
 	};
 
 	miscellaneous_controller.run();

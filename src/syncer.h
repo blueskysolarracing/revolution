@@ -1,24 +1,23 @@
 #ifndef REVOLUTION_SYNCER_H
 #define REVOLUTION_SYNCER_H
 
-#include "instance.h"
+#include "configuration.h"
+#include "logger.h"
+#include "master.h"
+#include "messenger.h"
 
 namespace Revolution {
-	class Syncer : public Instance {
+	class Syncer : public Master {
 	public:
-		Syncer(
+		explicit Syncer(
 			const Topology& topology,
 			const Header_space& header_space,
-			const Key_space& key_space
+			const Key_space& key_space,
+			Logger& logger,
+			const Messenger& messenger
 		);
-	protected:
-		void broadcast(
-			const std::string& header,
-			const std::vector<std::string>& data = {}
-		);
-		void broadcast_state();
-
-		void handle_set(const Messenger::Message& message) override;
+		protected:
+			const Topology::Endpoint& get_endpoint() const override;
 	};
 }
 

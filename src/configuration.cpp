@@ -22,9 +22,9 @@ namespace Revolution {
 	    miscellaneous_controller{miscellaneous_controller},
 	    motor_controller{motor_controller},
 	    power_sensor{power_sensor},
-	    replica{replica}
+	    replica{replica},
 	    telemeter{telemeter},
-	    voltage_controller{voltage_controller},
+	    voltage_controller{voltage_controller}
 	{
 	}
 

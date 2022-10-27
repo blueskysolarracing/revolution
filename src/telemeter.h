@@ -1,16 +1,23 @@
 #ifndef REVOLUTION_TELEMETER_H
 #define REVOLUTION_TELEMETER_H
 
-#include "instance.h"
+#include "configuration.h"
+#include "logger.h"
+#include "messenger.h"
+#include "slave.h"
 
 namespace Revolution {
-	class Telemeter : public Instance {
+	class Telemeter : public Slave {
 	public:
-		Telemeter(
+		explicit Telemeter(
 			const Topology& topology,
 			const Header_space& header_space,
-			const Key_space& key_space
+			const Key_space& key_space,
+			Logger& logger,
+			const Messenger& messenger
 		);
+		protected:
+			const Topology::Endpoint& get_endpoint() const override;
 	};
 }
 

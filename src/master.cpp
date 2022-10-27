@@ -13,11 +13,8 @@ namespace Revolution {
 		const Header_space& header_space,
 		const Key_space& key_space,
 		Logger& logger,
-		const Messenger& messenger,
-		const std::chrono::high_resolution_clock::duration&
-			failover_timeout
-	) : Application{topology, header_space, key_space, logger, messenger},
-	    failover_timeout{failover_timeout}
+		const Messenger& messenger
+	) : Application{topology, header_space, key_space, logger, messenger}
 	{
 		set_handler(
 			get_header_space().set,
@@ -33,8 +30,7 @@ namespace Revolution {
 	{
 		get_messenger().send(
 			get_topology().replica.name,
-			get_header_space().sync,
-			get_failover_timeout()
+			get_header_space().sync
 		);
 
 		Application::run();
@@ -51,11 +47,5 @@ namespace Revolution {
 					message.header,
 					message.data
 				);
-	}
-
-	const std::chrono::high_resolution_clock::duration&
-		Master::get_failover_timeout() const
-	{
-		return failover_timeout;
 	}
 }

@@ -16,20 +16,12 @@ namespace Revolution {
 			const Header_space& header_space,
 			const Key_space& key_space,
 			Logger& logger,
-			const Messenger& messenger,
-			const std::chrono::high_resolution_clock::duration&
-				failover_timeout
+			const Messenger& messenger
 		);
 
 		void run() override;
 	protected:
 		void handle_set(const Messenger::Message& message) override;
-	private:
-		const std::chrono::high_resolution_clock::duration&
-			get_failover_timeout() const;
-
-		const std::chrono::high_resolution_clock::duration&
-			failover_timeout;
 	};
 }
 
