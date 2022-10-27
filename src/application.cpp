@@ -1,26 +1,85 @@
+#include <functional>
+#include <string>
+#include <unordered_map>
+
 #include "application.h"
+#include "configuration.h"
+#include "logger.h"
+#include "messenger.h"
 
 namespace Revolution {
 	Application::Application(
-		const std::string& name,
-		const Logger::Configuration& logger_configuration,
-		const Messenger::Configuration& messenger_configuration
-	) : name{name},
-	    logger{logger_configuration},
-	    messenger{messenger_configuration, logger},
+		const Topology& topology,
+		const Header_space& header_space,
+		const Key_space& key_space,
+		Logger& logger,
+		const Messenger& messenger
+	) : topology{topology},
+	    header_space{header_space},
+	    key_space{key_space},
+	    logger{logger},
+	    messenger{messenger},
+	    status{},
 	    handlers{},
-	    status{}
+	    states{}
 	{
-	}
-
-	Application::~Application()
-	{
+		set_handler(
+			get_header_space().status,
+			std::bind(
+				&Application::handle_status,
+				this,
+				std::placeholders::_1
+			)
+		);
+		set_handler(
+			get_header_space().get,
+			std::bind(
+				&Application::handle_get,
+				this,
+				std::placeholders::_1
+			)
+		);
+		set_handler(
+			get_header_space().set,
+			std::bind(
+				&Application::handle_set,
+				this,
+				std::placeholders::_1
+			)
+		);
+		set_handler(
+			get_header_space().reset,
+			std::bind(
+				&Application::handle_reset,
+				this,
+				std::placeholders::_1
+			)
+		);
+		set_handler(
+			get_header_space().sync,
+			std::bind(
+				&Application::handle_sync,
+				this,
+				std::placeholders::_1
+			)
+		);
+		set_handler(
+			get_header_space().exit,
+			std::bind(
+				&Application::handle_exit,
+				this,
+				std::placeholders::_1
+			)
+		);
 	}
 
 	void Application::run()
 	{
 		get_logger() << Logger::info
-			<< "Starting " << get_name() << "..." << std::endl;
+			<< "Starting "
+			<< get_endpoint().name
+			<< "..."
+			<< std::endl;
 
 		set_status(true);
 
@@ -28,31 +87,22 @@ namespace Revolution {
 			while (get_status()) {
 				const auto message = get_messenger().receive();
 
-				update(message);
+				handle(message);
 			}
 		} catch (std::exception& exception) {
 			get_logger() << Logger::fatal
-				<< "Error occurred: " << exception.what() << std::endl;
+				<< "Error occurred: "
+				<< exception.what()
+				<< std::endl;
+
 			throw exception;
 		}
 
 		get_logger() << Logger::info
-			<< "Stopping " << get_name() << "..." << std::endl;
-	}
-
-	const std::string& Application::get_name() const
-	{
-		return name;
-	}
-
-	Logger& Application::get_logger()
-	{
-		return logger;
-	}
-
-	Messenger& Application::get_messenger()
-	{
-		return messenger;
+			<< "Stopping "
+			<< get_endpoint().name
+			<< "..."
+			<< std::endl;
 	}
 
 	const bool& Application::get_status() const
@@ -60,55 +110,160 @@ namespace Revolution {
 		return status;
 	}
 
+	const Topology& Application::get_topology() const
+	{
+		return topology;
+	}
+
+	const Header_space& Application::get_header_space() const
+	{
+		return header_space;
+	}
+
+	const Key_space& Application::get_key_space() const
+	{
+		return key_space;
+	}
+
+	Logger& Application::get_logger() const
+	{
+		return logger;
+	}
+
+	const Messenger& Application::get_messenger() const
+	{
+		return messenger;
+	}
+
+	const Application::States& Application::get_states() const
+	{
+		return states;
+	}
+
+	std::vector<std::string> Application::get_state_data() const
+	{
+		std::vector<std::string> data;
+
+		for (const auto& [key, value] : get_states()) {
+			data.push_back(key);
+			data.push_back(value);
+		}
+
+		return data;
+	}
+
 	void Application::set_status(const bool& status)
 	{
 		this->status = status;
 	}
 
-	void Application::set_handler(const std::string& name, std::function<void(const Messenger::Message&)> handler)
+	void Application::set_handler(
+		const std::string& name,
+		const Handler& handler
+	)
 	{
 		if (get_handlers().count(name))
 			get_logger() << Logger::warning
-				<< "Overriding existing handler \"" << name << "\"..." << std::endl;
+				<< "Overriding an existing handler: \""
+				<< name
+				<< "\"..."
+				<< std::endl;
 		else
 			get_logger() << Logger::info
-				<< "Adding handler \"" << name << "\"..." << std::endl;
+				<< "Adding handler: \""
+				<< name
+				<< "\"..."
+				<< std::endl;
 
-		get_handlers()[name] = handler;
+		get_handlers().emplace(name, handler);
 	}
 
-	void Application::update(const std::optional<Messenger::Message>& optional_message)
+	void Application::handle_status(const Messenger::Message& message)
 	{
-		if (optional_message.has_value())
-			handle(optional_message.value());
+		get_messenger().send(
+			message.sender_name,
+			get_header_space().response
+		);
 	}
 
-	const std::unordered_map<std::string, std::function<void(const Messenger::Message&)>>& Application::get_handlers() const
+	void Application::handle_get(const Messenger::Message& message)
+	{
+		std::vector<std::string> data;
+
+		for (const auto& datum : message.data)
+			if (get_states().count(datum))
+				data.push_back(get_states().at(datum));
+			else
+				data.push_back("");
+
+		get_messenger().send(
+			message.sender_name,
+			get_header_space().response,
+			data
+		);
+	}
+
+	void Application::handle_set(const Messenger::Message& message)
+	{
+		if (message.data.size() % 2 == 1)
+			get_logger() << Logger::error
+				<< "Unpaired key \""
+				<< message.data.back()
+				<< "\" provided. "
+				<< "This key will be ignored."
+				<< std::endl;
+
+		for (unsigned int i = 0; i + 1 < message.data.size(); i += 2)
+			get_states().emplace(
+				message.data[i],
+				message.data[i + 1]
+			);
+	}
+
+	void Application::handle_reset(const Messenger::Message& message)
+	{
+		get_states().clear();
+
+		handle_set(message);
+	}
+
+	void Application::handle_sync(const Messenger::Message& message)
+	{
+		get_messenger().send(
+			message.sender_name,
+			get_header_space().reset,
+			get_state_data()
+		);
+	}
+
+	void Application::handle_exit(const Messenger::Message& message)
+	{
+		set_status(false);
+	}
+
+	const Application::Handlers& Application::get_handlers() const
 	{
 		return handlers;
 	}
 
-	std::unordered_map<std::string, std::function<void(const Messenger::Message&)>>& Application::get_handlers()
+	Application::Handlers& Application::get_handlers()
 	{
 		return handlers;
 	}
 
-	std::optional<std::function<void(const Messenger::Message&)>> Application::get_handler(const std::string& name) const
+	Application::States& Application::get_states()
 	{
-		if (get_handlers().count(name))
-			return get_handlers().at(name);
-		else
-			return std::nullopt;
+		return states;
 	}
 
-	void Application::handle(const Messenger::Message& message)
+	void Application::handle(const Messenger::Message& message) const
 	{
-		auto optional_handler = get_handler(message.header);
-
-		if (optional_handler.has_value())
-			optional_handler.value()(message);
+		if (get_handlers().count(message.header))
+			return get_handlers().at(message.header)(message);
 		else
 			get_logger() << Logger::warning
-				<< "Unhandled message: " << message.to_string() << std::endl;
+				<< "Unhandled message: "
+				<< message.to_string()
+				<< std::endl;
 	}
 }

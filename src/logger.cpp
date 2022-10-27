@@ -41,8 +41,10 @@ namespace Revolution {
 			);
 
 			if (get_ofstream().fail()) {
-				(*this) << error << "Cannot open log file. "
-					<< "Using stdout instead." << std::endl;
+				(*this) << error
+					<< "Cannot open log file. "
+					<< "Using stdout instead."
+					<< std::endl;
 
 				get_ofstream().clear();
 			}
@@ -55,7 +57,8 @@ namespace Revolution {
 			get_ofstream().close();
 
 			if (get_ofstream().fail()) {
-				(*this) << error << "Cannot close log file."
+				(*this) << error
+					<< "Cannot close log file."
 					<< std::endl;
 
 				get_ofstream().clear();
@@ -72,8 +75,11 @@ namespace Revolution {
 		auto time_point = std::chrono::system_clock::now();
 		auto time = std::chrono::system_clock::to_time_t(time_point);
 
-		(*this) << '[' << std::put_time(std::localtime(&time), "%c")
-			<< "] [" << severity.name << "]: ";
+		(*this) << '['
+			<< std::put_time(std::localtime(&time), "%c")
+			<< "] ["
+			<< severity.name
+			<< "]: ";
 
 		return *this;
 	}

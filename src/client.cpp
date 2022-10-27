@@ -31,8 +31,8 @@ int main(int argc, char *argv[])
 {
 	if (argc < 3) {
 		std::cout << "Usage: ./client "
-			<< "sender_name recipient_name "
-			<< "[header] [data...]" << std::endl;
+			<< "sender_name recipient_name [header] [data...]"
+			<< std::endl;
 
 		return 0;
 	}

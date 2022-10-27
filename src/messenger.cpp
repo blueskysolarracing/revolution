@@ -228,7 +228,10 @@ namespace Revolution {
 		if (descriptor == (mqd_t) - 1)
 			get_logger() << Logger::error
 				<< "Cannot open message queue descriptor of "
-				<< name << " (errno = " << errno << ')'
+				<< name
+				<< " (errno = "
+				<< errno
+				<< ')'
 				<< std::endl;
 
 		return descriptor;
@@ -239,7 +242,10 @@ namespace Revolution {
 		if (mq_close(descriptor) == (mqd_t) - 1)
 			get_logger() << Logger::error
 				<< "Cannot close message queue descriptor "
-				<< "(errno = " << errno << ')' << std::endl;
+				<< "(errno = "
+				<< errno
+				<< ')'
+				<< std::endl;
 	}
 
 	std::optional<Messenger::Message> Messenger::receive(
@@ -257,7 +263,10 @@ namespace Revolution {
 			get_logger() << Logger::error
 				<< "Cannot get message queue attributes of "
 				<< get_configuration().name
-				<< " (errno = " << errno << ')' << std::endl;
+				<< " (errno = "
+				<< errno
+				<< ')'
+				<< std::endl;
 
 			return std::nullopt;
 		}
@@ -271,7 +280,10 @@ namespace Revolution {
 			get_logger() << Logger::error
 				<< "Cannot receive from the message queue of "
 				<< get_configuration().name
-				<< " (errno = " << errno << ')' << std::endl;
+				<< " (errno = "
+				<< errno
+				<< ')'
+				<< std::endl;
 
 			return std::nullopt;
 		}
@@ -282,7 +294,8 @@ namespace Revolution {
 
 		get_logger() << Logger::info
 			<< "Successfully Received message: "
-			<< message.to_string() << std::endl;
+			<< message.to_string()
+			<< std::endl;
 
 		return message;
 	}
@@ -310,12 +323,17 @@ namespace Revolution {
 		if (status == -1)
 			get_logger() << Logger::error
 				<< "Cannot send to the message queue of "
-				<< name << " (errno = " << errno << ')'
+				<< name
+				<< " (errno = "
+				<< errno
+				<< ')'
 				<< std::endl;
 		else
 			get_logger() << Logger::info
 				<< "Successfully Sent message to "
-				<< name << ": " << message.to_string()
+				<< name
+				<< ": "
+				<< message.to_string()
 				<< std::endl;
 
 		return !status;
