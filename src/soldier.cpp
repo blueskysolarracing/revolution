@@ -46,9 +46,9 @@ namespace Revolution {
 
 	void Soldier::handle_set(const Messenger::Message& message)
 	{
-		Application::handle_set(message);
-
-		if (message.sender_name != get_topology().get_marshal().name)
+		if (message.sender_name == get_topology().get_marshal().name)
+			Application::handle_set(message);
+		else
 			get_messenger().send(
 				get_topology().get_marshal().name,
 				message.header,

@@ -49,11 +49,10 @@ namespace Revolution {
 		Application::handle_set(message);
 
 		for (const auto& soldier : get_topology().get_soldiers())
-			if (message.sender_name != soldier.name)
-				get_messenger().send(
-					soldier.name,
-					message.header,
-					message.data
-				);
+			get_messenger().send(
+				soldier.name,
+				message.header,
+				message.data
+			);
 	}
 }
