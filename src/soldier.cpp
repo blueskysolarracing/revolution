@@ -25,9 +25,17 @@ namespace Revolution {
 	    }
 	{
 		set_handler(
+			get_header_space().reset,
+			std::bind(
+				&Soldier::handle_write,
+				this,
+				std::placeholders::_1
+			)
+		);
+		set_handler(
 			get_header_space().set,
 			std::bind(
-				&Soldier::handle_set,
+				&Soldier::handle_write,
 				this,
 				std::placeholders::_1
 			)
@@ -44,10 +52,10 @@ namespace Revolution {
 		Application::run();
 	}
 
-	void Soldier::handle_set(const Messenger::Message& message)
+	void Soldier::handle_write(const Messenger::Message& message)
 	{
 		if (message.sender_name == get_topology().get_marshal().name)
-			Application::handle_set(message);
+			Application::handle_write(message);
 		else
 			get_messenger().send(
 				get_topology().get_marshal().name,

@@ -40,7 +40,7 @@ namespace Revolution {
 		set_handler(
 			get_header_space().get,
 			std::bind(
-				&Application::handle_get,
+				&Application::handle_read,
 				this,
 				std::placeholders::_1
 			)
@@ -64,7 +64,7 @@ namespace Revolution {
 		set_handler(
 			get_header_space().reset,
 			std::bind(
-				&Application::handle_reset,
+				&Application::handle_write,
 				this,
 				std::placeholders::_1
 			)
@@ -72,7 +72,7 @@ namespace Revolution {
 		set_handler(
 			get_header_space().set,
 			std::bind(
-				&Application::handle_set,
+				&Application::handle_write,
 				this,
 				std::placeholders::_1
 			)
@@ -233,29 +233,6 @@ namespace Revolution {
 		}
 	}
 
-	void Application::handle_get(const Messenger::Message& message) const
-	{
-		get_logger() << Logger::info
-			<< "Getting "
-			<< message.data.size()
-			<< " key(s)..."
-			<< std::endl;
-
-		std::vector<std::string> data;
-
-		for (const auto& datum : message.data)
-			if (get_states().count(datum))
-				data.push_back(get_states().at(datum));
-			else
-				data.push_back("");
-
-		get_messenger().send(
-			message.sender_name,
-			get_header_space().response,
-			data
-		);
-	}
-
 	void Application::handle_hang(const Messenger::Message& message) const
 	{
 		get_logger() << Logger::info
@@ -276,38 +253,27 @@ namespace Revolution {
 		get_heart().beat();
 	}
 
-	void Application::handle_reset(const Messenger::Message& message)
+	void Application::handle_read(const Messenger::Message& message) const
 	{
 		get_logger() << Logger::info
-			<< "Resetting database..."
-			<< std::endl;
-
-		get_states().clear();
-
-		handle_set(message);
-	}
-
-	void Application::handle_set(const Messenger::Message& message)
-	{
-		get_logger() << Logger::info
-			<< "Setting "
-			<< message.data.size() / 2
+			<< "Reading "
+			<< message.data.size()
 			<< " key(s)..."
 			<< std::endl;
 
-		if (message.data.size() % 2 == 1)
-			get_logger() << Logger::error
-				<< "Unpaired key \""
-				<< message.data.back()
-				<< "\" provided. "
-				<< "This key will be ignored."
-				<< std::endl;
+		std::vector<std::string> data;
 
-		for (unsigned int i = 0; i + 1 < message.data.size(); i += 2)
-			get_states().emplace(
-				message.data[i],
-				message.data[i + 1]
-			);
+		for (const auto& datum : message.data)
+			if (get_states().count(datum))
+				data.push_back(get_states().at(datum));
+			else
+				data.push_back("");
+
+		get_messenger().send(
+			message.sender_name,
+			get_header_space().response,
+			data
+		);
 	}
 
 	void Application::handle_status(const Messenger::Message& message) const
@@ -333,6 +299,37 @@ namespace Revolution {
 			get_header_space().reset,
 			get_state_data()
 		);
+	}
+
+	void Application::handle_write(const Messenger::Message& message)
+	{
+		if (message.header == get_header_space().reset) {
+			get_logger() << Logger::info
+				<< "Clearing database..."
+				<< std::endl;
+
+			get_states().clear();
+		}
+
+		get_logger() << Logger::info
+			<< "Writing "
+			<< message.data.size() / 2
+			<< " key(s)..."
+			<< std::endl;
+
+		if (message.data.size() % 2 == 1)
+			get_logger() << Logger::error
+				<< "Unpaired key \""
+				<< message.data.back()
+				<< "\" provided. "
+				<< "This key will be ignored."
+				<< std::endl;
+
+		for (unsigned int i = 0; i + 1 < message.data.size(); i += 2)
+			get_states().emplace(
+				message.data[i],
+				message.data[i + 1]
+			);
 	}
 
 	const Application::Handlers& Application::get_handlers() const

@@ -21,7 +21,7 @@ namespace Revolution {
 
 		void run() override;
 	protected:
-		void handle_set(const Messenger::Message& message) override;
+		void handle_write(const Messenger::Message& message) override;
 	};
 }
 

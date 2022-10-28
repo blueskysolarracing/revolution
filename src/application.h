@@ -45,13 +45,12 @@ namespace Revolution {
 		virtual const Topology::Endpoint& get_endpoint() const = 0;
 
 		void handle_exit(const Messenger::Message& message);
-		void handle_get(const Messenger::Message& message) const;
 		void handle_hang(const Messenger::Message& message) const;
 		void handle_heartbeat(const Messenger::Message& message) const;
-		void handle_reset(const Messenger::Message& message);
-		virtual void handle_set(const Messenger::Message& message);
+		void handle_read(const Messenger::Message& message) const;
 		void handle_status(const Messenger::Message& message) const;
 		void handle_sync(const Messenger::Message& message) const;
+		virtual void handle_write(const Messenger::Message& message);
 	private:
 		const Handlers& get_handlers() const;
 		Handlers& get_handlers();
