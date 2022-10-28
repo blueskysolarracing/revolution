@@ -17,13 +17,20 @@ namespace Revolution {
 	    callback{callback},
 	    logger{logger},
 	    thread{&Heart::monitor, this},
-	    status{true}
+	    status{true},
+	    count{1}
 	{
+	}
+
+	Heart::~Heart()
+	{
+		status.store(false);
+		thread.join();
 	}
 
 	void Heart::beat()
 	{
-		get_status().store(true);
+		++get_count();
 	}
 
 	const std::chrono::high_resolution_clock::duration&
@@ -52,10 +59,20 @@ namespace Revolution {
 		return status;
 	}
 
+	const std::atomic_uint& Heart::get_count() const
+	{
+		return count;
+	}
+
+	std::atomic_uint& Heart::get_count()
+	{
+		return count;
+	}
+
 	void Heart::monitor()
 	{
-		for (;;) {
-			if (!get_status().load()) {
+		while (get_status().load()) {
+			if (!get_count().load()) {
 				get_logger() << Logger::fatal
 					<< "No heartbeat within the timeout! "
 					<< "Heart attack occurred. Crashing..."
@@ -64,7 +81,7 @@ namespace Revolution {
 				abort();
 			}
 
-			get_status().store(false);
+			get_count().store(0);
 			get_callback()();
 
 			std::this_thread::sleep_for(get_timeout());

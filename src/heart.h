@@ -16,6 +16,7 @@ namespace Revolution {
 			const std::function<void()>& callback,
 			Logger& logger
 		);
+		~Heart();
 
 		void beat();
 	private:
@@ -24,6 +25,8 @@ namespace Revolution {
 		Logger& get_logger() const;
 		const std::atomic_bool& get_status() const;
 		std::atomic_bool& get_status();
+		const std::atomic_uint& get_count() const;
+		std::atomic_uint& get_count();
 
 		void monitor();
 
@@ -32,6 +35,7 @@ namespace Revolution {
 		Logger& logger;
 		std::thread thread;
 		std::atomic_bool status;
+		std::atomic_uint count;
 	};
 }
 

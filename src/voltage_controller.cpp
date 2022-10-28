@@ -48,7 +48,7 @@ int main() {
 		logger
 	};
 	Revolution::Heart heart{
-		std::chrono::seconds(10),
+		std::chrono::seconds(1),
 		[&messenger, &topology, &header_space] () {
 			messenger.send(topology.voltage_controller.name, header_space.heartbeat);
 		},
