@@ -2,6 +2,7 @@
 
 #include "application.h"
 #include "configuration.h"
+#include "heart.h"
 #include "logger.h"
 #include "messenger.h"
 #include "slave.h"
@@ -12,8 +13,16 @@ namespace Revolution {
 		const Header_space& header_space,
 		const Key_space& key_space,
 		Logger& logger,
-		const Messenger& messenger
-	) : Application{topology, header_space, key_space, logger, messenger}
+		const Messenger& messenger,
+		Heart& heart
+	) : Application{
+		topology,
+		header_space,
+		key_space,
+		logger,
+		messenger,
+		heart
+	}
 	{
 		set_handler(
 			get_header_space().set,

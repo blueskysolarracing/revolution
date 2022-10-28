@@ -269,7 +269,16 @@ namespace Revolution {
 				<< std::endl;
 
 			return std::nullopt;
-		}
+		} else
+			get_logger() << Logger::info
+				<< "Successfully obtained message queue attributes of "
+				<< get_configuration().name
+				<< ": {max_message_count: "
+				<< attributes.mq_maxmsg
+				<< ", max_message_size: "
+				<< attributes.mq_msgsize
+				<< "}"
+				<< std::endl;
 
 		raw_message.resize(attributes.mq_msgsize);
 		received_size = receiver(descriptor, raw_message, priority);

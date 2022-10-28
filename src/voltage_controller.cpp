@@ -1,3 +1,5 @@
+#include <chrono>
+
 #include "configuration.h"
 #include "logger.h"
 #include "messenger.h"
@@ -10,8 +12,16 @@ namespace Revolution {
 		const Header_space& header_space,
 		const Key_space& key_space,
 		Logger& logger,
-		const Messenger& messenger
-	) : Slave{topology, header_space, key_space, logger, messenger}
+		const Messenger& messenger,
+		Heart& heart
+	) : Slave{
+		topology,
+		header_space,
+		key_space,
+		logger,
+		messenger,
+		heart
+	    }
 	{
 	}
 
@@ -37,12 +47,20 @@ int main() {
 		},
 		logger
 	};
+	Revolution::Heart heart{
+		std::chrono::seconds(1),
+		[&messenger, &topology, &header_space] () {
+			messenger.send(topology.voltage_controller.name, header_space.heartbeat);
+		},
+		logger
+	};
 	Revolution::Voltage_controller voltage_controller{
 		topology,
 		header_space,
 		key_space,
 		logger,
-		messenger
+		messenger,
+		heart
 	};
 
 	voltage_controller.run();

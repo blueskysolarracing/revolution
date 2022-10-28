@@ -7,6 +7,7 @@
 
 #include "application.h"
 #include "configuration.h"
+#include "heart.h"
 #include "logger.h"
 #include "messenger.h"
 
@@ -16,20 +17,22 @@ namespace Revolution {
 		const Header_space& header_space,
 		const Key_space& key_space,
 		Logger& logger,
-		const Messenger& messenger
+		const Messenger& messenger,
+		Heart& heart
 	) : topology{topology},
 	    header_space{header_space},
 	    key_space{key_space},
 	    logger{logger},
 	    messenger{messenger},
+	    heart{heart},
 	    status{},
 	    handlers{},
 	    states{}
 	{
 		set_handler(
-			get_header_space().status,
+			get_header_space().exit,
 			std::bind(
-				&Application::handle_status,
+				&Application::handle_exit,
 				this,
 				std::placeholders::_1
 			)
@@ -43,9 +46,17 @@ namespace Revolution {
 			)
 		);
 		set_handler(
-			get_header_space().set,
+			get_header_space().hang,
 			std::bind(
-				&Application::handle_set,
+				&Application::handle_hang,
+				this,
+				std::placeholders::_1
+			)
+		);
+		set_handler(
+			get_header_space().heartbeat,
+			std::bind(
+				&Application::handle_heartbeat,
 				this,
 				std::placeholders::_1
 			)
@@ -59,25 +70,25 @@ namespace Revolution {
 			)
 		);
 		set_handler(
+			get_header_space().set,
+			std::bind(
+				&Application::handle_set,
+				this,
+				std::placeholders::_1
+			)
+		);
+		set_handler(
+			get_header_space().status,
+			std::bind(
+				&Application::handle_status,
+				this,
+				std::placeholders::_1
+			)
+		);
+		set_handler(
 			get_header_space().sync,
 			std::bind(
 				&Application::handle_sync,
-				this,
-				std::placeholders::_1
-			)
-		);
-		set_handler(
-			get_header_space().hang,
-			std::bind(
-				&Application::handle_hang,
-				this,
-				std::placeholders::_1
-			)
-		);
-		set_handler(
-			get_header_space().exit,
-			std::bind(
-				&Application::handle_exit,
 				this,
 				std::placeholders::_1
 			)
@@ -106,7 +117,7 @@ namespace Revolution {
 				<< exception.what()
 				<< std::endl;
 
-			throw exception;
+			throw;
 		}
 
 		get_logger() << Logger::info
@@ -139,6 +150,11 @@ namespace Revolution {
 	const Messenger& Application::get_messenger() const
 	{
 		return messenger;
+	}
+
+	Heart& Application::get_heart() const
+	{
+		return heart;
 	}
 
 	const bool& Application::get_status() const
@@ -189,75 +205,13 @@ namespace Revolution {
 		get_handlers().emplace(name, handler);
 	}
 
-	void Application::handle_status(const Messenger::Message& message) const
-	{
-		get_messenger().send(
-			message.sender_name,
-			get_header_space().response
-		);
-	}
-
-	void Application::handle_get(const Messenger::Message& message) const
-	{
-		std::vector<std::string> data;
-
-		for (const auto& datum : message.data)
-			if (get_states().count(datum))
-				data.push_back(get_states().at(datum));
-			else
-				data.push_back("");
-
-		get_messenger().send(
-			message.sender_name,
-			get_header_space().response,
-			data
-		);
-	}
-
-	void Application::handle_set(const Messenger::Message& message)
-	{
-		if (message.data.size() % 2 == 1)
-			get_logger() << Logger::error
-				<< "Unpaired key \""
-				<< message.data.back()
-				<< "\" provided. "
-				<< "This key will be ignored."
-				<< std::endl;
-
-		for (unsigned int i = 0; i + 1 < message.data.size(); i += 2)
-			get_states().emplace(
-				message.data[i],
-				message.data[i + 1]
-			);
-	}
-
-	void Application::handle_reset(const Messenger::Message& message)
-	{
-		get_states().clear();
-
-		handle_set(message);
-	}
-
-	void Application::handle_sync(const Messenger::Message& message) const
-	{
-		get_messenger().send(
-			message.sender_name,
-			get_header_space().reset,
-			get_state_data()
-		);
-	}
-
-	void Application::handle_hang(const Messenger::Message& message) const
-	{
-		pause();
-	}
-
 	void Application::handle_exit(const Messenger::Message& message)
 	{
 		if (message.data.size() > 1)
 			get_logger() << Logger::warning
 				<< "Received multiple arguments. "
-				<< "Only the first will be used as exit code."
+				<< "Only the first will be used as exit code. "
+				<< "The rest will be ignored."
 				<< std::endl;
 
 		if (message.data.empty()) {
@@ -279,6 +233,108 @@ namespace Revolution {
 		}
 	}
 
+	void Application::handle_get(const Messenger::Message& message) const
+	{
+		get_logger() << Logger::info
+			<< "Getting "
+			<< message.data.size()
+			<< " key(s)..."
+			<< std::endl;
+
+		std::vector<std::string> data;
+
+		for (const auto& datum : message.data)
+			if (get_states().count(datum))
+				data.push_back(get_states().at(datum));
+			else
+				data.push_back("");
+
+		get_messenger().send(
+			message.sender_name,
+			get_header_space().response,
+			data
+		);
+	}
+
+	void Application::handle_hang(const Messenger::Message& message) const
+	{
+		get_logger() << Logger::info
+			<< "Hanging application indefinitely..."
+			<< std::endl;
+
+		pause();
+	}
+
+	void Application::handle_heartbeat(
+		const Messenger::Message& message
+	) const
+	{
+		get_logger() << Logger::info
+			<< "Beating application's heart..."
+			<< std::endl;
+
+		get_heart().beat();
+	}
+
+	void Application::handle_reset(const Messenger::Message& message)
+	{
+		get_logger() << Logger::info
+			<< "Resetting database..."
+			<< std::endl;
+
+		get_states().clear();
+
+		handle_set(message);
+	}
+
+	void Application::handle_set(const Messenger::Message& message)
+	{
+		get_logger() << Logger::info
+			<< "Setting "
+			<< message.data.size() / 2
+			<< " key(s)..."
+			<< std::endl;
+
+		if (message.data.size() % 2 == 1)
+			get_logger() << Logger::error
+				<< "Unpaired key \""
+				<< message.data.back()
+				<< "\" provided. "
+				<< "This key will be ignored."
+				<< std::endl;
+
+		for (unsigned int i = 0; i + 1 < message.data.size(); i += 2)
+			get_states().emplace(
+				message.data[i],
+				message.data[i + 1]
+			);
+	}
+
+	void Application::handle_status(const Messenger::Message& message) const
+	{
+		get_logger() << Logger::info
+			<< "Application status requested. Sending response..."
+			<< std::endl;
+
+		get_messenger().send(
+			message.sender_name,
+			get_header_space().response
+		);
+	}
+
+	void Application::handle_sync(const Messenger::Message& message) const
+	{
+		get_logger() << Logger::info
+			<< "Sync requested. Resetting requester's data..."
+			<< std::endl;
+
+		get_messenger().send(
+			message.sender_name,
+			get_header_space().reset,
+			get_state_data()
+		);
+	}
+
 	const Application::Handlers& Application::get_handlers() const
 	{
 		return handlers;
@@ -296,9 +352,14 @@ namespace Revolution {
 
 	void Application::handle(const Messenger::Message& message) const
 	{
-		if (get_handlers().count(message.header))
+		if (get_handlers().count(message.header)) {
+			get_logger() << Logger::warning
+				<< "Handling message: "
+				<< message.to_string()
+				<< std::endl;
+
 			return get_handlers().at(message.header)(message);
-		else
+		} else
 			get_logger() << Logger::warning
 				<< "Unhandled message: "
 				<< message.to_string()
