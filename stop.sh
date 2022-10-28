@@ -1,11 +1,10 @@
 #!/bin/bash
 
-systemctl stop \
-	revolution@syncer \
-	revolution@display_driver \
-	revolution@miscellaneous_controller \
-	revolution@motor_controller \
-	revolution@power_sensor \
-	revolution@replica \
-	revolution@telemeter \
-	revolution@voltage_controller
+./src/client client syncer EXIT
+./src/client client display_driver EXIT
+./src/client client miscellaneous_controller EXIT
+./src/client client motor_controller EXIT
+./src/client client power_sensor EXIT
+./src/client client replica EXIT
+./src/client client telemeter EXIT
+./src/client client voltage_controller EXIT

@@ -5,7 +5,6 @@ Description=Blue Sky Solar Racing Revolution %I
 Type=simple
 User={{ username }}
 ExecStart={{ project_path }}/src/%I
-ExecStop={{ project_path }}/src/client client %I EXIT
 Restart=on-failure
 WorkingDirectory={{ project_path }}/src
 
