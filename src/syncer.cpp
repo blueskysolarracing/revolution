@@ -1,9 +1,9 @@
 #include <chrono>
 
 #include "configuration.h"
-#include "logger.h"
 #include "heart.h"
-#include "master.h"
+#include "logger.h"
+#include "marshal.h"
 #include "messenger.h"
 #include "syncer.h"
 
@@ -15,7 +15,7 @@ namespace Revolution {
 		Logger& logger,
 		const Messenger& messenger,
 		Heart& heart
-	) : Master{
+	) : Marshal{
 		topology,
 		header_space,
 		key_space,
@@ -49,9 +49,11 @@ int main() {
 		logger
 	};
 	Revolution::Heart heart{
-		std::chrono::seconds(1),
-		[&messenger, &topology, &header_space] () {
-			messenger.send(topology.syncer.name, header_space.heartbeat);
+		Revolution::Heart::Configuration{
+			std::chrono::seconds(1),
+			[&messenger, &topology, &header_space] () {
+				messenger.send(topology.syncer.name, header_space.heartbeat);
+			}
 		},
 		logger
 	};

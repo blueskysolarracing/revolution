@@ -59,7 +59,8 @@ namespace Revolution {
 
 		Message receive() const;
 		std::optional<Message> receive(
-			const std::chrono::high_resolution_clock::duration& timeout
+			const std::chrono::high_resolution_clock::duration&
+				timeout
 		) const;
 
 		void send(
@@ -71,12 +72,14 @@ namespace Revolution {
 			const std::string& name,
 			const std::string& header,
 			const std::vector<std::string>& data,
-			const std::chrono::high_resolution_clock::duration& timeout
+			const std::chrono::high_resolution_clock::duration&
+				timeout
 		) const;
 		bool send(
 			const std::string& name,
 			const std::string& header,
-			const std::chrono::high_resolution_clock::duration& timeout
+			const std::chrono::high_resolution_clock::duration&
+				timeout
 		) const;
 	private:
 		using Receiver = std::function<

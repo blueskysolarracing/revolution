@@ -1,5 +1,5 @@
-#ifndef REVOLUTION_MASTER_H
-#define REVOLUTION_MASTER_H
+#ifndef REVOLUTION_MARSHAL_H
+#define REVOLUTION_MARSHAL_H
 
 #include "application.h"
 #include "configuration.h"
@@ -8,9 +8,9 @@
 #include "messenger.h"
 
 namespace Revolution {
-	class Master : public Application {
+	class Marshal : public Application {
 	public:
-		explicit Master(
+		explicit Marshal(
 			const Topology& topology,
 			const Header_space& header_space,
 			const Key_space& key_space,
@@ -25,4 +25,4 @@ namespace Revolution {
 	};
 }
 
-#endif	// REVOLUTION_MASTER_H
+#endif	// REVOLUTION_MARSHAL_H

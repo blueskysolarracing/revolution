@@ -5,10 +5,10 @@
 #include "heart.h"
 #include "logger.h"
 #include "messenger.h"
-#include "servant.h"
+#include "soldier.h"
 
 namespace Revolution {
-	class Power_sensor : public Servant {
+	class Power_sensor : public Soldier {
 	public:
 		explicit Power_sensor(
 			const Topology& topology,

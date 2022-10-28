@@ -28,12 +28,12 @@ namespace Revolution {
 	{
 	}
 
-	const Topology::Endpoint& Topology::get_master() const
+	const Topology::Endpoint& Topology::get_marshal() const
 	{
 		return syncer;
 	}
 
-	const std::vector<Topology::Endpoint> Topology::get_servants() const
+	const std::vector<Topology::Endpoint> Topology::get_soldiers() const
 	{
 		return {
 			display_driver,

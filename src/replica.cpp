@@ -1,10 +1,11 @@
 #include <chrono>
 
 #include "configuration.h"
+#include "heart.h"
 #include "logger.h"
 #include "messenger.h"
 #include "replica.h"
-#include "servant.h"
+#include "soldier.h"
 
 namespace Revolution {
 	Replica::Replica(
@@ -14,7 +15,7 @@ namespace Revolution {
 		Logger& logger,
 		const Messenger& messenger,
 		Heart& heart
-	) : Servant{
+	) : Soldier{
 		topology,
 		header_space,
 		key_space,
@@ -48,9 +49,11 @@ int main() {
 		logger
 	};
 	Revolution::Heart heart{
-		std::chrono::seconds(1),
-		[&messenger, &topology, &header_space] () {
-			messenger.send(topology.replica.name, header_space.heartbeat);
+		Revolution::Heart::Configuration{
+			std::chrono::seconds(1),
+			[&messenger, &topology, &header_space] () {
+				messenger.send(topology.replica.name, header_space.heartbeat);
+			}
 		},
 		logger
 	};

@@ -27,8 +27,8 @@ namespace Revolution {
 				= Endpoint{"voltage_controller"}
 		);
 
-		const Endpoint& get_master() const;
-		const std::vector<Endpoint> get_servants() const;
+		const Endpoint& get_marshal() const;
+		const std::vector<Endpoint> get_soldiers() const;
 
 		const Endpoint display_driver;
 		const Endpoint miscellaneous_controller;

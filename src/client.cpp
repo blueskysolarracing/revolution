@@ -17,11 +17,13 @@ void monitor(
 {
 	static constexpr std::chrono::high_resolution_clock::duration monitor_timeout
 		= std::chrono::milliseconds(100);
+	auto received = true;
 
-	while (status.load()) {
+	while (status.load() || received) {
 		auto optional_message = messenger.receive(monitor_timeout);
+		received = optional_message.has_value();
 
-		if (optional_message.has_value())
+		if (received)
 			std::cout << optional_message.value().to_string()
 				<< std::endl;
 	}

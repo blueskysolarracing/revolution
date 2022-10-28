@@ -11,17 +11,26 @@
 namespace Revolution {
 	class Heart {
 	public:
+		struct Configuration {
+			explicit Configuration(
+				const std::chrono::high_resolution_clock::duration&
+					timeout,
+				const std::function<void()>& callback
+			);
+
+			const std::chrono::high_resolution_clock::duration timeout;
+			const std::function<void()> callback;
+		};
+
 		explicit Heart(
-			const std::chrono::high_resolution_clock::duration& timeout,
-			const std::function<void()>& callback,
+			const Configuration& configuration,
 			Logger& logger
 		);
 		~Heart();
 
 		void beat();
 	private:
-		const std::chrono::high_resolution_clock::duration& get_timeout() const;
-		const std::function<void()>& get_callback() const;
+		const Configuration& get_configuration() const;
 		Logger& get_logger() const;
 		const std::atomic_bool& get_status() const;
 		std::atomic_bool& get_status();
@@ -30,8 +39,7 @@ namespace Revolution {
 
 		void monitor();
 
-		const std::chrono::high_resolution_clock::duration timeout;
-		const std::function<void()> callback;
+		const Configuration configuration;
 		Logger& logger;
 		std::thread thread;
 		std::atomic_bool status;

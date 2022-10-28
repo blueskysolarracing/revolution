@@ -5,10 +5,10 @@
 #include "heart.h"
 #include "logger.h"
 #include "messenger.h"
-#include "servant.h"
+#include "soldier.h"
 
 namespace Revolution {
-	class Telemeter : public Servant {
+	class Telemeter : public Soldier {
 	public:
 		explicit Telemeter(
 			const Topology& topology,

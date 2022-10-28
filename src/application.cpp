@@ -209,7 +209,7 @@ namespace Revolution {
 	{
 		if (message.data.size() > 1)
 			get_logger() << Logger::warning
-				<< "Received multiple arguments. "
+				<< "Received multiple arguments for exit. "
 				<< "Only the first will be used as exit code. "
 				<< "The rest will be ignored."
 				<< std::endl;
@@ -259,7 +259,7 @@ namespace Revolution {
 	void Application::handle_hang(const Messenger::Message& message) const
 	{
 		get_logger() << Logger::info
-			<< "Hanging application indefinitely..."
+			<< "Hanging indefinitely..."
 			<< std::endl;
 
 		pause();
@@ -270,7 +270,7 @@ namespace Revolution {
 	) const
 	{
 		get_logger() << Logger::info
-			<< "Beating application's heart..."
+			<< "Beating heart..."
 			<< std::endl;
 
 		get_heart().beat();
@@ -313,7 +313,7 @@ namespace Revolution {
 	void Application::handle_status(const Messenger::Message& message) const
 	{
 		get_logger() << Logger::info
-			<< "Application status requested. Sending response..."
+			<< "Status report requested. Sending response..."
 			<< std::endl;
 
 		get_messenger().send(

@@ -9,16 +9,19 @@
 #include "logger.h"
 
 namespace Revolution {
-	Heart::Heart(
+	Heart::Configuration::Configuration(
 		const std::chrono::high_resolution_clock::duration& timeout,
-		const std::function<void()>& callback,
-		Logger& logger
-	) : timeout{timeout},
-	    callback{callback},
-	    logger{logger},
-	    thread{&Heart::monitor, this},
-	    status{true},
-	    count{1}
+		const std::function<void()>& callback
+	) : timeout{timeout}, callback{callback}
+	{
+	}
+
+	Heart::Heart(const Configuration& configuration, Logger& logger)
+		: configuration{configuration},
+	    	  logger{logger},
+	    	  thread{&Heart::monitor, this},
+	    	  status{true},
+	    	  count{1}
 	{
 	}
 
@@ -33,15 +36,9 @@ namespace Revolution {
 		++get_count();
 	}
 
-	const std::chrono::high_resolution_clock::duration&
-		Heart::get_timeout() const
+	const Heart::Configuration& Heart::get_configuration() const
 	{
-		return timeout;
-	}
-
-	const std::function<void()>& Heart::get_callback() const
-	{
-		return callback;
+		return configuration;
 	}
 
 	Logger& Heart::get_logger() const
@@ -75,16 +72,16 @@ namespace Revolution {
 			if (!get_count().load()) {
 				get_logger() << Logger::fatal
 					<< "No heartbeat within the timeout! "
-					<< "Heart attack occurred. Crashing..."
+					<< "Heart attack occurred. Aborting..."
 					<< std::endl;
 
 				abort();
 			}
 
 			get_count().store(0);
-			get_callback()();
+			get_configuration().callback();
 
-			std::this_thread::sleep_for(get_timeout());
+			std::this_thread::sleep_for(get_configuration().timeout);
 		}
 	}
 }

@@ -271,7 +271,7 @@ namespace Revolution {
 			return std::nullopt;
 		} else
 			get_logger() << Logger::info
-				<< "Successfully obtained message queue attributes of "
+				<< "Obtained message queue attributes of "
 				<< get_configuration().name
 				<< ": {max_message_count: "
 				<< attributes.mq_maxmsg

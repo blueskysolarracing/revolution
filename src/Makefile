@@ -5,29 +5,29 @@ LOADLIBES=-lrt -lpthread
 
 SYNCER_NAME=syncer
 SYNCER_OBJECTS\
-	=logger.o messenger.o heart.o configuration.o application.o master.o
+	=logger.o heart.o messenger.o configuration.o application.o marshal.o
 
 DISPLAY_DRIVER_NAME=display_driver
 DISPLAY_DRIVER_OBJECTS\
-	=logger.o messenger.o heart.o configuration.o application.o servant.o
+	=logger.o heart.o messenger.o configuration.o application.o soldier.o
 MISCELLANEOUS_CONTROLLER_NAME=miscellaneous_controller
 MISCELLANEOUS_CONTROLLER_OBJECTS\
-	=logger.o messenger.o heart.o configuration.o application.o servant.o
+	=logger.o heart.o messenger.o configuration.o application.o soldier.o
 MOTOR_CONTROLLER_NAME=motor_controller
 MOTOR_CONTROLLER_OBJECTS\
-	=logger.o messenger.o heart.o configuration.o application.o servant.o
+	=logger.o heart.o messenger.o configuration.o application.o soldier.o
 POWER_SENSOR_NAME=power_sensor
 POWER_SENSOR_OBJECTS\
-	=logger.o messenger.o heart.o configuration.o application.o servant.o
+	=logger.o heart.o messenger.o configuration.o application.o soldier.o
 REPLICA_NAME=replica
 REPLICA_OBJECTS\
-	=logger.o messenger.o heart.o configuration.o application.o servant.o
+	=logger.o heart.o messenger.o configuration.o application.o soldier.o
 TELEMETER_NAME=telemeter
 TELEMETER_OBJECTS\
-	=logger.o messenger.o heart.o configuration.o application.o servant.o
+	=logger.o heart.o messenger.o configuration.o application.o soldier.o
 VOLTAGE_CONTROLLER_NAME=voltage_controller
 VOLTAGE_CONTROLLER_OBJECTS\
-	=logger.o messenger.o heart.o configuration.o application.o servant.o
+	=logger.o heart.o messenger.o configuration.o application.o soldier.o
 
 CLIENT_NAME=client
 CLIENT_OBJECTS=logger.o messenger.o

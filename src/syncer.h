@@ -4,11 +4,11 @@
 #include "configuration.h"
 #include "logger.h"
 #include "heart.h"
-#include "master.h"
+#include "marshal.h"
 #include "messenger.h"
 
 namespace Revolution {
-	class Syncer : public Master {
+	class Syncer : public Marshal {
 	public:
 		explicit Syncer(
 			const Topology& topology,
