@@ -5,10 +5,10 @@
 #include "heart.h"
 #include "logger.h"
 #include "messenger.h"
-#include "slave.h"
+#include "servant.h"
 
 namespace Revolution {
-	class Replica : public Slave {
+	class Replica : public Servant {
 	public:
 		explicit Replica(
 			const Topology& topology,

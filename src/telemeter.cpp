@@ -3,7 +3,7 @@
 #include "configuration.h"
 #include "logger.h"
 #include "messenger.h"
-#include "slave.h"
+#include "servant.h"
 #include "telemeter.h"
 
 namespace Revolution {
@@ -14,7 +14,7 @@ namespace Revolution {
 		Logger& logger,
 		const Messenger& messenger,
 		Heart& heart
-	) : Slave{
+	) : Servant{
 		topology,
 		header_space,
 		key_space,

@@ -5,10 +5,10 @@
 #include "heart.h"
 #include "logger.h"
 #include "messenger.h"
-#include "slave.h"
+#include "servant.h"
 
 namespace Revolution {
-	class Voltage_controller : public Slave {
+	class Voltage_controller : public Servant {
 	public:
 		explicit Voltage_controller(
 			const Topology& topology,

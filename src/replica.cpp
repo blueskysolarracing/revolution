@@ -4,7 +4,7 @@
 #include "logger.h"
 #include "messenger.h"
 #include "replica.h"
-#include "slave.h"
+#include "servant.h"
 
 namespace Revolution {
 	Replica::Replica(
@@ -14,7 +14,7 @@ namespace Revolution {
 		Logger& logger,
 		const Messenger& messenger,
 		Heart& heart
-	) : Slave{
+	) : Servant{
 		topology,
 		header_space,
 		key_space,

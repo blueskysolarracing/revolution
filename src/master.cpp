@@ -48,10 +48,10 @@ namespace Revolution {
 	{
 		Application::handle_set(message);
 
-		for (const auto& slave : get_topology().get_slaves())
-			if (message.sender_name != slave.name)
+		for (const auto& servant : get_topology().get_servants())
+			if (message.sender_name != servant.name)
 				get_messenger().send(
-					slave.name,
+					servant.name,
 					message.header,
 					message.data
 				);

@@ -5,7 +5,7 @@
 #include "heart.h"
 #include "logger.h"
 #include "messenger.h"
-#include "slave.h"
+#include "servant.h"
 
 namespace Revolution {
 	Display_driver::Display_driver(
@@ -15,7 +15,7 @@ namespace Revolution {
 		Logger& logger,
 		const Messenger& messenger,
 		Heart& heart
-	) : Slave{
+	) : Servant{
 		topology,
 		header_space,
 		key_space,

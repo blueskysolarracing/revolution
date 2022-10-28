@@ -5,10 +5,10 @@
 #include "heart.h"
 #include "logger.h"
 #include "messenger.h"
-#include "slave.h"
+#include "servant.h"
 
 namespace Revolution {
-	class Display_driver : public Slave {
+	class Display_driver : public Servant {
 	public:
 		explicit Display_driver(
 			const Topology& topology,

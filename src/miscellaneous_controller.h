@@ -5,10 +5,10 @@
 #include "heart.h"
 #include "logger.h"
 #include "messenger.h"
-#include "slave.h"
+#include "servant.h"
 
 namespace Revolution {
-	class Miscellaneous_controller : public Slave {
+	class Miscellaneous_controller : public Servant {
 	public:
 		explicit Miscellaneous_controller(
 			const Topology& topology,

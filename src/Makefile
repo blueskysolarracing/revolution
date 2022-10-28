@@ -4,26 +4,30 @@ CXXFLAGS=-std=c++17
 LOADLIBES=-lrt -lpthread
 
 SYNCER_NAME=syncer
-SYNCER_OBJECTS=logger.o messenger.o heart.o configuration.o application.o master.o
+SYNCER_OBJECTS\
+	=logger.o messenger.o heart.o configuration.o application.o master.o
 
 DISPLAY_DRIVER_NAME=display_driver
 DISPLAY_DRIVER_OBJECTS\
-	=logger.o messenger.o heart.o configuration.o application.o slave.o
+	=logger.o messenger.o heart.o configuration.o application.o servant.o
 MISCELLANEOUS_CONTROLLER_NAME=miscellaneous_controller
 MISCELLANEOUS_CONTROLLER_OBJECTS\
-	=logger.o messenger.o heart.o configuration.o application.o slave.o
+	=logger.o messenger.o heart.o configuration.o application.o servant.o
 MOTOR_CONTROLLER_NAME=motor_controller
 MOTOR_CONTROLLER_OBJECTS\
-	=logger.o messenger.o heart.o configuration.o application.o slave.o
+	=logger.o messenger.o heart.o configuration.o application.o servant.o
 POWER_SENSOR_NAME=power_sensor
-POWER_SENSOR_OBJECTS=logger.o messenger.o heart.o configuration.o application.o slave.o
+POWER_SENSOR_OBJECTS\
+	=logger.o messenger.o heart.o configuration.o application.o servant.o
 REPLICA_NAME=replica
-REPLICA_OBJECTS=logger.o messenger.o heart.o configuration.o application.o slave.o
+REPLICA_OBJECTS\
+	=logger.o messenger.o heart.o configuration.o application.o servant.o
 TELEMETER_NAME=telemeter
-TELEMETER_OBJECTS=logger.o messenger.o heart.o configuration.o application.o slave.o
+TELEMETER_OBJECTS\
+	=logger.o messenger.o heart.o configuration.o application.o servant.o
 VOLTAGE_CONTROLLER_NAME=voltage_controller
 VOLTAGE_CONTROLLER_OBJECTS\
-	=logger.o messenger.o heart.o configuration.o application.o slave.o
+	=logger.o messenger.o heart.o configuration.o application.o servant.o
 
 CLIENT_NAME=client
 CLIENT_OBJECTS=logger.o messenger.o

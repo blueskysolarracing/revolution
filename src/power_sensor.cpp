@@ -4,7 +4,7 @@
 #include "logger.h"
 #include "messenger.h"
 #include "power_sensor.h"
-#include "slave.h"
+#include "servant.h"
 
 namespace Revolution {
 	Power_sensor::Power_sensor(
@@ -14,7 +14,7 @@ namespace Revolution {
 		Logger& logger,
 		const Messenger& messenger,
 		Heart& heart
-	) : Slave{
+	) : Servant{
 		topology,
 		header_space,
 		key_space,

@@ -28,7 +28,7 @@ namespace Revolution {
 		);
 
 		const Endpoint& get_master() const;
-		const std::vector<Endpoint> get_slaves() const;
+		const std::vector<Endpoint> get_servants() const;
 
 		const Endpoint display_driver;
 		const Endpoint miscellaneous_controller;

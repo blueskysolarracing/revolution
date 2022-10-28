@@ -5,10 +5,10 @@
 #include "heart.h"
 #include "logger.h"
 #include "messenger.h"
-#include "slave.h"
+#include "servant.h"
 
 namespace Revolution {
-	Slave::Slave(
+	Servant::Servant(
 		const Topology& topology,
 		const Header_space& header_space,
 		const Key_space& key_space,
@@ -27,14 +27,14 @@ namespace Revolution {
 		set_handler(
 			get_header_space().set,
 			std::bind(
-				&Slave::handle_set,
+				&Servant::handle_set,
 				this,
 				std::placeholders::_1
 			)
 		);
 	}
 
-	void Slave::run()
+	void Servant::run()
 	{
 		get_messenger().send(
 			get_topology().get_master().name,
@@ -44,7 +44,7 @@ namespace Revolution {
 		Application::run();
 	}
 
-	void Slave::handle_set(const Messenger::Message& message)
+	void Servant::handle_set(const Messenger::Message& message)
 	{
 		Application::handle_set(message);
 

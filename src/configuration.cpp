@@ -33,7 +33,7 @@ namespace Revolution {
 		return syncer;
 	}
 
-	const std::vector<Topology::Endpoint> Topology::get_slaves() const
+	const std::vector<Topology::Endpoint> Topology::get_servants() const
 	{
 		return {
 			display_driver,

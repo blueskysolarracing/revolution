@@ -1,5 +1,5 @@
-#ifndef REVOLUTION_SLAVE_H
-#define REVOLUTION_SLAVE_H
+#ifndef REVOLUTION_SERVANT_H
+#define REVOLUTION_SERVANT_H
 
 #include "application.h"
 #include "configuration.h"
@@ -8,9 +8,9 @@
 #include "messenger.h"
 
 namespace Revolution {
-	class Slave : public Application {
+	class Servant : public Application {
 	public:
-		explicit Slave(
+		explicit Servant(
 			const Topology& topology,
 			const Header_space& header_space,
 			const Key_space& key_space,
@@ -25,4 +25,4 @@ namespace Revolution {
 	};
 }
 
-#endif	// REVOLUTION_SLAVE_H
+#endif	// REVOLUTION_SERVANT_H
