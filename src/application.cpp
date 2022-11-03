@@ -215,7 +215,7 @@ namespace Revolution {
 				<< std::endl;
 
 		if (message.data.empty()) {
-			get_logger() << Logger::warning
+			get_logger() << Logger::info
 				<< "Exiting gracefully..."
 				<< std::endl;
 
@@ -223,7 +223,7 @@ namespace Revolution {
 		} else {
 			int error_code = std::stoi(message.data.front());
 
-			get_logger() << Logger::warning
+			get_logger() << Logger::info
 				<< "Exiting immediately with error code: "
 				<< error_code
 				<< "..."
@@ -318,7 +318,7 @@ namespace Revolution {
 			<< std::endl;
 
 		if (message.data.size() % 2 == 1)
-			get_logger() << Logger::error
+			get_logger() << Logger::warning
 				<< "Unpaired key \""
 				<< message.data.back()
 				<< "\" provided. "
@@ -350,7 +350,7 @@ namespace Revolution {
 	void Application::handle(const Messenger::Message& message) const
 	{
 		if (get_handlers().count(message.header)) {
-			get_logger() << Logger::warning
+			get_logger() << Logger::info
 				<< "Handling message: "
 				<< message.to_string()
 				<< std::endl;

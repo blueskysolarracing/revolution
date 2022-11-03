@@ -15,12 +15,12 @@ void monitor(
 	const std::atomic_bool& status
 )
 {
-	static constexpr std::chrono::high_resolution_clock::duration monitor_timeout
+	static constexpr std::chrono::high_resolution_clock::duration timeout
 		= std::chrono::milliseconds(100);
 	auto received = true;
 
 	while (status.load() || received) {
-		auto optional_message = messenger.receive(monitor_timeout);
+		auto optional_message = messenger.receive(timeout);
 		received = optional_message.has_value();
 
 		if (received)

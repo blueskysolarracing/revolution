@@ -270,7 +270,7 @@ namespace Revolution {
 
 			return std::nullopt;
 		} else
-			get_logger() << Logger::info
+			get_logger() << Logger::debug
 				<< "Obtained message queue attributes of "
 				<< get_configuration().name
 				<< ": {max_message_count: "

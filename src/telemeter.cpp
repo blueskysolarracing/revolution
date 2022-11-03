@@ -52,7 +52,10 @@ int main() {
 		Revolution::Heart::Configuration{
 			std::chrono::seconds(1),
 			[&messenger, &topology, &header_space] () {
-				messenger.send(topology.telemeter.name, header_space.heartbeat);
+				messenger.send(
+					topology.telemeter.name,
+					header_space.heartbeat
+				);
 			}
 		},
 		logger

@@ -1,7 +1,7 @@
 # Revolution Makefile
 
 CXXFLAGS=-std=c++17
-LOADLIBES=-lrt -lpthread
+LOADLIBES=-lpthread -lrt
 
 SYNCER_NAME=syncer
 SYNCER_OBJECTS\
