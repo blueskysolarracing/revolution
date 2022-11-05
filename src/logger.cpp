@@ -1,8 +1,8 @@
 #include <chrono>
-#include <fstream>
 #include <iomanip>
 #include <iostream>
-#include <ostream>
+#include <mutex>
+#include <sstream>
 #include <string>
 
 #include "logger.h"
@@ -15,12 +15,38 @@ namespace Revolution {
 	{
 	}
 
-	Logger::Configuration::Configuration(
-		const Severity& severity,
-		const std::string& filename,
-		const std::ofstream::openmode& open_mode
-	) : severity{severity}, filename{filename}, open_mode{open_mode}
+	Logger::Configuration::Configuration(const Severity& severity)
+		: severity{severity}
 	{
+	}
+
+	Logger::Log_stream::Log_stream(const Severity& severity)
+		: std::ostringstream{}
+	{
+		auto time_point = std::chrono::system_clock::now();
+		auto time = std::chrono::system_clock::to_time_t(time_point);
+
+		(*this) << '['
+			<< std::put_time(std::localtime(&time), "%c")
+			<< "] ["
+			<< severity.name
+			<< "]: ";
+
+	}
+
+	Logger::Log_stream::~Log_stream()
+	{
+		std::scoped_lock lock(get_mutex());
+
+		std::cout << str();
+		std::cout.flush();
+	}
+
+	std::mutex Logger::Log_stream::mutex{};
+
+	std::mutex& Logger::Log_stream::get_mutex()
+	{
+		return mutex;
 	}
 
 	const Logger::Severity Logger::trace{"trace", 0};
@@ -32,56 +58,13 @@ namespace Revolution {
 
 	Logger::Logger(
 		const Configuration& configuration
-	) : std::ostream{nullptr}, configuration{configuration}, ofstream{}
+	) : configuration{configuration}
 	{
-		if (!get_configuration().filename.empty()) {
-			get_ofstream().open(
-				get_configuration().filename,
-				get_configuration().open_mode
-			);
-
-			if (get_ofstream().fail()) {
-				(*this) << error
-					<< "Cannot open log file. "
-					<< "Using stdout instead."
-					<< std::endl;
-
-				get_ofstream().clear();
-			}
-		}
 	}
 
-	Logger::~Logger()
+	const Logger::Log_stream Logger::operator<<(const Severity& severity)
 	{
-		if (get_ofstream().is_open()) {
-			get_ofstream().close();
-
-			if (get_ofstream().fail()) {
-				(*this) << error
-					<< "Cannot close log file."
-					<< std::endl;
-
-				get_ofstream().clear();
-			}
-		}
-	}
-
-	Logger& Logger::operator<<(const Severity& severity)
-	{
-		set_status(
-			severity.level >= get_configuration().severity.level
-		);
-
-		auto time_point = std::chrono::system_clock::now();
-		auto time = std::chrono::system_clock::to_time_t(time_point);
-
-		(*this) << '['
-			<< std::put_time(std::localtime(&time), "%c")
-			<< "] ["
-			<< severity.name
-			<< "]: ";
-
-		return *this;
+		return Log_stream{severity};
 	}
 
 	const Logger::Configuration& Logger::get_configuration() const
@@ -89,18 +72,8 @@ namespace Revolution {
 		return configuration;
 	}
 
-	std::ofstream& Logger::get_ofstream()
+	bool Logger::get_status(const Severity& severity) const
 	{
-		return ofstream;
-	}
-
-	void Logger::set_status(const bool& status)
-	{
-		if (!status)
-			rdbuf(nullptr);
-		else if (get_ofstream().is_open())
-			rdbuf(get_ofstream().rdbuf());
-		else
-			rdbuf(std::cout.rdbuf());
+		return severity.level >= get_configuration().severity.level;
 	}
 }

@@ -38,8 +38,7 @@ int main() {
 	Revolution::Key_space key_space;
 	Revolution::Logger logger{
 		Revolution::Logger::Configuration{
-			Revolution::Logger::info,
-			"./" + topology.replica.name + ".log"
+			Revolution::Logger::info
 		}
 	};
 	Revolution::Messenger messenger{

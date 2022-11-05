@@ -1,12 +1,12 @@
 #ifndef REVOLUTION_LOGGER_H
 #define REVOLUTION_LOGGER_H
 
-#include <fstream>
-#include <ostream>
+#include <mutex>
+#include <sstream>
 #include <string>
 
 namespace Revolution {
-	class Logger : public std::ostream {
+	class Logger {
 	public:
 		struct Severity {
 			explicit Severity(
@@ -20,15 +20,20 @@ namespace Revolution {
 
 		struct Configuration {
 			explicit Configuration(
-				const Severity& severity,
-				const std::string& filename = "",
-				const std::ofstream::openmode& open_mode
-					= std::ofstream::app
+				const Severity& severity
 			);
 
 			const Severity severity;
-			const std::string filename;
-			const std::ofstream::openmode open_mode;
+		};
+
+		class Log_stream : public std::ostringstream {
+		public:
+			explicit Log_stream(const Severity& severity);
+			~Log_stream();
+		private:
+			static std::mutex mutex;
+
+			static std::mutex& get_mutex();
 		};
 
 		static const Severity trace;
@@ -41,17 +46,13 @@ namespace Revolution {
 		explicit Logger(
 			const Configuration& configuration
 		);
-		~Logger();
 
-		Logger& operator<<(const Severity& severity);
+		const Log_stream operator<<(const Severity& severity);
 	private:
 		const Configuration& get_configuration() const;
-		std::ofstream& get_ofstream();
-
-		void set_status(const bool& status);
+		bool get_status(const Severity& severity) const;
 
 		const Configuration configuration;
-		std::ofstream ofstream;
 	};
 }
 
