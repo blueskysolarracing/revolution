@@ -9,7 +9,7 @@ namespace Revolution {
 	public:
 		class Configuration {
 		public:
-			explicit Configuration(const bool& status);
+			explicit Configuration(const bool& status = true);
 
 			const bool& get_status() const;
 		private:
