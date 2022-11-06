@@ -70,7 +70,7 @@ namespace Revolution {
 	{
 		while (get_status().load()) {
 			if (!get_count().load()) {
-				get_logger() << Logger::fatal
+				get_logger() << Logger::alert
 					<< "No heartbeat within the timeout! "
 					<< "Heart attack occurred. Aborting..."
 					<< std::endl;

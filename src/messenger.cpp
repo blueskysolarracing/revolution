@@ -301,7 +301,7 @@ namespace Revolution {
 
 		auto message = Message::deserialize(raw_message);
 
-		get_logger() << Logger::info
+		get_logger() << Logger::information
 			<< "Successfully Received message: "
 			<< message.to_string()
 			<< std::endl;
@@ -338,7 +338,7 @@ namespace Revolution {
 				<< ')'
 				<< std::endl;
 		else
-			get_logger() << Logger::info
+			get_logger() << Logger::information
 				<< "Successfully Sent message to "
 				<< name
 				<< ": "

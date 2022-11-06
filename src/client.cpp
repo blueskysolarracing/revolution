@@ -43,9 +43,7 @@ int main(int argc, char *argv[])
 	std::string recipient_name(argv[2]);
 	std::string header;
 	std::vector<std::string> data;
-	Revolution::Logger logger{
-		Revolution::Logger::Configuration{Revolution::Logger::fatal}
-	};
+	Revolution::Logger logger{Revolution::Logger::Configuration{}};
 	Revolution::Messenger messenger{
 		Revolution::Messenger::Configuration{sender_name},
 		logger

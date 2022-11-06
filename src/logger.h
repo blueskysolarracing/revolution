@@ -3,54 +3,54 @@
 
 #include <mutex>
 #include <sstream>
-#include <string>
 
 namespace Revolution {
 	class Logger {
 	public:
-		struct Severity {
-			explicit Severity(
-				const std::string& name,
-				const unsigned int& level
-			);
+		class Severity {
+		public:
+			explicit Severity(const unsigned int& level);
 
-			const std::string name;
+			const unsigned int& get_level() const;
+		private:
 			const unsigned int level;
-		};
-
-		struct Configuration {
-			explicit Configuration(
-				const Severity& severity
-			);
-
-			const Severity severity;
 		};
 
 		class Log_stream : public std::ostringstream {
 		public:
 			explicit Log_stream(const Severity& severity);
 			~Log_stream();
+
+			const Severity& get_severity() const;
 		private:
 			static std::mutex mutex;
 
 			static std::mutex& get_mutex();
+
+			const Severity& severity;
 		};
 
-		static const Severity trace;
-		static const Severity debug;
-		static const Severity info;
-		static const Severity warning;
-		static const Severity error;
-		static const Severity fatal;
+		class Configuration {
+		public:
+			explicit Configuration();
+		};
+
+		static const Logger::Severity emergency;
+		static const Logger::Severity alert;
+		static const Logger::Severity critical;
+		static const Logger::Severity error;
+		static const Logger::Severity warning;
+		static const Logger::Severity notice;
+		static const Logger::Severity information;
+		static const Logger::Severity debug;
 
 		explicit Logger(
 			const Configuration& configuration
 		);
 
-		const Log_stream operator<<(const Severity& severity);
+		Log_stream operator<<(const Severity& severity) const;
 	private:
 		const Configuration& get_configuration() const;
-		bool get_status(const Severity& severity) const;
 
 		const Configuration configuration;
 	};

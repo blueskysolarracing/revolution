@@ -36,11 +36,7 @@ int main() {
 	Revolution::Topology topology;
 	Revolution::Header_space header_space;
 	Revolution::Key_space key_space;
-	Revolution::Logger logger{
-		Revolution::Logger::Configuration{
-			Revolution::Logger::info
-		}
-	};
+	Revolution::Logger logger{Revolution::Logger::Configuration{}};
 	Revolution::Messenger messenger{
 		Revolution::Messenger::Configuration{
 			topology.display_driver.name
