@@ -16,12 +16,12 @@ namespace Revolution {
 	{
 	}
 
-	Heart::Heart(const Configuration& configuration, Logger& logger)
+	Heart::Heart(const Configuration& configuration, const Logger& logger)
 		: configuration{configuration},
-	    	  logger{logger},
-	    	  thread{&Heart::monitor, this},
-	    	  status{true},
-	    	  count{1}
+		  logger{logger},
+		  thread{&Heart::monitor, this},
+		  status{true},
+		  count{1}
 	{
 	}
 
@@ -41,7 +41,7 @@ namespace Revolution {
 		return configuration;
 	}
 
-	Logger& Heart::get_logger() const
+	const Logger& Heart::get_logger() const
 	{
 		return logger;
 	}
@@ -70,7 +70,7 @@ namespace Revolution {
 	{
 		while (get_status().load()) {
 			if (!get_count().load()) {
-				get_logger() << Logger::fatal
+				get_logger() << Logger::alert
 					<< "No heartbeat within the timeout! "
 					<< "Heart attack occurred. Aborting..."
 					<< std::endl;

@@ -1,57 +1,65 @@
 #ifndef REVOLUTION_LOGGER_H
 #define REVOLUTION_LOGGER_H
 
-#include <fstream>
-#include <ostream>
-#include <string>
+#include <mutex>
+#include <sstream>
 
 namespace Revolution {
-	class Logger : public std::ostream {
+	class Logger {
 	public:
-		struct Severity {
-			explicit Severity(
-				const std::string& name,
-				const unsigned int& level
-			);
+		class Configuration {
+		public:
+			explicit Configuration(const bool& status = true);
 
-			const std::string name;
+			const bool& get_status() const;
+		private:
+			const bool status;
+		};
+
+		class Severity {
+		public:
+			explicit Severity(const unsigned int& level);
+
+			const unsigned int& get_level() const;
+		private:
 			const unsigned int level;
 		};
 
-		struct Configuration {
-			explicit Configuration(
-				const Severity& severity,
-				const std::string& filename = "",
-				const std::ofstream::openmode& open_mode
-					= std::ofstream::app
+		class Log_stream : public std::ostringstream {
+		public:
+			explicit Log_stream(
+				const Configuration& configuration,
+				const Severity& severity
 			);
+			~Log_stream();
 
-			const Severity severity;
-			const std::string filename;
-			const std::ofstream::openmode open_mode;
+			const Configuration& get_configuration() const;
+			const Severity& get_severity() const;
+		private:
+			static std::mutex mutex;
+
+			static std::mutex& get_mutex();
+
+			const Configuration& configuration;
+			const Severity& severity;
 		};
 
-		static const Severity trace;
-		static const Severity debug;
-		static const Severity info;
-		static const Severity warning;
+		static const Severity emergency;
+		static const Severity alert;
+		static const Severity critical;
 		static const Severity error;
-		static const Severity fatal;
+		static const Severity warning;
+		static const Severity notice;
+		static const Severity information;
+		static const Severity debug;
 
-		explicit Logger(
-			const Configuration& configuration
-		);
-		~Logger();
+		explicit Logger(const Configuration& configuration);
 
-		Logger& operator<<(const Severity& severity);
-	private:
+		Log_stream operator<<(const Severity& severity) const;
+
 		const Configuration& get_configuration() const;
-		std::ofstream& get_ofstream();
-
-		void set_status(const bool& status);
-
+	private:
 		const Configuration configuration;
-		std::ofstream ofstream;
 	};
 }
 

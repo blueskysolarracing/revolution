@@ -1,106 +1,90 @@
-#include <chrono>
-#include <fstream>
-#include <iomanip>
 #include <iostream>
-#include <ostream>
-#include <string>
+#include <mutex>
+#include <sstream>
 
 #include "logger.h"
 
 namespace Revolution {
-	Logger::Severity::Severity(
-		const std::string& name,
-		const unsigned int& level
-	) : name{name}, level{level}
+	Logger::Configuration::Configuration(const bool& status)
+		: status{status}
 	{
 	}
 
-	Logger::Configuration::Configuration(
-		const Severity& severity,
-		const std::string& filename,
-		const std::ofstream::openmode& open_mode
-	) : severity{severity}, filename{filename}, open_mode{open_mode}
+	const bool& Logger::Configuration::get_status() const
+	{
+		return status;
+	}
+
+	Logger::Severity::Severity(const unsigned int& level) : level{level}
 	{
 	}
 
-	const Logger::Severity Logger::trace{"trace", 0};
-	const Logger::Severity Logger::debug{"debug", 1};
-	const Logger::Severity Logger::info{"info", 2};
-	const Logger::Severity Logger::warning{"warning", 3};
-	const Logger::Severity Logger::error{"error", 4};
-	const Logger::Severity Logger::fatal{"fatal", 5};
-
-	Logger::Logger(
-		const Configuration& configuration
-	) : std::ostream{nullptr}, configuration{configuration}, ofstream{}
+	const unsigned int& Logger::Severity::get_level() const
 	{
-		if (!get_configuration().filename.empty()) {
-			get_ofstream().open(
-				get_configuration().filename,
-				get_configuration().open_mode
-			);
+		return level;
+	}
 
-			if (get_ofstream().fail()) {
-				(*this) << error
-					<< "Cannot open log file. "
-					<< "Using stdout instead."
-					<< std::endl;
+	Logger::Log_stream::Log_stream(
+		const Configuration& configuration,
+		const Severity& severity
+	) : std::ostringstream{},
+	    configuration{configuration},
+	    severity{severity}
+	{
+	}
 
-				get_ofstream().clear();
-			}
+	Logger::Log_stream::~Log_stream()
+	{
+		if (get_configuration().get_status()) {
+			std::scoped_lock lock(get_mutex());
+
+			std::cout << '<'
+				<< get_severity().get_level()
+				<< '>'
+				<< str();
+			std::cout.flush();
 		}
 	}
 
-	Logger::~Logger()
+	const Logger::Configuration&
+		Logger::Log_stream::get_configuration() const
 	{
-		if (get_ofstream().is_open()) {
-			get_ofstream().close();
-
-			if (get_ofstream().fail()) {
-				(*this) << error
-					<< "Cannot close log file."
-					<< std::endl;
-
-				get_ofstream().clear();
-			}
-		}
+		return configuration;
 	}
 
-	Logger& Logger::operator<<(const Severity& severity)
+	const Logger::Severity& Logger::Log_stream::get_severity() const
 	{
-		set_status(
-			severity.level >= get_configuration().severity.level
-		);
+		return severity;
+	}
 
-		auto time_point = std::chrono::system_clock::now();
-		auto time = std::chrono::system_clock::to_time_t(time_point);
+	std::mutex Logger::Log_stream::mutex{};
 
-		(*this) << '['
-			<< std::put_time(std::localtime(&time), "%c")
-			<< "] ["
-			<< severity.name
-			<< "]: ";
+	std::mutex& Logger::Log_stream::get_mutex()
+	{
+		return mutex;
+	}
 
-		return *this;
+	const Logger::Severity Logger::emergency{0};
+	const Logger::Severity Logger::alert{1};
+	const Logger::Severity Logger::critical{2};
+	const Logger::Severity Logger::error{3};
+	const Logger::Severity Logger::warning{4};
+	const Logger::Severity Logger::notice{5};
+	const Logger::Severity Logger::information{6};
+	const Logger::Severity Logger::debug{7};
+
+	Logger::Logger(const Configuration& configuration)
+		: configuration{configuration}
+	{
+	}
+
+	Logger::Log_stream Logger::operator<<(const Severity& severity) const
+	{
+		return Log_stream{get_configuration(), severity};
 	}
 
 	const Logger::Configuration& Logger::get_configuration() const
 	{
 		return configuration;
-	}
-
-	std::ofstream& Logger::get_ofstream()
-	{
-		return ofstream;
-	}
-
-	void Logger::set_status(const bool& status)
-	{
-		if (!status)
-			rdbuf(nullptr);
-		else if (get_ofstream().is_open())
-			rdbuf(get_ofstream().rdbuf());
-		else
-			rdbuf(std::cout.rdbuf());
 	}
 }

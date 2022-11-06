@@ -12,7 +12,7 @@ namespace Revolution {
 		const Topology& topology,
 		const Header_space& header_space,
 		const Key_space& key_space,
-		Logger& logger,
+		const Logger& logger,
 		const Messenger& messenger,
 		Heart& heart
 	) : Soldier{
@@ -36,12 +36,7 @@ int main() {
 	Revolution::Topology topology;
 	Revolution::Header_space header_space;
 	Revolution::Key_space key_space;
-	Revolution::Logger logger{
-		Revolution::Logger::Configuration{
-			Revolution::Logger::info,
-			"./" + topology.power_sensor.name + ".log"
-		}
-	};
+	Revolution::Logger logger{Revolution::Logger::Configuration{}};
 	Revolution::Messenger messenger{
 		Revolution::Messenger::Configuration{
 			topology.power_sensor.name

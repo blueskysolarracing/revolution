@@ -16,7 +16,7 @@ namespace Revolution {
 		const Topology& topology,
 		const Header_space& header_space,
 		const Key_space& key_space,
-		Logger& logger,
+		const Logger& logger,
 		const Messenger& messenger,
 		Heart& heart
 	) : topology{topology},
@@ -97,7 +97,7 @@ namespace Revolution {
 
 	void Application::run()
 	{
-		get_logger() << Logger::info
+		get_logger() << Logger::information
 			<< "Starting "
 			<< get_endpoint().name
 			<< "..."
@@ -112,7 +112,7 @@ namespace Revolution {
 				handle(message);
 			}
 		} catch (std::exception& exception) {
-			get_logger() << Logger::fatal
+			get_logger() << Logger::alert
 				<< "Error occurred: "
 				<< exception.what()
 				<< std::endl;
@@ -120,7 +120,7 @@ namespace Revolution {
 			throw;
 		}
 
-		get_logger() << Logger::info
+		get_logger() << Logger::information
 			<< "Stopping "
 			<< get_endpoint().name
 			<< "..."
@@ -142,7 +142,7 @@ namespace Revolution {
 		return key_space;
 	}
 
-	Logger& Application::get_logger() const
+	const Logger& Application::get_logger() const
 	{
 		return logger;
 	}
@@ -196,7 +196,7 @@ namespace Revolution {
 				<< "\"..."
 				<< std::endl;
 		else
-			get_logger() << Logger::info
+			get_logger() << Logger::information
 				<< "Adding handler: \""
 				<< name
 				<< "\"..."
@@ -215,7 +215,7 @@ namespace Revolution {
 				<< std::endl;
 
 		if (message.data.empty()) {
-			get_logger() << Logger::info
+			get_logger() << Logger::information
 				<< "Exiting gracefully..."
 				<< std::endl;
 
@@ -223,7 +223,7 @@ namespace Revolution {
 		} else {
 			int error_code = std::stoi(message.data.front());
 
-			get_logger() << Logger::info
+			get_logger() << Logger::information
 				<< "Exiting immediately with error code: "
 				<< error_code
 				<< "..."
@@ -235,7 +235,7 @@ namespace Revolution {
 
 	void Application::handle_hang(const Messenger::Message& message) const
 	{
-		get_logger() << Logger::info
+		get_logger() << Logger::information
 			<< "Hanging indefinitely..."
 			<< std::endl;
 
@@ -246,7 +246,7 @@ namespace Revolution {
 		const Messenger::Message& message
 	) const
 	{
-		get_logger() << Logger::info
+		get_logger() << Logger::information
 			<< "Beating heart..."
 			<< std::endl;
 
@@ -255,7 +255,7 @@ namespace Revolution {
 
 	void Application::handle_read(const Messenger::Message& message) const
 	{
-		get_logger() << Logger::info
+		get_logger() << Logger::information
 			<< "Reading "
 			<< message.data.size()
 			<< " key(s)..."
@@ -278,7 +278,7 @@ namespace Revolution {
 
 	void Application::handle_status(const Messenger::Message& message) const
 	{
-		get_logger() << Logger::info
+		get_logger() << Logger::information
 			<< "Status report requested. Sending response..."
 			<< std::endl;
 
@@ -290,7 +290,7 @@ namespace Revolution {
 
 	void Application::handle_sync(const Messenger::Message& message) const
 	{
-		get_logger() << Logger::info
+		get_logger() << Logger::information
 			<< "Sync requested. Resetting requester's data..."
 			<< std::endl;
 
@@ -304,14 +304,14 @@ namespace Revolution {
 	void Application::handle_write(const Messenger::Message& message)
 	{
 		if (message.header == get_header_space().reset) {
-			get_logger() << Logger::info
+			get_logger() << Logger::information
 				<< "Clearing database..."
 				<< std::endl;
 
 			get_states().clear();
 		}
 
-		get_logger() << Logger::info
+		get_logger() << Logger::information
 			<< "Writing "
 			<< message.data.size() / 2
 			<< " key(s)..."
@@ -350,7 +350,7 @@ namespace Revolution {
 	void Application::handle(const Messenger::Message& message) const
 	{
 		if (get_handlers().count(message.header)) {
-			get_logger() << Logger::info
+			get_logger() << Logger::information
 				<< "Handling message: "
 				<< message.to_string()
 				<< std::endl;
