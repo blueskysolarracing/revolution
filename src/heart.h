@@ -24,14 +24,14 @@ namespace Revolution {
 
 		explicit Heart(
 			const Configuration& configuration,
-			Logger& logger
+			const Logger& logger
 		);
 		~Heart();
 
 		void beat();
 	private:
 		const Configuration& get_configuration() const;
-		Logger& get_logger() const;
+		const Logger& get_logger() const;
 		const std::atomic_bool& get_status() const;
 		std::atomic_bool& get_status();
 		const std::atomic_uint& get_count() const;
@@ -40,7 +40,7 @@ namespace Revolution {
 		void monitor();
 
 		const Configuration configuration;
-		Logger& logger;
+		const Logger& logger;
 		std::thread thread;
 		std::atomic_bool status;
 		std::atomic_uint count;

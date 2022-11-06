@@ -90,7 +90,7 @@ namespace Revolution {
 
 	Messenger::Messenger(
 		const Configuration& configuration,
-		Logger& logger
+		const Logger& logger
 	) : configuration{configuration}, logger{logger}
 	{
 	}
@@ -208,7 +208,7 @@ namespace Revolution {
 		return configuration;
 	}
 
-	Logger& Messenger::get_logger() const
+	const Logger& Messenger::get_logger() const
 	{
 		return logger;
 	}

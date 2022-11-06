@@ -12,7 +12,7 @@ namespace Revolution {
 		const Topology& topology,
 		const Header_space& header_space,
 		const Key_space& key_space,
-		Logger& logger,
+		const Logger& logger,
 		const Messenger& messenger,
 		Heart& heart
 	) : Marshal{

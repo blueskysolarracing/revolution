@@ -54,7 +54,7 @@ namespace Revolution {
 
 		explicit Messenger(
 			const Configuration& configuration,
-			Logger& logger
+			const Logger& logger
 		);
 
 		Message receive() const;
@@ -94,7 +94,7 @@ namespace Revolution {
 		>;
 
 		const Configuration& get_configuration() const;
-		Logger& get_logger() const;
+		const Logger& get_logger() const;
 
 		mqd_t open_descriptor(const std::string& name) const;
 		void close_descriptor(mqd_t& descriptor) const;
@@ -108,7 +108,7 @@ namespace Revolution {
 		) const;
 
 		const Configuration configuration;
-		Logger& logger;
+		const Logger& logger;
 	};
 }
 

@@ -16,7 +16,7 @@ namespace Revolution {
 		const Topology& topology,
 		const Header_space& header_space,
 		const Key_space& key_space,
-		Logger& logger,
+		const Logger& logger,
 		const Messenger& messenger,
 		Heart& heart
 	) : topology{topology},
@@ -142,7 +142,7 @@ namespace Revolution {
 		return key_space;
 	}
 
-	Logger& Application::get_logger() const
+	const Logger& Application::get_logger() const
 	{
 		return logger;
 	}
