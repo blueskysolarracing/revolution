@@ -7,81 +7,92 @@
 #include <thread>
 #include <vector>
 
-#include "logger.h"
 #include "messenger.h"
 
 void monitor(
+	const std::string& recipient_name,
 	const Revolution::Messenger& messenger,
 	const std::atomic_bool& status
-)
-{
-	static constexpr std::chrono::high_resolution_clock::duration timeout
-		= std::chrono::milliseconds(100);
+) {
+	static constexpr auto timeout = std::chrono::milliseconds(100);
 	auto received = true;
 
-	while (status.load() || received) {
-		auto optional_message = messenger.receive(timeout);
+	while (status || received) {
+		auto optional_message
+			= messenger.receive(recipient_name, timeout);
 		received = optional_message.has_value();
 
 		if (received)
-			std::cout << optional_message.value().to_string()
+			std::cout << optional_message.value().serialize()
 				<< std::endl;
 	}
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 	if (argc < 3) {
-		std::cout << "Usage: ./client "
-			<< "sender_name recipient_name [header] [data...]"
+		std::cout << "Usage: "
+			<< "./client "
+			<< "sender_name "
+			<< "recipient_name "
+			<< "[header data...]"
 			<< std::endl;
 
 		return 0;
 	}
 
-	std::string sender_name(argv[1]);
-	std::string recipient_name(argv[2]);
+	std::string sender_name{argv[1]};
+	std::string recipient_name{argv[2]};
 	std::string header;
 	std::vector<std::string> data;
-	Revolution::Logger logger{Revolution::Logger::Configuration{false}};
-	Revolution::Messenger messenger{
-		Revolution::Messenger::Configuration{sender_name},
-		logger
-	};
+	Revolution::Messenger messenger;
 	std::atomic_bool status{true};
 
 	if (argc > 3) {
 		header = argv[3];
 
-		for (int i = 4; i < argc; ++i)
+		for (std::size_t i{4}; i < argc; ++i)
 			data.emplace_back(argv[i]);
 
-		messenger.send(recipient_name, header, data);
+		messenger.send(
+			Revolution::Messenger::Message{
+				sender_name,
+				recipient_name,
+				header,
+				data
+			}
+		);
 		status.store(false);
 	}
 
-	std::thread thread{monitor, messenger, std::ref(status)};
+	std::thread thread{monitor, sender_name, messenger, std::cref(status)};
 
 	while (status.load()) {
 		std::string input;
 		std::getline(std::cin, input);
-		std::istringstream iss(input);
 
-		iss >> header;
+		if (input.empty())
+			status.store(false);
+		else {
+			std::istringstream iss(input);
+			std::string datum;
 
-		std::string datum;
+			iss >> header;
 
-		while (std::getline(iss, datum, ' '))
-			if (!datum.empty())
+			while (iss >> datum)
 				data.push_back(datum);
 
-		if (header.empty())
-			status.store(false);
-		else
-			messenger.send(recipient_name, header, data);
+			messenger.send(
+				Revolution::Messenger::Message{
+					sender_name,
+					recipient_name,
+					header,
+					data
+				}
+			);
 
-		header.clear();
-		data.clear();
+			header.clear();
+			data.clear();
+		}
 	}
 
 	thread.join();

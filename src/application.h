@@ -6,28 +6,24 @@
 #include <unordered_map>
 
 #include "configuration.h"
-#include "heart.h"
 #include "logger.h"
 #include "messenger.h"
 
 namespace Revolution {
 	class Application {
 	public:
-		using Handler = std::function<void(const Messenger::Message&)>;
-		using Handlers = std::unordered_map<std::string, Handler>;
-		using States = std::unordered_map<std::string, std::string>;
-
 		explicit Application(
-			const Topology& topology,
 			const Header_space& header_space,
 			const Key_space& key_space,
-			const Logger& logger,
-			const Messenger& messenger,
-			Heart& heart
+			const Topology& topology
 		);
 
 		virtual void run();
 	protected:
+		using Handler = std::function<void(const Messenger::Message&)>;
+		using Handlers = std::unordered_map<std::string, Handler>;
+		using States = std::unordered_map<std::string, std::string>;
+
 		const Topology& get_topology() const;
 		const Header_space& get_header_space() const;
 		const Key_space& get_key_space() const;
@@ -45,8 +41,6 @@ namespace Revolution {
 		virtual const Topology::Endpoint& get_endpoint() const = 0;
 
 		void handle_exit(const Messenger::Message& message);
-		void handle_hang(const Messenger::Message& message) const;
-		void handle_heartbeat(const Messenger::Message& message) const;
 		void handle_read(const Messenger::Message& message) const;
 		void handle_status(const Messenger::Message& message) const;
 		void handle_sync(const Messenger::Message& message) const;
@@ -58,13 +52,12 @@ namespace Revolution {
 
 		void handle(const Messenger::Message& message) const;
 
-		const Topology& topology;
 		const Header_space& header_space;
 		const Key_space& key_space;
+		const Topology& topology;
 		const Logger& logger;
 		const Messenger& messenger;
-		Heart& heart;
-		bool status;
+		std::atomic_bool status;
 		Handlers handlers;
 		States states;
 	};

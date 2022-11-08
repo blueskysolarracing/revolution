@@ -2,33 +2,24 @@
 #include <string>
 #include <unordered_map>
 
-#include <stdlib.h>
-#include <unistd.h>
-
 #include "application.h"
 #include "configuration.h"
-#include "heart.h"
 #include "logger.h"
 #include "messenger.h"
 
 namespace Revolution {
 	Application::Application(
-		const Topology& topology,
 		const Header_space& header_space,
 		const Key_space& key_space,
-		const Logger& logger,
-		const Messenger& messenger,
-		Heart& heart
-	) : topology{topology},
-	    header_space{header_space},
+		const Topology& topology
+	) : header_space{header_space},
 	    key_space{key_space},
-	    logger{logger},
-	    messenger{messenger},
-	    heart{heart},
+	    topology{topology},
+	    logger{},
+	    messenger{},
 	    status{},
 	    handlers{},
-	    states{}
-	{
+	    states{} {
 		set_handler(
 			get_header_space().exit,
 			std::bind(
@@ -207,50 +198,18 @@ namespace Revolution {
 
 	void Application::handle_exit(const Messenger::Message& message)
 	{
-		if (message.data.size() > 1)
+		if (!message.data.empty())
 			get_logger() << Logger::warning
-				<< "Received multiple arguments for exit. "
-				<< "Only the first will be used as exit code. "
-				<< "The rest will be ignored."
+				<< "Exit expects no arguments, "
+				<< "but at least one was supplied. "
+				<< "They will be ignored."
 				<< std::endl;
 
-		if (message.data.empty()) {
-			get_logger() << Logger::information
-				<< "Exiting gracefully..."
-				<< std::endl;
-
-			set_status(false);
-		} else {
-			int error_code = std::stoi(message.data.front());
-
-			get_logger() << Logger::information
-				<< "Exiting immediately with error code: "
-				<< error_code
-				<< "..."
-				<< std::endl;
-
-			exit(error_code);
-		}
-	}
-
-	void Application::handle_hang(const Messenger::Message& message) const
-	{
 		get_logger() << Logger::information
-			<< "Hanging indefinitely..."
+			<< "Exiting gracefully..."
 			<< std::endl;
 
-		pause();
-	}
-
-	void Application::handle_heartbeat(
-		const Messenger::Message& message
-	) const
-	{
-		get_logger() << Logger::information
-			<< "Beating heart..."
-			<< std::endl;
-
-		get_heart().beat();
+		set_status(false);
 	}
 
 	void Application::handle_read(const Messenger::Message& message) const

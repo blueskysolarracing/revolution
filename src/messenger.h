@@ -1,114 +1,69 @@
 #ifndef REVOLUTION_MESSENGER_H
 #define REVOLUTION_MESSENGER_H
 
-#include <cerrno>
 #include <chrono>
-#include <functional>
 #include <optional>
 #include <string>
+#include <system_error>
 #include <vector>
-
-#include <fcntl.h>
-#include <mqueue.h>
-#include <sys/stat.h>
-
-#include "logger.h"
 
 namespace Revolution {
 	class Messenger {
 	public:
-		struct Message {
+		class Message {
+		public:
 			static Message deserialize(
 				const std::string& raw_message
 			);
 
 			explicit Message(
 				const std::string& sender_name,
+				const std::string& recipient_name,
 				const std::string& header,
-				const std::vector<std::string>& data = {}
-			);
+				const std::vector<std::string>& data = {},
+				const unsigned int& priority = 0,
+				const unsigned int& identity = get_count()++
+ 			);
+
+			const std::string& get_sender_name() const;
+			const std::string& get_recipient_name() const;
+			const std::string& get_header() const;
+			const std::vector<std::string>& get_data() const;
+			const unsigned int& get_priority() const;
+			const unsigned int& get_identity() const;
 
 			std::string serialize() const;
-			std::string to_string() const;
+		private:
+			static unsigned int count;
+
+			static unsigned int& get_count();
 
 			const std::string sender_name;
+			const std::string recipient_name;
 			const std::string header;
 			const std::vector<std::string> data;
-		};
-
-		struct Configuration {
-			explicit Configuration(
-				const std::string& name,
-				const std::string& full_name_prefix = "/",
-				const unsigned int& priority = 0,
-				const int& oflags = O_RDWR | O_CREAT,
-				const mode_t& mode = 0644
-			);
-
-			const std::string name;
-			const std::string full_name_prefix;
 			const unsigned int priority;
-			const int oflags;
-			const mode_t mode;
+			const unsigned int identity;
 		};
 
-		explicit Messenger(
-			const Configuration& configuration,
-			const Logger& logger
-		);
+		class Error : public std::system_error {
+		public:
+			explicit Error(const std::string& message);
+		};
 
-		Message receive() const;
+		Message receive(const std::string& recipient_name) const;
 		std::optional<Message> receive(
+			const std::string& recipient_name,
 			const std::chrono::high_resolution_clock::duration&
 				timeout
 		) const;
 
-		void send(
-			const std::string& name,
-			const std::string& header,
-			const std::vector<std::string>& data = {}
-		) const;
+		void send(const Message& message) const;
 		bool send(
-			const std::string& name,
-			const std::string& header,
-			const std::vector<std::string>& data,
+			const Message& message,
 			const std::chrono::high_resolution_clock::duration&
 				timeout
 		) const;
-		bool send(
-			const std::string& name,
-			const std::string& header,
-			const std::chrono::high_resolution_clock::duration&
-				timeout
-		) const;
-	private:
-		using Receiver = std::function<
-			ssize_t(const mqd_t&, std::string&, unsigned int&)
-		>;
-		using Sender = std::function<
-			int(
-				const mqd_t&,
-				const std::string&,
-				const unsigned int&
-			)
-		>;
-
-		const Configuration& get_configuration() const;
-		const Logger& get_logger() const;
-
-		mqd_t open_descriptor(const std::string& name) const;
-		void close_descriptor(mqd_t& descriptor) const;
-
-		std::optional<Message> receive(const Receiver& receiver) const;
-		bool send(
-			const std::string& name,
-			const std::string& header,
-			const std::vector<std::string>& data,
-			const Sender& sender
-		) const;
-
-		const Configuration configuration;
-		const Logger& logger;
 	};
 }
 
