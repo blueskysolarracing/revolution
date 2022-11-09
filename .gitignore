@@ -45,7 +45,7 @@
 *.vsix
 
 # Revolution
-/src/syncer
+/src/marshal
 /src/display_driver
 /src/miscellaneous_controller
 /src/motor_controller
@@ -54,4 +54,3 @@
 /src/telemeter
 /src/voltage_controller
 /src/client
-/src/*.log
