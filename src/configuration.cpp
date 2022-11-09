@@ -108,13 +108,13 @@ namespace Revolution {
 	const std::vector<std::reference_wrapper<const Topology::Endpoint>>
 		Topology::get_soldiers() const {
 		return {
-			std::cref(get_display_driver()),
-			std::cref(get_miscellaneous_controller()),
-			std::cref(get_motor_controller()),
-			std::cref(get_power_sensor()),
-			std::cref(get_replica()),
-			std::cref(get_telemeter()),
-			std::cref(get_voltage_controller())
+			get_display_driver(),
+			get_miscellaneous_controller(),
+			get_motor_controller(),
+			get_power_sensor(),
+			get_replica(),
+			get_telemeter(),
+			get_voltage_controller()
 		};
 	}
 }
