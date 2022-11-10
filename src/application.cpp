@@ -1,5 +1,6 @@
 #include <atomic>
 #include <functional>
+#include <mutex>
 #include <string>
 #include <thread>
 #include <unordered_map>
@@ -21,7 +22,8 @@ namespace Revolution {
 	    messenger{},
 	    status{},
 	    handlers{},
-	    states{} {}
+	    states{},
+	    state_mutex{} {}
 
 	void Application::run() {
 		get_logger() << Logger::Severity::information
@@ -36,11 +38,18 @@ namespace Revolution {
 		std::vector<std::thread> threads;  // TODO: USE THREAD POOL
 
 		while (get_status()) {
-			const auto message = get_messenger().receive(
+			auto message = get_messenger().receive(
 				get_endpoint().get_name()
 			);
 
-			threads.emplace_back(&Application::handle, this, message);
+			if (message.get_header() == get_header_space().get_response()) {
+				wake(message);
+			} else
+				threads.emplace_back(
+					&Application::handle,
+					this,
+					message
+				);
 		}
 
 		for (auto& thread : threads)
@@ -97,14 +106,6 @@ namespace Revolution {
 		get_handlers().emplace(header, handler);
 	}
 
-	std::optional<const std::reference_wrapper<const std::string>>
-		Application::get_state(const std::string& key) const {
-		if (get_states().count(key))
-			return get_states().at(key);
-		else
-			return std::nullopt;
-	}
-
 	std::vector<std::string>
 		Application::handle_exit(const Messenger::Message& message) {
 		if (!message.get_data().empty())
@@ -125,7 +126,8 @@ namespace Revolution {
 
 	std::vector<std::string> Application::handle_read(
 		const Messenger::Message& message
-	) const {
+	) {
+		std::scoped_lock lock(get_state_mutex());
 		std::vector<std::string> data;
 
 		if (message.get_data().empty()) {
@@ -145,10 +147,10 @@ namespace Revolution {
 				<< std::endl;
 
 			for (const auto& key : message.get_data()) {
-				const auto& value = get_state(key);
+				data.push_back(key);
 
-				if (value)
-					data.push_back(get_state(key).value());
+				if (get_states().count(key))
+					data.push_back(get_states().at(key));
 				else
 					data.push_back("");
 			}
@@ -170,6 +172,8 @@ namespace Revolution {
 	std::vector<std::string> Application::handle_write(
 		const Messenger::Message& message
 	) {
+		std::scoped_lock lock(get_state_mutex());
+
 		if (message.get_header() == get_header_space().get_reset()) {
 			get_logger() << Logger::Severity::information
 				<< "Clearing states..."
@@ -251,6 +255,14 @@ namespace Revolution {
 				std::placeholders::_1
 			)
 		);
+		set_handler(
+			get_header_space().get_sync(),
+			std::bind(
+				&Application::handle_read,
+				this,
+				std::placeholders::_1
+			)
+		);
 	}
 
 	Messenger::Message Application::communicate(
@@ -259,7 +271,17 @@ namespace Revolution {
 		const std::vector<std::string>& data,
 		const unsigned int& priority
 	) const {
-		// TODO
+		Messenger::Message message{
+			get_endpoint().get_name(),
+			recipient_name,
+			header,
+			data,
+			priority
+		};
+
+		get_messenger().send(message);
+
+		return sleep(message.get_identity());
 	}
 
 	std::atomic_bool& Application::get_status() {
@@ -290,13 +312,19 @@ namespace Revolution {
 		return states;
 	}
 
+	std::mutex& Application::get_state_mutex() {
+		return state_mutex;
+	}
+
+	Messenger::Message Application::sleep(unsigned int identity) const {
+		// TODO
+	}
+
+	void Application::wake(const Messenger::Message& message) const {
+		// TODO
+	}
+
 	void Application::handle(const Messenger::Message& message) const {
-		if (message.get_header() == get_header_space().get_response()) {
-			// TODO
-
-			return;
-		}
-
 		auto handler = get_handler(message.get_header());
 
 		if (!handler) {

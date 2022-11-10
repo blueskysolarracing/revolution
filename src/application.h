@@ -3,6 +3,7 @@
 
 #include <atomic>
 #include <functional>
+#include <mutex>
 #include <string>
 #include <thread>
 #include <unordered_map>
@@ -36,14 +37,12 @@ namespace Revolution {
 			const std::string& header,
 			const Handler& handler
 		);
-		std::optional<const std::reference_wrapper<const std::string>>
-			get_state(const std::string& key) const;
 		virtual const Topology::Endpoint& get_endpoint() const = 0;
 
 		std::vector<std::string>
 			handle_exit(const Messenger::Message& message);
 		std::vector<std::string>
-			handle_read(const Messenger::Message& message) const;
+			handle_read(const Messenger::Message& message);
 		std::vector<std::string>
 			handle_status(const Messenger::Message& message) const;
 		virtual std::vector<std::string>
@@ -67,7 +66,10 @@ namespace Revolution {
 			get_handler(const std::string& header) const;
 		const States& get_states() const;
 		States& get_states();
+		std::mutex& get_state_mutex();
 
+		Messenger::Message sleep(unsigned int identity) const;
+		void wake(const Messenger::Message& message) const;
 		void handle(const Messenger::Message& message) const;
 
 		const Header_space& header_space;
@@ -78,6 +80,7 @@ namespace Revolution {
 		std::atomic_bool status;
 		Handlers handlers;
 		States states;
+		std::mutex state_mutex;
 	};
 }
 
