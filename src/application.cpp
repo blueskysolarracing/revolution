@@ -1,3 +1,5 @@
+#include "application.h"
+
 #include <atomic>
 #include <functional>
 #include <mutex>
@@ -5,7 +7,6 @@
 #include <thread>
 #include <unordered_map>
 
-#include "application.h"
 #include "configuration.h"
 #include "logger.h"
 #include "messenger.h"
@@ -76,10 +77,6 @@ namespace Revolution {
 
 	const Logger& Application::get_logger() const {
 		return logger;
-	}
-
-	const Messenger& Application::get_messenger() const {
-		return messenger;
 	}
 
 	const std::atomic_bool& Application::get_status() const {
@@ -162,6 +159,13 @@ namespace Revolution {
 	std::vector<std::string> Application::handle_status(
 		const Messenger::Message& message
 	) const {
+		if (!message.get_data().empty())
+			get_logger() << Logger::Severity::warning
+				<< "Status expects no arguments, "
+				<< "but at least one was supplied. "
+				<< "They will be ignored."
+				<< std::endl;
+
 		get_logger() << Logger::Severity::information
 			<< "Status report requested. Sending response..."
 			<< std::endl;
@@ -282,6 +286,10 @@ namespace Revolution {
 		get_messenger().send(message);
 
 		return sleep(message.get_identity());
+	}
+
+	const Messenger& Application::get_messenger() const {
+		return messenger;
 	}
 
 	std::atomic_bool& Application::get_status() {

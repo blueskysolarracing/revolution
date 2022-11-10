@@ -1,8 +1,8 @@
+#include "logger.h"
+
 #include <iostream>
 #include <mutex>
 #include <sstream>
-
-#include "logger.h"
 
 namespace Revolution {
 	Logger::Log_stream::Log_stream(const Severity& severity)

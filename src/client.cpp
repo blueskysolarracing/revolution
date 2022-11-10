@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
 	if (argc > 3) {
 		header = argv[3];
 
-		for (std::size_t i{4}; i < argc; ++i)
+		for (int i{4}; i < argc; ++i)
 			data.emplace_back(argv[i]);
 
 		messenger.send(

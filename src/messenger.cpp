@@ -1,3 +1,5 @@
+#include "messenger.h"
+
 #include <cerrno>
 #include <chrono>
 #include <cstring>
@@ -13,11 +15,9 @@
 #include <mqueue.h>
 #include <sys/stat.h>
 
-#include "messenger.h"
-
 namespace Revolution {
 	static mqd_t open_message_queue_descriptor(const std::string& name) {
-		auto full_name = "/" + name;
+		auto full_name = '/' + name;
 		auto descriptor = mq_open(
 			full_name.data(),
 			O_RDWR | O_CREAT,

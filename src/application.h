@@ -31,7 +31,6 @@ namespace Revolution {
 		const Key_space& get_key_space() const;
 		const Topology& get_topology() const;
 		const Logger& get_logger() const;
-		const Messenger& get_messenger() const;
 		const std::atomic_bool& get_status() const;
 		void set_handler(
 			const std::string& header,
@@ -59,6 +58,7 @@ namespace Revolution {
 		using Handlers = std::unordered_map<std::string, Handler>;
 		using States = std::unordered_map<std::string, std::string>;
 
+		const Messenger& get_messenger() const;
 		std::atomic_bool& get_status();
 		const Handlers& get_handlers() const;
 		Handlers& get_handlers();
@@ -72,11 +72,11 @@ namespace Revolution {
 		void wake(const Messenger::Message& message) const;
 		void handle(const Messenger::Message& message) const;
 
-		const Header_space& header_space;
-		const Key_space& key_space;
-		const Topology& topology;
-		const Logger& logger;
-		const Messenger& messenger;
+		const Header_space header_space;
+		const Key_space key_space;
+		const Topology topology;
+		const Logger logger;
+		const Messenger messenger;
 		std::atomic_bool status;
 		Handlers handlers;
 		States states;
