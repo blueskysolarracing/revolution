@@ -1,70 +1,32 @@
-#include <chrono>
+#include "telemeter.h"
 
 #include "configuration.h"
-#include "heart.h"
-#include "logger.h"
-#include "messenger.h"
 #include "soldier.h"
-#include "telemeter.h"
 
 namespace Revolution {
 	Telemeter::Telemeter(
-		const Topology& topology,
 		const Header_space& header_space,
 		const Key_space& key_space,
-		const Logger& logger,
-		const Messenger& messenger,
-		Heart& heart
-	) : Soldier{
-		topology,
-		header_space,
-		key_space,
-		logger,
-		messenger,
-		heart
-	    }
-	{
-	}
+		const Topology& topology
+	) : Soldier{header_space, key_space, topology} {}
 
-	const Topology::Endpoint& Telemeter::get_endpoint() const
-	{
-		return get_topology().telemeter;
+	const Topology::Endpoint& Telemeter::get_endpoint() const {
+		return get_topology().get_telemeter();
 	}
 }
 
 int main() {
-	Revolution::Topology topology;
 	Revolution::Header_space header_space;
 	Revolution::Key_space key_space;
-	Revolution::Logger logger{Revolution::Logger::Configuration{}};
-	Revolution::Messenger messenger{
-		Revolution::Messenger::Configuration{
-			topology.telemeter.name
-		},
-		logger
-	};
-	Revolution::Heart heart{
-		Revolution::Heart::Configuration{
-			std::chrono::seconds(1),
-			[&messenger, &topology, &header_space] () {
-				messenger.send(
-					topology.telemeter.name,
-					header_space.heartbeat
-				);
-			}
-		},
-		logger
-	};
+	Revolution::Topology topology;
 	Revolution::Telemeter telemeter{
-		topology,
 		header_space,
 		key_space,
-		logger,
-		messenger,
-		heart
+		topology,
 	};
 
 	telemeter.run();
 
 	return 0;
 }
+

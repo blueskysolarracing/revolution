@@ -3,8 +3,8 @@
 CXXFLAGS=-pedantic -std=c++17 -Wall -Wextra
 LOADLIBES=-lpthread -lrt
 
-SYNCER_NAME=syncer
-SYNCER_OBJECTS=logger.o messenger.o configuration.o application.o marshal.o
+MARSHAL_NAME=marshal
+MARSHAL_OBJECTS=logger.o messenger.o configuration.o application.o
 
 DISPLAY_DRIVER_NAME=display_driver
 DISPLAY_DRIVER_OBJECTS\
@@ -30,7 +30,7 @@ CLIENT_NAME=client
 CLIENT_OBJECTS=messenger.o
 
 NAMES=\
-	$(SYNCER_NAME) \
+	$(MARSHAL_NAME) \
 	$(DISPLAY_DRIVER_NAME) \
 	$(MISCELLANEOUS_CONTROLLER_NAME) \
 	$(MOTOR_CONTROLLER_NAME) \
@@ -50,8 +50,8 @@ test: all
 clean:
 	-rm -f *.o $(NAMES)
 
-# syncer
-$(SYNCER_NAME): $(SYNCER_OBJECTS)
+# marshal
+$(MARSHAL_NAME): $(MARSHAL_OBJECTS)
 
 # display_driver
 $(DISPLAY_DRIVER_NAME): $(DISPLAY_DRIVER_OBJECTS)

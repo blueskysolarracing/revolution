@@ -4,8 +4,6 @@
 
 #include "application.h"
 #include "configuration.h"
-#include "logger.h"
-#include "messenger.h"
 
 namespace Revolution {
 	Marshal::Marshal(
@@ -111,4 +109,15 @@ namespace Revolution {
 
 		return messages;
 	}
+}
+
+int main() {
+	Revolution::Header_space header_space;
+	Revolution::Key_space key_space;
+	Revolution::Topology topology;
+	Revolution::Marshal marshal{header_space, key_space, topology};
+
+	marshal.run();
+
+	return 0;
 }
