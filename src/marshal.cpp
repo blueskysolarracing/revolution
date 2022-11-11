@@ -1,28 +1,19 @@
+#include "marshal.h"
+
 #include <functional>
 
 #include "application.h"
 #include "configuration.h"
-#include "heart.h"
 #include "logger.h"
-#include "marshal.h"
 #include "messenger.h"
 
 namespace Revolution {
 	Marshal::Marshal(
-		const Topology& topology,
 		const Header_space& header_space,
 		const Key_space& key_space,
-		const Logger& logger,
-		const Messenger& messenger,
-		Heart& heart
-	) : Application{
-		topology,
-		header_space,
-		key_space,
-		logger,
-		messenger,
-		heart
-	    }
+		const Topology& topology
+	) : Application{header_space, key_space, topology} {}
+
 	{
 		set_handler(
 			get_header_space().reset,

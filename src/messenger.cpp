@@ -122,7 +122,7 @@ namespace Revolution {
 
 		iss >> sender_name >> recipient_name >> header >> datum_count;
 
-		for (std::size_t i{0}; i < datum_count; ++i) {
+		for (std::size_t i{}; i < datum_count; ++i) {
 			iss >> datum;
 			data.push_back(datum);
 		}

@@ -12,8 +12,6 @@ namespace Revolution {
 			const Key_space& key_space,
 			const Topology& topology
 		);
-
-		void run() override;
 	protected:
 		const Topology::Endpoint& get_endpoint() const override;
 

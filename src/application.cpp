@@ -43,7 +43,8 @@ namespace Revolution {
 				get_endpoint().get_name()
 			);
 
-			if (message.get_header() == get_header_space().get_response()) {
+			if (message.get_header()
+				== get_header_space().get_response()) {
 				wake(message);
 			} else
 				threads.emplace_back(
@@ -145,11 +146,7 @@ namespace Revolution {
 
 			for (const auto& key : message.get_data()) {
 				data.push_back(key);
-
-				if (get_states().count(key))
-					data.push_back(get_states().at(key));
-				else
-					data.push_back("");
+				data.push_back(get_states()[key]);
 			}
 		}
 
@@ -200,16 +197,11 @@ namespace Revolution {
 				<< "This key will be ignored."
 				<< std::endl;
 
-		std::size_t index{0};
-
-		while (index + 1 < message.get_data().size()) {
+		for (std::size_t i{}; i + 1 < message.get_data().size(); i += 2)
 			get_states().emplace(
-				message.get_data()[index],
-				message.get_data()[index + 1]
+				message.get_data()[i],
+				message.get_data()[i + 1]
 			);
-
-			index += 2;
-		}
 
 		return {};
 	}
@@ -296,11 +288,13 @@ namespace Revolution {
 		return status;
 	}
 
-	const Application::Handlers& Application::get_handlers() const {
+	const std::unordered_map<std::string, Application::Handler>&
+		Application::get_handlers() const {
 		return handlers;
 	}
 
-	Application::Handlers& Application::get_handlers() {
+	std::unordered_map<std::string, Application::Handler>&
+		Application::get_handlers() {
 		return handlers;
 	}
 
@@ -312,11 +306,12 @@ namespace Revolution {
 			return std::nullopt;
 	}
 
-	const Application::States& Application::get_states() const {
+	const std::unordered_map<std::string, std::string>&
+		Application::get_states() const {
 		return states;
 	}
 
-	Application::States& Application::get_states() {
+	std::unordered_map<std::string, std::string>& Application::get_states() {
 		return states;
 	}
 
