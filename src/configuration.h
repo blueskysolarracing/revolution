@@ -84,6 +84,6 @@ namespace Revolution {
 		const Endpoint telemeter;
 		const Endpoint voltage_controller;
 	};
-};
+}
 
 #endif  // REVOLUTION_CONFIGURATION_H
