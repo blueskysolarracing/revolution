@@ -1,6 +1,7 @@
 #include "application.h"
 
 #include <atomic>
+#include <condition_variable>
 #include <functional>
 #include <mutex>
 #include <string>
@@ -24,7 +25,10 @@ namespace Revolution {
 	    status{},
 	    handlers{},
 	    states{},
-	    state_mutex{} {}
+	    state_mutex{},
+	    responses{},
+	    response_mutex{},
+	    response_condition_variable{} {}
 
 	void Application::run() {
 		get_logger() << Logger::Severity::information
@@ -104,6 +108,32 @@ namespace Revolution {
 		get_handlers().emplace(header, handler);
 	}
 
+	std::string Application::get_state(const std::string& key) {
+		std::scoped_lock lock{get_state_mutex()};
+
+		if (!get_states().count(key)) {
+			get_logger() << Logger::Severity::warning
+				<< "Key \""
+				<< key
+				<< "\" not found. "
+				<< "Using empty string."
+				<< std::endl;
+
+			return "";
+		}
+
+		return get_states().at(key);
+	}
+
+	void Application::set_state(
+		const std::string& key,
+		const std::string& value
+	) {
+		std::scoped_lock lock{get_state_mutex()};
+
+		get_states().emplace(key, value);
+	}
+
 	std::vector<std::string>
 		Application::handle_exit(const Messenger::Message& message) {
 		if (!message.get_data().empty())
@@ -125,7 +155,7 @@ namespace Revolution {
 	std::vector<std::string> Application::handle_read(
 		const Messenger::Message& message
 	) {
-		std::scoped_lock lock(get_state_mutex());
+		std::scoped_lock lock{get_state_mutex()};
 		std::vector<std::string> data;
 
 		if (message.get_data().empty()) {
@@ -146,7 +176,20 @@ namespace Revolution {
 
 			for (const auto& key : message.get_data()) {
 				data.push_back(key);
-				data.push_back(get_states()[key]);
+
+				if (get_states().count(key))
+					data.push_back(get_states().at(key));
+				else {
+					get_logger()
+						<< Logger::Severity::warning
+						<< "Key \""
+						<< key
+						<< "\" not found. "
+						<< "Using empty string."
+						<< std::endl;
+
+					data.emplace_back("");
+				}
 			}
 		}
 
@@ -173,7 +216,7 @@ namespace Revolution {
 	std::vector<std::string> Application::handle_write(
 		const Messenger::Message& message
 	) {
-		std::scoped_lock lock(get_state_mutex());
+		std::scoped_lock lock{get_state_mutex()};
 
 		if (message.get_header() == get_header_space().get_reset()) {
 			get_logger() << Logger::Severity::information
@@ -266,7 +309,7 @@ namespace Revolution {
 		const std::string& header,
 		const std::vector<std::string>& data,
 		const unsigned int& priority
-	) const {
+	) {
 		Messenger::Message message{
 			get_endpoint().get_name(),
 			recipient_name,
@@ -311,7 +354,8 @@ namespace Revolution {
 		return states;
 	}
 
-	std::unordered_map<std::string, std::string>& Application::get_states() {
+	std::unordered_map<std::string, std::string>&
+		Application::get_states() {
 		return states;
 	}
 
@@ -319,12 +363,44 @@ namespace Revolution {
 		return state_mutex;
 	}
 
-	Messenger::Message Application::sleep(unsigned int identity) const {
-		// TODO
+	const std::unordered_map<unsigned int, Messenger::Message>&
+		Application::get_responses() const {
+		return responses;
 	}
 
-	void Application::wake(const Messenger::Message& message) const {
-		// TODO
+	std::unordered_map<unsigned int, Messenger::Message>&
+		Application::get_responses() {
+		return responses;
+	}
+
+	std::mutex& Application::get_response_mutex() {
+		return response_mutex;
+	}
+
+	std::condition_variable& Application::get_response_condition_variable() {
+		return response_condition_variable;
+	}
+
+	Messenger::Message Application::sleep(const unsigned int& identity) {
+		std::unique_lock lock{get_response_mutex()};
+
+		while (!get_responses().count(identity))
+			get_response_condition_variable().wait(lock);
+
+		auto message = get_responses().at(identity);
+
+		get_responses().erase(identity);
+
+		return message;
+	}
+
+	void Application::wake(const Messenger::Message& message) {
+		std::unique_lock lock{get_response_mutex()};
+
+		get_responses().emplace(message.get_identity(), message);
+
+		lock.unlock();
+		get_response_condition_variable().notify_all();
 	}
 
 	void Application::handle(const Messenger::Message& message) const {

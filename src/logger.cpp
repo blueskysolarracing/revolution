@@ -9,7 +9,7 @@ namespace Revolution {
 		: std::ostringstream{}, severity{severity} {}
 
 	Logger::Log_stream::~Log_stream() {
-		std::scoped_lock lock(get_mutex());
+		std::scoped_lock lock{get_mutex()};
 
 		std::cout << '<'
 			<< static_cast<int>(get_severity())

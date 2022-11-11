@@ -2,6 +2,7 @@
 #define REVOLUTION_APPLICATION_H
 
 #include <atomic>
+#include <condition_variable>
 #include <functional>
 #include <mutex>
 #include <string>
@@ -58,20 +59,28 @@ namespace Revolution {
 			const std::string& header,
 			const std::vector<std::string>& data = {},
 			const unsigned int& priority = 0
-		) const;
+		);
 	private:
 		const Messenger& get_messenger() const;
 		std::atomic_bool& get_status();
-		const std::unordered_map<std::string, Handler>& get_handlers() const;
+		const std::unordered_map<std::string, Handler>&
+			get_handlers() const;
 		std::unordered_map<std::string, Handler>& get_handlers();
 		std::optional<const std::reference_wrapper<const Handler>>
 			get_handler(const std::string& header) const;
-		const std::unordered_map<std::string, std::string>& get_states() const;
+		const std::unordered_map<std::string, std::string>&
+			get_states() const;
 		std::unordered_map<std::string, std::string>& get_states();
 		std::mutex& get_state_mutex();
+		const std::unordered_map<unsigned int, Messenger::Message>&
+			get_responses() const;
+		std::unordered_map<unsigned int, Messenger::Message>&
+			get_responses();
+		std::mutex& get_response_mutex();
+		std::condition_variable& get_response_condition_variable();
 
-		Messenger::Message sleep(unsigned int identity) const;
-		void wake(const Messenger::Message& message) const;
+		Messenger::Message sleep(const unsigned int& identity);
+		void wake(const Messenger::Message& message);
 		void handle(const Messenger::Message& message) const;
 
 		const Header_space header_space;
@@ -83,7 +92,9 @@ namespace Revolution {
 		std::unordered_map<std::string, Handler> handlers;
 		std::unordered_map<std::string, std::string> states;
 		std::mutex state_mutex;
-
+		std::unordered_map<unsigned int, Messenger::Message> responses;
+		std::mutex response_mutex;
+		std::condition_variable response_condition_variable;
 	};
 }
 
