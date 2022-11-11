@@ -14,9 +14,42 @@ namespace Revolution {
 		const Topology& topology
 	) : Application{header_space, key_space, topology} {}
 
-	{
+	void Marshal::set_state(
+		const std::string& key,
+		const std::string& value
+	) {
+		Application::set_state(key, value);
+
+		communicate_with_soldiers(
+			get_header_space().get_set(),
+			{key, value}
+		);
+	}
+
+	const Topology::Endpoint& Marshal::get_endpoint() const {
+		return get_topology().get_marshal();
+	}
+
+	std::vector<std::string> Marshal::handle_write(
+		const Messenger::Message& message
+	) {
+		auto values = Application::handle_write(message);
+
+		communicate_with_soldiers_except(
+			message.get_sender_name(),
+			message.get_header(),
+			message.get_data(),
+			message.get_priority()
+		);
+
+		return values;
+	}
+
+	void Marshal::add_handlers() {
+		Application::add_handlers();
+
 		set_handler(
-			get_header_space().reset,
+			get_header_space().get_reset(),
 			std::bind(
 				&Marshal::handle_write,
 				this,
@@ -24,7 +57,7 @@ namespace Revolution {
 			)
 		);
 		set_handler(
-			get_header_space().set,
+			get_header_space().get_set(),
 			std::bind(
 				&Marshal::handle_write,
 				this,
@@ -33,25 +66,49 @@ namespace Revolution {
 		);
 	}
 
-	void Marshal::run()
-	{
-		get_messenger().send(
-			get_topology().replica.name,
-			get_header_space().sync
-		);
-
-		Application::run();
-	}
-
-	void Marshal::handle_write(const Messenger::Message& message)
-	{
-		Application::handle_write(message);
+	std::vector<Messenger::Message> Marshal::communicate_with_soldiers(
+		const std::string& header,
+		const std::vector<std::string>& data,
+		const unsigned int& priority
+	) {
+		std::vector<Messenger::Message> messages;
 
 		for (const auto& soldier : get_topology().get_soldiers())
-			get_messenger().send(
-				soldier.name,
-				message.header,
-				message.data
+			messages.push_back(
+				communicate(
+					soldier.get().get_name(),
+					header,
+					data,
+					priority
+				)
 			);
+
+		return messages;
+	}
+
+	std::vector<std::optional<Messenger::Message>>
+		Marshal::communicate_with_soldiers_except(
+		const std::string& recipient_name,
+		const std::string& header,
+		const std::vector<std::string>& data,
+		const unsigned int& priority
+	) {
+		std::vector<std::optional<Messenger::Message>> messages;
+
+		for (const auto& soldier : get_topology().get_soldiers()) {
+			if (soldier.get().get_name() == recipient_name)
+				messages.push_back(std::nullopt);
+			else
+				messages.push_back(
+					communicate(
+						soldier.get().get_name(),
+						header,
+						data,
+						priority
+					)
+				);
+		}
+
+		return messages;
 	}
 }

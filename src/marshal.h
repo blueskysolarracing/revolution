@@ -13,17 +13,30 @@ namespace Revolution {
 			const Topology& topology
 		);
 	protected:
+		void set_state(
+			const std::string& key,
+			const std::string& value
+		) override;
 		const Topology::Endpoint& get_endpoint() const override;
 
-		void handle_write(const Messenger::Message& message) override;
+		std::vector<std::string> handle_write(
+			const Messenger::Message& message
+		) override;
 
 		void add_handlers() override;
 
-		Messenger::Message communicate_with_soldiers(
+		std::vector<Messenger::Message> communicate_with_soldiers(
 			const std::string& header,
 			const std::vector<std::string>& data = {},
 			const unsigned int& priority = 0
-		) const;
+		);
+		std::vector<std::optional<Messenger::Message>>
+			communicate_with_soldiers_except(
+			const std::string& recipient_name,
+			const std::string& header,
+			const std::vector<std::string>& data = {},
+			const unsigned int& priority = 0
+		);
 	};
 }
 

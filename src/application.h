@@ -37,11 +37,11 @@ namespace Revolution {
 			const std::string& header,
 			const Handler& handler
 		);
-		std::string get_state(const std::string& key);  // TODO
+		std::string get_state(const std::string& key);
 		virtual void set_state(
 			const std::string& key,
 			const std::string& value
-		);  // TODO
+		);
 		virtual const Topology::Endpoint& get_endpoint() const = 0;
 
 		std::vector<std::string>

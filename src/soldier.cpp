@@ -14,44 +14,65 @@ namespace Revolution {
 		const Topology& topology
 	) : Application{header_space, key_space, topology} {}
 
-	{
-		set_handler(
-			get_header_space().reset,
-			std::bind(
-				&Soldier::handle_write,
-				this,
-				std::placeholders::_1
-			)
-		);
-		set_handler(
-			get_header_space().set,
-			std::bind(
-				&Soldier::handle_write,
-				this,
-				std::placeholders::_1
-			)
+	void Soldier::set_state(
+		const std::string& key,
+		const std::string& value
+	) {
+		Application::set_state(key, value);
+
+		communicate_with_marshal(
+			get_header_space().get_set(),
+			{key, value}
 		);
 	}
 
-	void Soldier::run()
-	{
-		get_messenger().send(
-			get_topology().get_marshal().name,
-			get_header_space().sync
-		);
+	std::vector<std::string> Soldier::handle_write(
+		const Messenger::Message& message
+	) {
+		auto values = Application::handle_write(message);
 
-		Application::run();
-	}
-
-	void Soldier::handle_write(const Messenger::Message& message)
-	{
-		if (message.sender_name == get_topology().get_marshal().name)
-			Application::handle_write(message);
-		else
-			get_messenger().send(
-				get_topology().get_marshal().name,
-				message.header,
-				message.data
+		if (message.get_sender_name()
+			!= get_topology().get_marshal().get_name())
+			communicate_with_marshal(
+				message.get_header(),
+				message.get_data(),
+				message.get_priority()
 			);
+
+		return values;
+	}
+
+	void Soldier::add_handlers() {
+		Application::add_handlers();
+
+		set_handler(
+			get_header_space().get_reset(),
+			std::bind(
+				&Soldier::handle_write,
+				this,
+				std::placeholders::_1
+			)
+		);
+		set_handler(
+			get_header_space().get_set(),
+			std::bind(
+				&Soldier::handle_write,
+				this,
+				std::placeholders::_1
+			)
+		);
+	}
+
+	Messenger::Message Soldier::communicate_with_marshal(
+		const std::string& header,
+		const std::vector<std::string>& data,
+		const unsigned int& priority
+	) {
+		return communicate(
+			get_topology().get_marshal().get_name(),
+			header,
+			data,
+			priority
+		);
 	}
 }
