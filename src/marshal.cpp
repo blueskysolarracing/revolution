@@ -1,7 +1,5 @@
 #include "marshal.h"
 
-#include <functional>
-
 #include "application.h"
 #include "configuration.h"
 
