@@ -42,31 +42,10 @@ namespace Revolution {
 		get_status() = true;
 		add_handlers();
 
-		std::list<std::thread> threads;  // TODO: USE THREAD POOL
+		std::thread thread{&Application::monitor, this};
+		main();
 
-		threads.emplace_back(&Application::main, this);
-
-		while (get_status()) {
-			auto message = get_messenger().timed_receive(
-				get_endpoint().get_name()
-			);
-
-			if (!message)
-				continue;
-
-			if (message.value().get_header()
-				== get_header_space().get_response())
-				wake(message.value());
-			else
-				threads.emplace_back(
-					&Application::handle,
-					this,
-					message.value()
-				);
-		}
-
-		for (auto& thread : threads)
-			thread.join();
+		thread.join();
 
 		get_logger() << Logger::Severity::information
 			<< "Stopping: \""
@@ -417,6 +396,34 @@ namespace Revolution {
 
 	std::condition_variable& Application::get_response_condition_variable() {
 		return response_condition_variable;
+	}
+
+	void Application::monitor() {
+		std::list<std::thread> threads;  // TODO: USE THREAD POOL
+
+		threads.emplace_back(&Application::main, this);
+
+		while (get_status()) {
+			auto message = get_messenger().timed_receive(
+				get_endpoint().get_name()
+			);
+
+			if (!message)
+				continue;
+
+			if (message.value().get_header()
+				== get_header_space().get_response())
+				wake(message.value());
+			else
+				threads.emplace_back(
+					&Application::handle,
+					this,
+					message.value()
+				);
+		}
+
+		for (auto& thread : threads)
+			thread.join();
 	}
 
 	Messenger::Message Application::sleep(const unsigned int& identity) {

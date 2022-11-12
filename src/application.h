@@ -6,7 +6,6 @@
 #include <functional>
 #include <mutex>
 #include <string>
-#include <thread>
 #include <unordered_map>
 #include <vector>
 
@@ -97,6 +96,7 @@ namespace Revolution {
 		std::mutex& get_response_mutex();
 		std::condition_variable& get_response_condition_variable();
 
+		void monitor();
 		Messenger::Message sleep(const unsigned int& identity);
 		void wake(const Messenger::Message& message);
 		void handle(const Messenger::Message& message) const;
