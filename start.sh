@@ -1,7 +1,7 @@
 #!/bin/bash
 
 systemctl start \
-	revolution@syncer \
+	revolution@marshal \
 	revolution@display_driver \
 	revolution@miscellaneous_controller \
 	revolution@motor_controller \

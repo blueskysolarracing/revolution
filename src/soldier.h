@@ -3,25 +3,36 @@
 
 #include "application.h"
 #include "configuration.h"
-#include "heart.h"
-#include "logger.h"
-#include "messenger.h"
 
 namespace Revolution {
 	class Soldier : public Application {
 	public:
 		explicit Soldier(
-			const Topology& topology,
 			const Header_space& header_space,
 			const Key_space& key_space,
-			const Logger& logger,
-			const Messenger& messenger,
-			Heart& heart
+			const Topology& topology
 		);
-
-		void run() override;
 	protected:
-		void handle_write(const Messenger::Message& message) override;
+		const Topology::Endpoint& get_syncer() const override;
+
+		void broadcast(
+			const std::string& header,
+			const std::vector<std::string>& data = {},
+			const unsigned int& priority = 0
+		) const override;
+		void broadcast(
+			const Messenger::Message& message
+		) const override;
+		void send_marshal(
+			const std::string& header,
+			const std::vector<std::string>& data = {},
+			const unsigned int& priority = 0
+		) const;
+		Messenger::Message communicate_marshal(
+			const std::string& header,
+			const std::vector<std::string>& data = {},
+			const unsigned int& priority = 0
+		);
 	};
 }
 

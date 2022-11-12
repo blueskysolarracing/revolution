@@ -1,70 +1,32 @@
-#include <chrono>
+#include "voltage_controller.h"
 
 #include "configuration.h"
-#include "heart.h"
-#include "logger.h"
-#include "messenger.h"
 #include "soldier.h"
-#include "voltage_controller.h"
 
 namespace Revolution {
 	Voltage_controller::Voltage_controller(
-		const Topology& topology,
 		const Header_space& header_space,
 		const Key_space& key_space,
-		const Logger& logger,
-		const Messenger& messenger,
-		Heart& heart
-	) : Soldier{
-		topology,
-		header_space,
-		key_space,
-		logger,
-		messenger,
-		heart
-	    }
-	{
-	}
+		const Topology& topology
+	) : Soldier{header_space, key_space, topology} {}
 
-	const Topology::Endpoint& Voltage_controller::get_endpoint() const
-	{
-		return get_topology().voltage_controller;
+	const Topology::Endpoint& Voltage_controller::get_endpoint() const {
+		return get_topology().get_voltage_controller();
 	}
 }
 
 int main() {
-	Revolution::Topology topology;
 	Revolution::Header_space header_space;
 	Revolution::Key_space key_space;
-	Revolution::Logger logger{Revolution::Logger::Configuration{}};
-	Revolution::Messenger messenger{
-		Revolution::Messenger::Configuration{
-			topology.voltage_controller.name
-		},
-		logger
-	};
-	Revolution::Heart heart{
-		Revolution::Heart::Configuration{
-			std::chrono::seconds(1),
-			[&messenger, &topology, &header_space] () {
-				messenger.send(
-					topology.voltage_controller.name,
-					header_space.heartbeat
-				);
-			}
-		},
-		logger
-	};
+	Revolution::Topology topology;
 	Revolution::Voltage_controller voltage_controller{
-		topology,
 		header_space,
 		key_space,
-		logger,
-		messenger,
-		heart
+		topology,
 	};
 
 	voltage_controller.run();
 
 	return 0;
 }
+

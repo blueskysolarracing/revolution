@@ -1,66 +1,62 @@
-#include <functional>
+#include "soldier.h"
 
 #include "application.h"
 #include "configuration.h"
-#include "heart.h"
-#include "logger.h"
-#include "messenger.h"
-#include "soldier.h"
 
 namespace Revolution {
 	Soldier::Soldier(
-		const Topology& topology,
 		const Header_space& header_space,
 		const Key_space& key_space,
-		const Logger& logger,
-		const Messenger& messenger,
-		Heart& heart
-	) : Application{
-		topology,
-		header_space,
-		key_space,
-		logger,
-		messenger,
-		heart
-	    }
-	{
-		set_handler(
-			get_header_space().reset,
-			std::bind(
-				&Soldier::handle_write,
-				this,
-				std::placeholders::_1
-			)
-		);
-		set_handler(
-			get_header_space().set,
-			std::bind(
-				&Soldier::handle_write,
-				this,
-				std::placeholders::_1
-			)
-		);
+		const Topology& topology
+	) : Application{header_space, key_space, topology} {}
+
+	void Soldier::broadcast(
+		const std::string& header,
+		const std::vector<std::string>& data,
+		const unsigned int& priority
+	) const {
+		send_marshal(header, data, priority);
 	}
 
-	void Soldier::run()
-	{
-		get_messenger().send(
-			get_topology().get_marshal().name,
-			get_header_space().sync
-		);
-
-		Application::run();
+	const Topology::Endpoint& Soldier::get_syncer() const {
+		return get_topology().get_marshal();
 	}
 
-	void Soldier::handle_write(const Messenger::Message& message)
-	{
-		if (message.sender_name == get_topology().get_marshal().name)
-			Application::handle_write(message);
-		else
-			get_messenger().send(
-				get_topology().get_marshal().name,
-				message.header,
-				message.data
+	void Soldier::broadcast(
+		const Messenger::Message& message
+	) const {
+		if (message.get_sender_name()
+			!= get_topology().get_marshal().get_name())
+			send_marshal(
+				message.get_header(),
+				message.get_data(),
+				message.get_priority()
 			);
+	}
+
+	void Soldier::send_marshal(
+		const std::string& header,
+		const std::vector<std::string>& data,
+		const unsigned int& priority
+	) const {
+		send(
+			get_topology().get_marshal().get_name(),
+			header,
+			data,
+			priority
+		);
+	}
+
+	Messenger::Message Soldier::communicate_marshal(
+		const std::string& header,
+		const std::vector<std::string>& data,
+		const unsigned int& priority
+	) {
+		return communicate(
+			get_topology().get_marshal().get_name(),
+			header,
+			data,
+			priority
+		);
 	}
 }

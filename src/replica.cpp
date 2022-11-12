@@ -1,70 +1,32 @@
-#include <chrono>
+#include "replica.h"
 
 #include "configuration.h"
-#include "heart.h"
-#include "logger.h"
-#include "messenger.h"
-#include "replica.h"
 #include "soldier.h"
 
 namespace Revolution {
 	Replica::Replica(
-		const Topology& topology,
 		const Header_space& header_space,
 		const Key_space& key_space,
-		const Logger& logger,
-		const Messenger& messenger,
-		Heart& heart
-	) : Soldier{
-		topology,
-		header_space,
-		key_space,
-		logger,
-		messenger,
-		heart
-	    }
-	{
-	}
+		const Topology& topology
+	) : Soldier{header_space, key_space, topology} {}
 
-	const Topology::Endpoint& Replica::get_endpoint() const
-	{
-		return get_topology().replica;
+	const Topology::Endpoint& Replica::get_endpoint() const {
+		return get_topology().get_replica();
 	}
 }
 
 int main() {
-	Revolution::Topology topology;
 	Revolution::Header_space header_space;
 	Revolution::Key_space key_space;
-	Revolution::Logger logger{Revolution::Logger::Configuration{}};
-	Revolution::Messenger messenger{
-		Revolution::Messenger::Configuration{
-			topology.replica.name
-		},
-		logger
-	};
-	Revolution::Heart heart{
-		Revolution::Heart::Configuration{
-			std::chrono::seconds(1),
-			[&messenger, &topology, &header_space] () {
-				messenger.send(
-					topology.replica.name,
-					header_space.heartbeat
-				);
-			}
-		},
-		logger
-	};
+	Revolution::Topology topology;
 	Revolution::Replica replica{
-		topology,
 		header_space,
 		key_space,
-		logger,
-		messenger,
-		heart
+		topology,
 	};
 
 	replica.run();
 
 	return 0;
 }
+

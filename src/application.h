@@ -1,72 +1,118 @@
 #ifndef REVOLUTION_APPLICATION_H
 #define REVOLUTION_APPLICATION_H
 
+#include <atomic>
+#include <condition_variable>
 #include <functional>
+#include <mutex>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "configuration.h"
-#include "heart.h"
 #include "logger.h"
 #include "messenger.h"
 
 namespace Revolution {
 	class Application {
 	public:
-		using Handler = std::function<void(const Messenger::Message&)>;
-		using Handlers = std::unordered_map<std::string, Handler>;
-		using States = std::unordered_map<std::string, std::string>;
-
 		explicit Application(
-			const Topology& topology,
 			const Header_space& header_space,
 			const Key_space& key_space,
-			const Logger& logger,
-			const Messenger& messenger,
-			Heart& heart
+			const Topology& topology
 		);
 
-		virtual void run();
+		void run();
 	protected:
-		const Topology& get_topology() const;
+		using Handler = std::function<
+			std::vector<std::string>(const Messenger::Message&)
+		>;
+
 		const Header_space& get_header_space() const;
 		const Key_space& get_key_space() const;
+		const Topology& get_topology() const;
 		const Logger& get_logger() const;
-		const Messenger& get_messenger() const;
-		Heart& get_heart() const;
-		const bool& get_status() const;
-		void set_status(const bool& status);
-		const States& get_states() const;
-		std::vector<std::string> get_state_data() const;
+		const std::atomic_bool& get_status() const;
 		void set_handler(
-			const std::string& name,
+			const std::string& header,
 			const Handler& handler
 		);
+		std::string get_state(const std::string& key);
+		void set_state(
+			const std::string& key,
+			const std::string& value
+		);
 		virtual const Topology::Endpoint& get_endpoint() const = 0;
+		virtual const Topology::Endpoint& get_syncer() const = 0;
 
-		void handle_exit(const Messenger::Message& message);
-		void handle_hang(const Messenger::Message& message) const;
-		void handle_heartbeat(const Messenger::Message& message) const;
-		void handle_read(const Messenger::Message& message) const;
-		void handle_status(const Messenger::Message& message) const;
-		void handle_sync(const Messenger::Message& message) const;
-		virtual void handle_write(const Messenger::Message& message);
+		std::vector<std::string>
+			handle_exit(const Messenger::Message& message);
+		std::vector<std::string>
+			handle_read(const Messenger::Message& message);
+		std::vector<std::string>
+			handle_status(const Messenger::Message& message) const;
+		std::vector<std::string>
+			handle_write(const Messenger::Message& message);
+
+		void add_handlers();
+		void send(
+			const std::string& recipient_name,
+			const std::string& header,
+			const std::vector<std::string>& data = {},
+			const unsigned int& priority = 0
+		) const;
+		Messenger::Message communicate(
+			const std::string& recipient_name,
+			const std::string& header,
+			const std::vector<std::string>& data = {},
+			const unsigned int& priority = 0
+		);
+		virtual void broadcast(
+			const std::string& header,
+			const std::vector<std::string>& data = {},
+			const unsigned int& priority = 0
+		) const = 0;
+		virtual void broadcast(
+			const Messenger::Message& message
+		) const = 0;
+
+		virtual void main();
 	private:
-		const Handlers& get_handlers() const;
-		Handlers& get_handlers();
-		States& get_states();
+		const Messenger& get_messenger() const;
+		std::atomic_bool& get_status();
+		const std::unordered_map<std::string, Handler>&
+			get_handlers() const;
+		std::unordered_map<std::string, Handler>& get_handlers();
+		std::optional<const std::reference_wrapper<const Handler>>
+			get_handler(const std::string& header) const;
+		const std::unordered_map<std::string, std::string>&
+			get_states() const;
+		std::unordered_map<std::string, std::string>& get_states();
+		std::mutex& get_state_mutex();
+		const std::unordered_map<unsigned int, Messenger::Message>&
+			get_responses() const;
+		std::unordered_map<unsigned int, Messenger::Message>&
+			get_responses();
+		std::mutex& get_response_mutex();
+		std::condition_variable& get_response_condition_variable();
 
+		void monitor();
+		Messenger::Message sleep(const unsigned int& identity);
+		void wake(const Messenger::Message& message);
 		void handle(const Messenger::Message& message) const;
 
-		const Topology& topology;
-		const Header_space& header_space;
-		const Key_space& key_space;
-		const Logger& logger;
-		const Messenger& messenger;
-		Heart& heart;
-		bool status;
-		Handlers handlers;
-		States states;
+		const Header_space header_space;
+		const Key_space key_space;
+		const Topology topology;
+		const Logger logger;
+		const Messenger messenger;
+		std::atomic_bool status;
+		std::unordered_map<std::string, Handler> handlers;
+		std::unordered_map<std::string, std::string> states;
+		std::mutex state_mutex;
+		std::unordered_map<unsigned int, Messenger::Message> responses;
+		std::mutex response_mutex;
+		std::condition_variable response_condition_variable;
 	};
 }
 
