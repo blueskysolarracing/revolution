@@ -40,7 +40,6 @@ namespace Revolution {
 
 	static mq_attr get_message_queue_attributes(const std::string& name) {
 		mq_attr attributes;
-
 		auto descriptor = open_message_queue_descriptor(name);
 		auto status = mq_getattr(descriptor, &attributes);
 		close_message_queue_descriptor(descriptor);
@@ -115,17 +114,16 @@ namespace Revolution {
 		std::string recipient_name;
 		std::string header;
 		std::size_t datum_count;
-		std::string datum;
 		std::vector<std::string> data;
 		unsigned int priority;
 		unsigned int identity;
 
 		iss >> sender_name >> recipient_name >> header >> datum_count;
 
-		for (std::size_t i{}; i < datum_count; ++i) {
-			iss >> datum;
-			data.push_back(datum);
-		}
+		data.resize(datum_count);
+
+		for (std::size_t i{}; i < datum_count; ++i)
+			iss >> data[i];
 
 		iss >> priority >> identity;
 

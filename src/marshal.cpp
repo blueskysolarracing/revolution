@@ -50,7 +50,7 @@ namespace Revolution {
 		const std::vector<std::string>& data,
 		const unsigned int& priority
 	) const {
-		for (const auto& soldier : get_topology().get_soldiers()) {
+		for (const auto& soldier : get_topology().get_soldiers())
 			if (soldier.get().get_name() != recipient_name)
 				send(
 					soldier.get().get_name(),
@@ -58,7 +58,6 @@ namespace Revolution {
 					data,
 					priority
 				);
-		}
 	}
 
 	std::vector<Messenger::Message> Marshal::communicate_soldiers(

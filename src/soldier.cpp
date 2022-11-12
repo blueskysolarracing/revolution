@@ -44,6 +44,7 @@ namespace Revolution {
 			priority
 		);
 	}
+
 	Messenger::Message Soldier::communicate_marshal(
 		const std::string& header,
 		const std::vector<std::string>& data,
