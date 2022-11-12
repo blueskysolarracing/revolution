@@ -44,7 +44,7 @@ namespace Revolution {
 
 		std::list<std::thread> threads;  // TODO: USE THREAD POOL
 
-		threads.emplace_back(&Application::sync, this);
+		threads.emplace_back(&Application::main, this);
 
 		while (get_status()) {
 			auto message = get_messenger().timed_receive(
@@ -343,6 +343,24 @@ namespace Revolution {
 		return sleep(message.get_identity());
 	}
 
+	void Application::main() {
+		auto message = communicate(
+			get_syncer().get_name(),
+			get_header_space().get_get()
+		);
+
+		handle_write(
+			Messenger::Message{
+				message.get_sender_name(),
+				message.get_recipient_name(),
+				get_header_space().get_reset(),
+				message.get_data(),
+				message.get_priority(),
+				message.get_identity()
+			}
+		);
+	}
+
 	const Messenger& Application::get_messenger() const {
 		return messenger;
 	}
@@ -399,24 +417,6 @@ namespace Revolution {
 
 	std::condition_variable& Application::get_response_condition_variable() {
 		return response_condition_variable;
-	}
-
-	void Application::sync() {
-		auto message = communicate(
-			get_syncer().get_name(),
-			get_header_space().get_get()
-		);
-
-		handle_write(
-			Messenger::Message{
-				message.get_sender_name(),
-				message.get_recipient_name(),
-				get_header_space().get_reset(),
-				message.get_data(),
-				message.get_priority(),
-				message.get_identity()
-			}
-		);
 	}
 
 	Messenger::Message Application::sleep(const unsigned int& identity) {

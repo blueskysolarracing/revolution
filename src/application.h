@@ -76,6 +76,8 @@ namespace Revolution {
 		virtual void broadcast(
 			const Messenger::Message& message
 		) const = 0;
+
+		virtual void main();
 	private:
 		const Messenger& get_messenger() const;
 		std::atomic_bool& get_status();
@@ -95,7 +97,6 @@ namespace Revolution {
 		std::mutex& get_response_mutex();
 		std::condition_variable& get_response_condition_variable();
 
-		void sync();
 		Messenger::Message sleep(const unsigned int& identity);
 		void wake(const Messenger::Message& message);
 		void handle(const Messenger::Message& message) const;
