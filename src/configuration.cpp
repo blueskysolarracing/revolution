@@ -75,7 +75,8 @@ namespace Revolution {
 		return display_driver;
 	}
 
-	const Topology::Endpoint& Topology::get_miscellaneous_controller() const {
+	const Topology::Endpoint&
+		Topology::get_miscellaneous_controller() const {
 		return miscellaneous_controller;
 	}
 

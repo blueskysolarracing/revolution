@@ -10,7 +10,8 @@ namespace Revolution {
 		const Topology& topology
 	) : Soldier{header_space, key_space, topology} {}
 
-	const Topology::Endpoint& Miscellaneous_controller::get_endpoint() const {
+	const Topology::Endpoint&
+		Miscellaneous_controller::get_endpoint() const {
 		return get_topology().get_miscellaneous_controller();
 	}
 }
