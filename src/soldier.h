@@ -13,6 +13,8 @@ namespace Revolution {
 			const Topology& topology
 		);
 	protected:
+		const Topology::Endpoint& get_syncer() const override;
+
 		void broadcast(
 			const std::string& header,
 			const std::vector<std::string>& data = {},

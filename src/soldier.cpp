@@ -20,6 +20,10 @@ namespace Revolution {
 		send_marshal(header, data, priority);
 	}
 
+	const Topology::Endpoint& Soldier::get_syncer() const {
+		return get_topology().get_marshal();
+	}
+
 	void Soldier::broadcast(
 		const Messenger::Message& message
 	) const {

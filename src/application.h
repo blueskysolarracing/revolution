@@ -8,6 +8,7 @@
 #include <string>
 #include <thread>
 #include <unordered_map>
+#include <vector>
 
 #include "configuration.h"
 #include "logger.h"
@@ -43,6 +44,7 @@ namespace Revolution {
 			const std::string& value
 		);
 		virtual const Topology::Endpoint& get_endpoint() const = 0;
+		virtual const Topology::Endpoint& get_syncer() const = 0;
 
 		std::vector<std::string>
 			handle_exit(const Messenger::Message& message);
@@ -93,6 +95,7 @@ namespace Revolution {
 		std::mutex& get_response_mutex();
 		std::condition_variable& get_response_condition_variable();
 
+		void sync();
 		Messenger::Message sleep(const unsigned int& identity);
 		void wake(const Messenger::Message& message);
 		void handle(const Messenger::Message& message) const;

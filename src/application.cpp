@@ -3,10 +3,12 @@
 #include <atomic>
 #include <condition_variable>
 #include <functional>
+#include <list>
 #include <mutex>
 #include <string>
 #include <thread>
 #include <unordered_map>
+#include <vector>
 
 #include "configuration.h"
 #include "logger.h"
@@ -40,7 +42,9 @@ namespace Revolution {
 		get_status() = true;
 		add_handlers();
 
-		std::vector<std::thread> threads;  // TODO: USE THREAD POOL
+		std::list<std::thread> threads;  // TODO: USE THREAD POOL
+
+		threads.emplace_back(&Application::sync, this);
 
 		while (get_status()) {
 			auto message = get_messenger().timed_receive(
@@ -395,6 +399,24 @@ namespace Revolution {
 
 	std::condition_variable& Application::get_response_condition_variable() {
 		return response_condition_variable;
+	}
+
+	void Application::sync() {
+		auto message = communicate(
+			get_syncer().get_name(),
+			get_header_space().get_get()
+		);
+
+		handle_write(
+			Messenger::Message{
+				message.get_sender_name(),
+				message.get_recipient_name(),
+				get_header_space().get_reset(),
+				message.get_data(),
+				message.get_priority(),
+				message.get_identity()
+			}
+		);
 	}
 
 	Messenger::Message Application::sleep(const unsigned int& identity) {

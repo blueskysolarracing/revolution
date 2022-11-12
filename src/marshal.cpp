@@ -16,6 +16,10 @@ namespace Revolution {
 		return get_topology().get_marshal();
 	}
 
+	const Topology::Endpoint& Marshal::get_syncer() const {
+		return get_topology().get_replica();
+	}
+
 	void Marshal::broadcast(
 		const std::string& header,
 		const std::vector<std::string>& data,
