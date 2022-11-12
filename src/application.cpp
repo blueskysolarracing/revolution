@@ -33,20 +33,18 @@ namespace Revolution {
 	    response_condition_variable{} {}
 
 	void Application::run() {
+		get_status() = true;
 		get_logger() << Logger::Severity::information
 			<< "Starting: \""
 			<< get_endpoint().get_name()
 			<< "\"..."
 			<< std::endl;
-
-		get_status() = true;
 		add_handlers();
 
 		std::thread thread{&Application::monitor, this};
 		main();
 
 		thread.join();
-
 		get_logger() << Logger::Severity::information
 			<< "Stopping: \""
 			<< get_endpoint().get_name()
@@ -400,8 +398,6 @@ namespace Revolution {
 
 	void Application::monitor() {
 		std::list<std::thread> threads;  // TODO: USE THREAD POOL
-
-		threads.emplace_back(&Application::main, this);
 
 		while (get_status()) {
 			auto message = get_messenger().timed_receive(
