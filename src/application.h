@@ -38,7 +38,7 @@ namespace Revolution {
 			const Handler& handler
 		);
 		std::string get_state(const std::string& key);
-		virtual void set_state(
+		void set_state(
 			const std::string& key,
 			const std::string& value
 		);
@@ -50,10 +50,10 @@ namespace Revolution {
 			handle_read(const Messenger::Message& message);
 		std::vector<std::string>
 			handle_status(const Messenger::Message& message) const;
-		virtual std::vector<std::string>
+		std::vector<std::string>
 			handle_write(const Messenger::Message& message);
 
-		virtual void add_handlers();
+		void add_handlers();
 		void send(
 			const std::string& recipient_name,
 			const std::string& header,
@@ -66,6 +66,14 @@ namespace Revolution {
 			const std::vector<std::string>& data = {},
 			const unsigned int& priority = 0
 		);
+		virtual void broadcast(
+			const std::string& header,
+			const std::vector<std::string>& data = {},
+			const unsigned int& priority = 0
+		) const = 0;
+		virtual void broadcast(
+			const Messenger::Message& message
+		) const = 0;
 	private:
 		const Messenger& get_messenger() const;
 		std::atomic_bool& get_status();

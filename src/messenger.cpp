@@ -227,7 +227,7 @@ namespace Revolution {
 
 	std::optional<Messenger::Message> Messenger::timed_receive(
 		const std::string& recipient_name,
-		const std::chrono::high_resolution_clock::duration& timeout
+		const Timeout& timeout
 	) const {
 		auto time_point = std::chrono::high_resolution_clock::now();
 		auto duration = time_point.time_since_epoch() + timeout;
@@ -275,7 +275,7 @@ namespace Revolution {
 
 	bool Messenger::timed_send(
 		const Message& message,
-		const std::chrono::high_resolution_clock::duration& timeout
+		const Timeout& timeout
 	) const {
 		auto time_point = std::chrono::high_resolution_clock::now();
 		auto duration = time_point.time_since_epoch() + timeout;
@@ -303,11 +303,10 @@ namespace Revolution {
 		});
 	}
 
-	const std::chrono::high_resolution_clock::duration
-		Messenger::default_timeout = std::chrono::milliseconds(100);
+	const Messenger::Timeout Messenger::default_timeout
+		= std::chrono::milliseconds(100);
 
-	const std::chrono::high_resolution_clock::duration&
-		Messenger::get_default_timeout() {
+	const Messenger::Timeout& Messenger::get_default_timeout() {
 			return default_timeout;
 	}
 }

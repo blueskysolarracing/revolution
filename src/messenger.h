@@ -10,6 +10,8 @@
 namespace Revolution {
 	class Messenger {
 	public:
+		using Timeout = std::chrono::high_resolution_clock::duration;
+
 		class Message {
 		public:
 			static Message deserialize(
@@ -54,22 +56,18 @@ namespace Revolution {
 		Message receive(const std::string& recipient_name) const;
 		std::optional<Message> timed_receive(
 			const std::string& recipient_name,
-			const std::chrono::high_resolution_clock::duration&
-				timeout = get_default_timeout()
+			const Timeout& timeout = get_default_timeout()
 		) const;
 
 		void send(const Message& message) const;
 		bool timed_send(
 			const Message& message,
-			const std::chrono::high_resolution_clock::duration&
-				timeout = get_default_timeout()
+			const Timeout& timeout = get_default_timeout()
 		) const;
 	private:
-		static const std::chrono::high_resolution_clock::duration
-			default_timeout;
+		static const Timeout default_timeout;
 
-		static const std::chrono::high_resolution_clock::duration&
-			get_default_timeout();
+		static const Timeout& get_default_timeout();
 	};
 }
 

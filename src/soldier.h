@@ -13,22 +13,19 @@ namespace Revolution {
 			const Topology& topology
 		);
 	protected:
-		void set_state(
-			const std::string& key,
-			const std::string& value
-		) override;
-
-		std::vector<std::string> handle_write(
+		void broadcast(
+			const std::string& header,
+			const std::vector<std::string>& data = {},
+			const unsigned int& priority = 0
+		) const override;
+		void broadcast(
 			const Messenger::Message& message
-		) override;
-
-		void add_handlers() override;
-
+		) const override;
 		void send_marshal(
 			const std::string& header,
 			const std::vector<std::string>& data = {},
 			const unsigned int& priority = 0
-		);
+		) const;
 		Messenger::Message communicate_marshal(
 			const std::string& header,
 			const std::vector<std::string>& data = {},

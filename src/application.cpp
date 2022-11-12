@@ -135,6 +135,8 @@ namespace Revolution {
 		std::scoped_lock lock{get_state_mutex()};
 
 		get_states().emplace(key, value);
+
+		broadcast(get_header_space().get_set(), {key, value});
 	}
 
 	std::vector<std::string>
@@ -249,6 +251,8 @@ namespace Revolution {
 				message.get_data()[i + 1]
 			);
 
+		broadcast(message);
+
 		return {};
 	}
 
@@ -293,14 +297,6 @@ namespace Revolution {
 			get_header_space().get_status(),
 			std::bind(
 				&Application::handle_status,
-				this,
-				std::placeholders::_1
-			)
-		);
-		set_handler(
-			get_header_space().get_sync(),
-			std::bind(
-				&Application::handle_read,
 				this,
 				std::placeholders::_1
 			)

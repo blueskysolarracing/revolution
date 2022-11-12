@@ -14,8 +14,7 @@ namespace Revolution {
 			const std::string& reset = "RESET",
 			const std::string& response = "RESPONSE",
 			const std::string& set = "SET",
-			const std::string& status = "STATUS",
-			const std::string& sync = "SYNC"
+			const std::string& status = "STATUS"
 		);
 
 		const std::string& get_exit() const;
@@ -24,7 +23,6 @@ namespace Revolution {
 		const std::string& get_response() const;
 		const std::string& get_set() const;
 		const std::string& get_status() const;
-		const std::string& get_sync() const;
 	private:
 		const std::string exit;
 		const std::string get;
@@ -32,7 +30,6 @@ namespace Revolution {
 		const std::string response;
 		const std::string set;
 		const std::string status;
-		const std::string sync;
 	};
 
 	class Key_space {};

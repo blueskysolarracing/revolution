@@ -12,55 +12,26 @@ namespace Revolution {
 		const Topology& topology
 	) : Application{header_space, key_space, topology} {}
 
-	void Marshal::set_state(
-		const std::string& key,
-		const std::string& value
-	) {
-		Application::set_state(key, value);
-
-		communicate_soldiers(
-			get_header_space().get_set(),
-			{key, value}
-		);
-	}
-
 	const Topology::Endpoint& Marshal::get_endpoint() const {
 		return get_topology().get_marshal();
 	}
 
-	std::vector<std::string> Marshal::handle_write(
-		const Messenger::Message& message
-	) {
-		auto values = Application::handle_write(message);
+	void Marshal::broadcast(
+		const std::string& header,
+		const std::vector<std::string>& data,
+		const unsigned int& priority
+	) const {
+		send_soldiers(header, data, priority);
+	}
 
+	void Marshal::broadcast(
+		const Messenger::Message& message
+	) const {
 		send_soldiers_except(
 			message.get_sender_name(),
 			message.get_header(),
 			message.get_data(),
 			message.get_priority()
-		);
-
-		return values;
-	}
-
-	void Marshal::add_handlers() {
-		Application::add_handlers();
-
-		set_handler(
-			get_header_space().get_reset(),
-			std::bind(
-				&Marshal::handle_write,
-				this,
-				std::placeholders::_1
-			)
-		);
-		set_handler(
-			get_header_space().get_set(),
-			std::bind(
-				&Marshal::handle_write,
-				this,
-				std::placeholders::_1
-			)
 		);
 	}
 
@@ -68,7 +39,7 @@ namespace Revolution {
 		const std::string& header,
 		const std::vector<std::string>& data,
 		const unsigned int& priority
-	) {
+	) const {
 		for (const auto& soldier : get_topology().get_soldiers())
 			send(soldier.get().get_name(), header, data, priority);
 	}
@@ -78,7 +49,7 @@ namespace Revolution {
 		const std::string& header,
 		const std::vector<std::string>& data,
 		const unsigned int& priority
-	) {
+	) const {
 		for (const auto& soldier : get_topology().get_soldiers()) {
 			if (soldier.get().get_name() != recipient_name)
 				send(

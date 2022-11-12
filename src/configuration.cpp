@@ -11,15 +11,13 @@ namespace Revolution {
 		const std::string& reset,
 		const std::string& response,
 		const std::string& set,
-		const std::string& status,
-		const std::string& sync
+		const std::string& status
 	) : exit{exit},
 	    get{get},
 	    reset{reset},
 	    response{response},
 	    set{set},
-	    status{status},
-	    sync{sync} {}
+	    status{status} {}
 
 	const std::string& Header_space::get_exit() const {
 		return exit;
@@ -43,10 +41,6 @@ namespace Revolution {
 
 	const std::string& Header_space::get_status() const {
 		return status;
-	}
-
-	const std::string& Header_space::get_sync() const {
-		return sync;
 	}
 
 	Topology::Endpoint::Endpoint(const std::string& name) : name{name} {}
