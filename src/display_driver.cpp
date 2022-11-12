@@ -22,7 +22,7 @@ int main() {
 	Revolution::Display_driver display_driver{
 		header_space,
 		key_space,
-		topology,
+		topology
 	};
 
 	display_driver.run();

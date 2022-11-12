@@ -22,7 +22,7 @@ int main() {
 	Revolution::Motor_controller motor_controller{
 		header_space,
 		key_space,
-		topology,
+		topology
 	};
 
 	motor_controller.run();

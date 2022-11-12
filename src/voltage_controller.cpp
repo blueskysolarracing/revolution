@@ -22,7 +22,7 @@ int main() {
 	Revolution::Voltage_controller voltage_controller{
 		header_space,
 		key_space,
-		topology,
+		topology
 	};
 
 	voltage_controller.run();

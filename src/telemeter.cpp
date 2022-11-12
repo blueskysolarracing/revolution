@@ -19,11 +19,7 @@ int main() {
 	Revolution::Header_space header_space;
 	Revolution::Key_space key_space;
 	Revolution::Topology topology;
-	Revolution::Telemeter telemeter{
-		header_space,
-		key_space,
-		topology,
-	};
+	Revolution::Telemeter telemeter{header_space, key_space, topology};
 
 	telemeter.run();
 

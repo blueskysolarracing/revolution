@@ -22,7 +22,7 @@ int main() {
 	Revolution::Miscellaneous_controller miscellaneous_controller{
 		header_space,
 		key_space,
-		topology,
+		topology
 	};
 
 	miscellaneous_controller.run();

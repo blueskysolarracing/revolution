@@ -22,7 +22,7 @@ int main() {
 	Revolution::Power_sensor power_sensor{
 		header_space,
 		key_space,
-		topology,
+		topology
 	};
 
 	power_sensor.run();
