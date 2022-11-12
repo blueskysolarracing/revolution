@@ -14,12 +14,10 @@ void monitor(
 	const Revolution::Messenger& messenger,
 	const std::atomic_bool& status
 ) {
-	static constexpr auto timeout = std::chrono::milliseconds(100);
 	auto received = true;
 
 	while (status || received) {
-		auto optional_message
-			= messenger.receive(recipient_name, timeout);
+		auto optional_message = messenger.timed_receive(recipient_name);
 		received = optional_message.has_value();
 
 		if (received)

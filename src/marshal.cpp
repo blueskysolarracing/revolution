@@ -18,7 +18,7 @@ namespace Revolution {
 	) {
 		Application::set_state(key, value);
 
-		communicate_with_soldiers(
+		communicate_soldiers(
 			get_header_space().get_set(),
 			{key, value}
 		);
@@ -33,7 +33,7 @@ namespace Revolution {
 	) {
 		auto values = Application::handle_write(message);
 
-		communicate_with_soldiers_except(
+		send_soldiers_except(
 			message.get_sender_name(),
 			message.get_header(),
 			message.get_data(),
@@ -64,7 +64,33 @@ namespace Revolution {
 		);
 	}
 
-	std::vector<Messenger::Message> Marshal::communicate_with_soldiers(
+	void Marshal::send_soldiers(
+		const std::string& header,
+		const std::vector<std::string>& data,
+		const unsigned int& priority
+	) {
+		for (const auto& soldier : get_topology().get_soldiers())
+			send(soldier.get().get_name(), header, data, priority);
+	}
+
+	void Marshal::send_soldiers_except(
+		const std::string& recipient_name,
+		const std::string& header,
+		const std::vector<std::string>& data,
+		const unsigned int& priority
+	) {
+		for (const auto& soldier : get_topology().get_soldiers()) {
+			if (soldier.get().get_name() != recipient_name)
+				send(
+					soldier.get().get_name(),
+					header,
+					data,
+					priority
+				);
+		}
+	}
+
+	std::vector<Messenger::Message> Marshal::communicate_soldiers(
 		const std::string& header,
 		const std::vector<std::string>& data,
 		const unsigned int& priority
@@ -85,7 +111,7 @@ namespace Revolution {
 	}
 
 	std::vector<std::optional<Messenger::Message>>
-		Marshal::communicate_with_soldiers_except(
+		Marshal::communicate_soldiers_except(
 		const std::string& recipient_name,
 		const std::string& header,
 		const std::vector<std::string>& data,

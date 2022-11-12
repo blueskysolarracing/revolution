@@ -43,18 +43,21 @@ namespace Revolution {
 		std::vector<std::thread> threads;  // TODO: USE THREAD POOL
 
 		while (get_status()) {
-			auto message = get_messenger().receive(
+			auto message = get_messenger().timed_receive(
 				get_endpoint().get_name()
 			);
 
-			if (message.get_header()
+			if (!message)
+				continue;
+
+			if (message.value().get_header()
 				== get_header_space().get_response()) {
-				wake(message);
+				wake(message.value());
 			} else
 				threads.emplace_back(
 					&Application::handle,
 					this,
-					message
+					message.value()
 				);
 		}
 
@@ -301,6 +304,23 @@ namespace Revolution {
 				this,
 				std::placeholders::_1
 			)
+		);
+	}
+
+	void Application::send(
+		const std::string& recipient_name,
+		const std::string& header,
+		const std::vector<std::string>& data,
+		const unsigned int& priority
+	) const {
+		get_messenger().send(
+			Messenger::Message{
+				get_endpoint().get_name(),
+				recipient_name,
+				header,
+				data,
+				priority
+			}
 		);
 	}
 

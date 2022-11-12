@@ -225,7 +225,7 @@ namespace Revolution {
 		}).value();
 	}
 
-	std::optional<Messenger::Message> Messenger::receive(
+	std::optional<Messenger::Message> Messenger::timed_receive(
 		const std::string& recipient_name,
 		const std::chrono::high_resolution_clock::duration& timeout
 	) const {
@@ -273,7 +273,7 @@ namespace Revolution {
 		});
 	}
 
-	bool Messenger::send(
+	bool Messenger::timed_send(
 		const Message& message,
 		const std::chrono::high_resolution_clock::duration& timeout
 	) const {
@@ -301,5 +301,13 @@ namespace Revolution {
 				&abs_timeout
 			);
 		});
+	}
+
+	const std::chrono::high_resolution_clock::duration
+		Messenger::default_timeout = std::chrono::milliseconds(100);
+
+	const std::chrono::high_resolution_clock::duration&
+		Messenger::get_default_timeout() {
+			return default_timeout;
 	}
 }

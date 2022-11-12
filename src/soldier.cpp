@@ -18,10 +18,7 @@ namespace Revolution {
 	) {
 		Application::set_state(key, value);
 
-		communicate_with_marshal(
-			get_header_space().get_set(),
-			{key, value}
-		);
+		communicate_marshal(get_header_space().get_set(), {key, value});
 	}
 
 	std::vector<std::string> Soldier::handle_write(
@@ -31,7 +28,7 @@ namespace Revolution {
 
 		if (message.get_sender_name()
 			!= get_topology().get_marshal().get_name())
-			communicate_with_marshal(
+			send_marshal(
 				message.get_header(),
 				message.get_data(),
 				message.get_priority()
@@ -61,7 +58,19 @@ namespace Revolution {
 		);
 	}
 
-	Messenger::Message Soldier::communicate_with_marshal(
+	void Soldier::send_marshal(
+		const std::string& header,
+		const std::vector<std::string>& data,
+		const unsigned int& priority
+	) {
+		send(
+			get_topology().get_marshal().get_name(),
+			header,
+			data,
+			priority
+		);
+	}
+	Messenger::Message Soldier::communicate_marshal(
 		const std::string& header,
 		const std::vector<std::string>& data,
 		const unsigned int& priority

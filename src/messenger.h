@@ -52,18 +52,24 @@ namespace Revolution {
 		};
 
 		Message receive(const std::string& recipient_name) const;
-		std::optional<Message> receive(
+		std::optional<Message> timed_receive(
 			const std::string& recipient_name,
 			const std::chrono::high_resolution_clock::duration&
-				timeout
+				timeout = get_default_timeout()
 		) const;
 
 		void send(const Message& message) const;
-		bool send(
+		bool timed_send(
 			const Message& message,
 			const std::chrono::high_resolution_clock::duration&
-				timeout
+				timeout = get_default_timeout()
 		) const;
+	private:
+		static const std::chrono::high_resolution_clock::duration
+			default_timeout;
+
+		static const std::chrono::high_resolution_clock::duration&
+			get_default_timeout();
 	};
 }
 

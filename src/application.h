@@ -54,6 +54,12 @@ namespace Revolution {
 			handle_write(const Messenger::Message& message);
 
 		virtual void add_handlers();
+		void send(
+			const std::string& recipient_name,
+			const std::string& header,
+			const std::vector<std::string>& data = {},
+			const unsigned int& priority = 0
+		) const;
 		Messenger::Message communicate(
 			const std::string& recipient_name,
 			const std::string& header,

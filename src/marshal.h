@@ -25,13 +25,24 @@ namespace Revolution {
 
 		void add_handlers() override;
 
-		std::vector<Messenger::Message> communicate_with_soldiers(
+		void send_soldiers(
+			const std::string& header,
+			const std::vector<std::string>& data = {},
+			const unsigned int& priority = 0
+		);
+		void send_soldiers_except(
+			const std::string& recipient_name,
+			const std::string& header,
+			const std::vector<std::string>& data = {},
+			const unsigned int& priority = 0
+		);
+		std::vector<Messenger::Message> communicate_soldiers(
 			const std::string& header,
 			const std::vector<std::string>& data = {},
 			const unsigned int& priority = 0
 		);
 		std::vector<std::optional<Messenger::Message>>
-			communicate_with_soldiers_except(
+			communicate_soldiers_except(
 			const std::string& recipient_name,
 			const std::string& header,
 			const std::vector<std::string>& data = {},

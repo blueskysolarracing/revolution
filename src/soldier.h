@@ -24,7 +24,12 @@ namespace Revolution {
 
 		void add_handlers() override;
 
-		Messenger::Message communicate_with_marshal(
+		void send_marshal(
+			const std::string& header,
+			const std::vector<std::string>& data = {},
+			const unsigned int& priority = 0
+		);
+		Messenger::Message communicate_marshal(
 			const std::string& header,
 			const std::vector<std::string>& data = {},
 			const unsigned int& priority = 0
