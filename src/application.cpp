@@ -55,9 +55,9 @@ namespace Revolution {
 				continue;
 
 			if (message.value().get_header()
-				== get_header_space().get_response()) {
+				== get_header_space().get_response())
 				wake(message.value());
-			} else
+			else
 				threads.emplace_back(
 					&Application::handle,
 					this,
