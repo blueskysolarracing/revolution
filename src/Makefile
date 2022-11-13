@@ -1,7 +1,7 @@
 # Revolution Makefile
 
 CXXFLAGS=-pedantic -std=c++17 -Wall -Wextra
-LOADLIBES=-lpthread -lrt
+LOADLIBES=-lpthread -lrt -lsystemd
 
 MARSHAL_NAME=marshal
 MARSHAL_OBJECTS=logger.o messenger.o configuration.o application.o
