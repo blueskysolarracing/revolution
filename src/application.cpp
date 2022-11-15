@@ -2,9 +2,12 @@
 
 #include <atomic>
 #include <condition_variable>
+#include <cstddef>
 #include <functional>
 #include <list>
 #include <mutex>
+#include <optional>
+#include <ostream>
 #include <string>
 #include <thread>
 #include <unordered_map>
@@ -28,8 +31,9 @@ namespace Revolution {
 	    status{},
 	    handlers{},
 	    states{},
-	    state_mutex{},
 	    responses{},
+	    handler_mutex{},
+	    state_mutex{},
 	    response_mutex{},
 	    response_condition_variable{} {}
 
@@ -74,10 +78,10 @@ namespace Revolution {
 		Application::get_handler(const std::string& header) {
 		std::scoped_lock lock{get_handler_mutex()};
 
-		if (get_handlers().count(header))
-			return get_handlers().at(header);
-		else
+		if (!get_handlers().count(header))
 			return std::nullopt;
+
+		return get_handlers().at(header);
 	}
 
 	void Application::set_handler(
@@ -102,7 +106,8 @@ namespace Revolution {
 		get_handlers().emplace(header, handler);
 	}
 
-	std::string Application::get_state(const std::string& key) {
+	std::optional<std::string>
+		Application::get_state(const std::string& key) {
 		std::scoped_lock lock{get_state_mutex()};
 
 		if (!get_states().count(key)) {
@@ -110,10 +115,10 @@ namespace Revolution {
 				<< "Key \""
 				<< key
 				<< "\" not found. "
-				<< "Using empty string."
+				<< "Using std::nullopt."
 				<< std::endl;
 
-			return "";
+			return std::nullopt;
 		}
 
 		return get_states().at(key);
@@ -128,6 +133,209 @@ namespace Revolution {
 		get_states().emplace(key, value);
 
 		broadcast(get_header_space().get_set(), {key, value});
+	}
+
+	Messenger::Message Application::send(
+		const std::string& recipient_name,
+		const std::string& header,
+		const std::vector<std::string>& data,
+		const unsigned int& priority
+	) const {
+		Messenger::Message message{
+			get_endpoint().get_name(),
+			recipient_name,
+			header,
+			data,
+			priority
+		};
+
+		get_messenger().send(message);
+
+		return message;
+	}
+
+	Messenger::Message Application::communicate(
+		const std::string& recipient_name,
+		const std::string& header,
+		const std::vector<std::string>& data,
+		const unsigned int& priority
+	) {
+		auto message = send(recipient_name, header, data, priority);
+
+		return get_response(message);
+	}
+
+	void Application::setup() {
+		get_status() = true;
+
+		get_logger() << Logger::Severity::information
+			<< "Adding handlers..."
+			<< std::endl;
+
+		set_handler(
+			get_header_space().get_exit(),
+			std::bind(
+				&Application::handle_exit,
+				this,
+				std::placeholders::_1
+			)
+		);
+		set_handler(
+			get_header_space().get_get(),
+			std::bind(
+				&Application::handle_read,
+				this,
+				std::placeholders::_1
+			)
+		);
+		set_handler(
+			get_header_space().get_reset(),
+			std::bind(
+				&Application::handle_write,
+				this,
+				std::placeholders::_1
+			)
+		);
+		set_handler(
+			get_header_space().get_response(),
+			std::bind(
+				&Application::handle_response,
+				this,
+				std::placeholders::_1
+			)
+		);
+		set_handler(
+			get_header_space().get_set(),
+			std::bind(
+				&Application::handle_write,
+				this,
+				std::placeholders::_1
+			)
+		);
+		set_handler(
+			get_header_space().get_status(),
+			std::bind(
+				&Application::handle_status,
+				this,
+				std::placeholders::_1
+			)
+		);
+
+		get_logger() << Logger::Severity::information
+			<< "Syncing with "
+			<< get_syncer().get_name()
+			<< "..."
+			<< std::endl;
+
+		auto message = communicate(
+			get_syncer().get_name(),
+			get_header_space().get_get()
+		);
+
+		handle_write(
+			Messenger::Message{
+				message.get_sender_name(),
+				message.get_recipient_name(),
+				get_header_space().get_reset(),
+				message.get_data(),
+				message.get_priority(),
+				message.get_identity()
+			}
+		);
+	}
+
+	const Messenger& Application::get_messenger() const {
+		return messenger;
+	}
+
+	const std::unordered_map<std::string, Application::Handler>&
+		Application::get_handlers() const {
+		return handlers;
+	}
+
+	const std::unordered_map<std::string, std::string>&
+		Application::get_states() const {
+		return states;
+	}
+
+	const std::unordered_map<unsigned int, Messenger::Message>&
+		Application::get_responses() const {
+		return responses;
+	}
+
+	const std::mutex& Application::get_handler_mutex() const {
+		return handler_mutex;
+	}
+
+	const std::mutex& Application::get_state_mutex() const {
+		return state_mutex;
+	}
+
+	const std::mutex& Application::get_response_mutex() const {
+		return response_mutex;
+	}
+
+	const std::condition_variable&
+		Application::get_response_condition_variable() const {
+		return response_condition_variable;
+	}
+
+	std::atomic_bool& Application::get_status() {
+		return status;
+	}
+
+	std::unordered_map<std::string, Application::Handler>&
+		Application::get_handlers() {
+		return handlers;
+	}
+
+	std::unordered_map<std::string, std::string>&
+		Application::get_states() {
+		return states;
+	}
+
+	std::unordered_map<unsigned int, Messenger::Message>&
+		Application::get_responses() {
+		return responses;
+	}
+
+	std::mutex& Application::get_handler_mutex() {
+		return handler_mutex;
+	}
+
+	std::mutex& Application::get_state_mutex() {
+		return state_mutex;
+	}
+
+	std::mutex& Application::get_response_mutex() {
+		return response_mutex;
+	}
+
+	std::condition_variable& Application::get_response_condition_variable() {
+		return response_condition_variable;
+	}
+
+	Messenger::Message
+		Application::get_response(const Messenger::Message& message) {
+		std::unique_lock lock{get_response_mutex()};
+
+		while (!get_responses().count(message.get_identity()))
+			get_response_condition_variable().wait(lock);
+
+		auto response = get_responses().at(message.get_identity());
+
+		get_responses().erase(message.get_identity());
+
+		return response;
+	}
+
+	void Application::set_response(const Messenger::Message& message) {
+		std::unique_lock lock{get_response_mutex()};
+
+		get_responses().emplace(message.get_identity(), message);
+
+		lock.unlock();
+		get_response_condition_variable().notify_all();
 	}
 
 	std::vector<std::string>
@@ -175,21 +383,26 @@ namespace Revolution {
 
 				if (get_states().count(key))
 					data.push_back(get_states().at(key));
-				else {
+				else
 					get_logger()
 						<< Logger::Severity::warning
 						<< "Key \""
 						<< key
 						<< "\" not found. "
-						<< "Using empty string."
+						<< "Ignoring key..."
 						<< std::endl;
-
-					data.emplace_back("");
-				}
 			}
 		}
 
 		return data;
+	}
+
+	std::vector<std::string> Application::handle_response(
+		const Messenger::Message& message
+	) {
+		set_response(message);
+
+		return {};
 	}
 
 	std::vector<std::string> Application::handle_status(
@@ -247,231 +460,6 @@ namespace Revolution {
 		return {};
 	}
 
-	void Application::setup() {
-		get_status() = true;
-		add_handlers();
-		sync();
-	}
-
-	void Application::add_handlers() {
-		get_logger() << Logger::Severity::information
-			<< "Adding handlers..."
-			<< std::endl;
-
-		set_handler(
-			get_header_space().get_exit(),
-			std::bind(
-				&Application::handle_exit,
-				this,
-				std::placeholders::_1
-			)
-		);
-		set_handler(
-			get_header_space().get_get(),
-			std::bind(
-				&Application::handle_read,
-				this,
-				std::placeholders::_1
-			)
-		);
-		set_handler(
-			get_header_space().get_reset(),
-			std::bind(
-				&Application::handle_write,
-				this,
-				std::placeholders::_1
-			)
-		);
-		set_handler(
-			get_header_space().get_set(),
-			std::bind(
-				&Application::handle_write,
-				this,
-				std::placeholders::_1
-			)
-		);
-		set_handler(
-			get_header_space().get_status(),
-			std::bind(
-				&Application::handle_status,
-				this,
-				std::placeholders::_1
-			)
-		);
-	}
-
-	void Application::send(
-		const std::string& recipient_name,
-		const std::string& header,
-		const std::vector<std::string>& data,
-		const unsigned int& priority
-	) const {
-		get_messenger().send(
-			Messenger::Message{
-				get_endpoint().get_name(),
-				recipient_name,
-				header,
-				data,
-				priority
-			}
-		);
-	}
-
-	Messenger::Message Application::communicate(
-		const std::string& recipient_name,
-		const std::string& header,
-		const std::vector<std::string>& data,
-		const unsigned int& priority
-	) {
-		Messenger::Message message{
-			get_endpoint().get_name(),
-			recipient_name,
-			header,
-			data,
-			priority
-		};
-
-		get_messenger().send(message);
-
-		return sleep(message.get_identity());
-	}
-
-	const Messenger& Application::get_messenger() const {
-		return messenger;
-	}
-
-	std::atomic_bool& Application::get_status() {
-		return status;
-	}
-
-	const std::unordered_map<std::string, Application::Handler>&
-		Application::get_handlers() const {
-		return handlers;
-	}
-
-	std::unordered_map<std::string, Application::Handler>&
-		Application::get_handlers() {
-		return handlers;
-	}
-
-	const std::mutex& Application::get_handler_mutex() const {
-		return handler_mutex;
-	}
-
-	std::mutex& Application::get_handler_mutex() {
-		return handler_mutex;
-	}
-
-	const std::unordered_map<std::string, std::string>&
-		Application::get_states() const {
-		return states;
-	}
-
-	std::unordered_map<std::string, std::string>&
-		Application::get_states() {
-		return states;
-	}
-
-	const std::mutex& Application::get_state_mutex() const {
-		return state_mutex;
-	}
-
-	std::mutex& Application::get_state_mutex() {
-		return state_mutex;
-	}
-
-	const std::unordered_map<unsigned int, Messenger::Message>&
-		Application::get_responses() const {
-		return responses;
-	}
-
-	std::unordered_map<unsigned int, Messenger::Message>&
-		Application::get_responses() {
-		return responses;
-	}
-
-	const std::mutex& Application::get_response_mutex() const {
-		return response_mutex;
-	}
-
-	std::mutex& Application::get_response_mutex() {
-		return response_mutex;
-	}
-
-	const std::condition_variable&
-		Application::get_response_condition_variable() const {
-		return response_condition_variable;
-	}
-
-	std::condition_variable& Application::get_response_condition_variable() {
-		return response_condition_variable;
-	}
-
-	void Application::sync() {
-		auto message = communicate(
-			get_syncer().get_name(),
-			get_header_space().get_get()
-		);
-
-		handle_write(
-			Messenger::Message{
-				message.get_sender_name(),
-				message.get_recipient_name(),
-				get_header_space().get_reset(),
-				message.get_data(),
-				message.get_priority(),
-				message.get_identity()
-			}
-		);
-	}
-
-	void Application::run() {
-		Worker_pool worker_pool;
-
-		while (get_status()) {
-			auto message = get_messenger().timed_receive(
-				get_endpoint().get_name()
-			);
-
-			if (!message)
-				continue;
-
-			if (message.value().get_header()
-				== get_header_space().get_response())
-				wake(message.value());
-			else
-				worker_pool.work(
-					std::bind(
-						&Application::handle,
-						this,
-						message.value()
-					)
-				);
-		}
-	}
-
-	Messenger::Message Application::sleep(const unsigned int& identity) {
-		std::unique_lock lock{get_response_mutex()};
-
-		while (!get_responses().count(identity))
-			get_response_condition_variable().wait(lock);
-
-		auto message = get_responses().at(identity);
-
-		get_responses().erase(identity);
-
-		return message;
-	}
-
-	void Application::wake(const Messenger::Message& message) {
-		std::unique_lock lock{get_response_mutex()};
-
-		get_responses().emplace(message.get_identity(), message);
-
-		lock.unlock();
-		get_response_condition_variable().notify_all();
-	}
-
 	void Application::handle(const Messenger::Message& message) {
 		auto handler = get_handler(message.get_header());
 
@@ -493,15 +481,37 @@ namespace Revolution {
 
 		auto values = handler.value()(message);
 
-		get_messenger().send(
-			Messenger::Message{
-				get_endpoint().get_name(),
-				message.get_sender_name(),
-				get_header_space().get_response(),
-				values,
-				message.get_priority(),
-				message.get_identity()
-			}
-		);
+		if (message.get_header() != get_header_space().get_response())
+			get_messenger().send(
+				Messenger::Message{
+					get_endpoint().get_name(),
+					message.get_sender_name(),
+					get_header_space().get_response(),
+					values,
+					message.get_priority(),
+					message.get_identity()
+				}
+			);
+	}
+
+	void Application::run() {
+		Worker_pool worker_pool;
+
+		while (get_status()) {
+			auto message = get_messenger().timed_receive(
+				get_endpoint().get_name()
+			);
+
+			if (!message)
+				continue;
+
+			worker_pool.work(
+				std::bind(
+					&Application::handle,
+					this,
+					message.value()
+				)
+			);
+		}
 	}
 }
