@@ -4,30 +4,69 @@ CXXFLAGS=-pedantic -std=c++17 -Wall -Wextra
 LOADLIBES=-lpthread -lrt -lsystemd
 
 MARSHAL_NAME=marshal
-MARSHAL_OBJECTS=logger.o messenger.o configuration.o application.o
+MARSHAL_OBJECTS=configuration.o logger.o messenger.o worker_pool.o application.o
 
 DISPLAY_DRIVER_NAME=display_driver
-DISPLAY_DRIVER_OBJECTS\
-	=logger.o messenger.o configuration.o application.o soldier.o
+DISPLAY_DRIVER_OBJECTS=\
+	configuration.o \
+	logger.o \
+	messenger.o \
+	worker_pool.o \
+	application.o \
+	soldier.o
 MISCELLANEOUS_CONTROLLER_NAME=miscellaneous_controller
-MISCELLANEOUS_CONTROLLER_OBJECTS\
-	=logger.o messenger.o configuration.o application.o soldier.o
+MISCELLANEOUS_CONTROLLER_OBJECTS=\
+	configuration.o \
+	logger.o \
+	messenger.o \
+	worker_pool.o \
+	application.o \
+	soldier.o
 MOTOR_CONTROLLER_NAME=motor_controller
-MOTOR_CONTROLLER_OBJECTS\
-	=logger.o messenger.o configuration.o application.o soldier.o
+MOTOR_CONTROLLER_OBJECTS=\
+	configuration.o \
+	logger.o \
+	messenger.o \
+	worker_pool.o \
+	application.o \
+	soldier.o
 POWER_SENSOR_NAME=power_sensor
-POWER_SENSOR_OBJECTS\
-	=logger.o messenger.o configuration.o application.o soldier.o
+POWER_SENSOR_OBJECTS=\
+	configuration.o \
+	logger.o \
+	messenger.o \
+	worker_pool.o \
+	application.o \
+	soldier.o
 REPLICA_NAME=replica
-REPLICA_OBJECTS=logger.o messenger.o configuration.o application.o soldier.o
+REPLICA_OBJECTS=\
+	configuration.o \
+	logger.o \
+	messenger.o \
+	worker_pool.o \
+	application.o \
+	soldier.o
 TELEMETER_NAME=telemeter
-TELEMETER_OBJECTS=logger.o messenger.o configuration.o application.o soldier.o
+TELEMETER_OBJECTS=\
+	configuration.o \
+	logger.o \
+	messenger.o \
+	worker_pool.o \
+	application.o \
+	soldier.o
 VOLTAGE_CONTROLLER_NAME=voltage_controller
-VOLTAGE_CONTROLLER_OBJECTS\
-	=logger.o messenger.o configuration.o application.o soldier.o
+VOLTAGE_CONTROLLER_OBJECTS=\
+	configuration.o \
+	logger.o \
+	messenger.o \
+	worker_pool.o \
+	application.o \
+	soldier.o
 
 CLIENT_NAME=client
 CLIENT_OBJECTS=messenger.o
+RESETTER_NAME=resetter
+RESETTER_OBJECTS=configuration.o
 
 NAMES=\
 	$(MARSHAL_NAME) \
@@ -38,7 +77,8 @@ NAMES=\
 	$(REPLICA_NAME) \
 	$(TELEMETER_NAME) \
 	$(VOLTAGE_CONTROLLER_NAME) \
-	$(CLIENT_NAME)
+	$(CLIENT_NAME) \
+	$(RESETTER_NAME)
 
 .PHONY: all
 all: $(NAMES)
@@ -76,3 +116,6 @@ $(VOLTAGE_CONTROLLER_NAME): $(VOLTAGE_CONTROLLER_OBJECTS)
 
 # client
 $(CLIENT_NAME): $(CLIENT_OBJECTS)
+
+# resetter
+$(RESETTER_NAME): $(RESETTER_OBJECTS)

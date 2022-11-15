@@ -112,4 +112,13 @@ namespace Revolution {
 			get_voltage_controller()
 		};
 	}
+
+	const std::vector<std::reference_wrapper<const Topology::Endpoint>>
+		Topology::get_endpoints() const {
+		auto endpoints = get_soldiers();
+
+		endpoints.emplace_back(get_marshal());
+
+		return endpoints;
+	}
 }

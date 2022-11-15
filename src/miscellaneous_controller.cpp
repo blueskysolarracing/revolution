@@ -26,7 +26,7 @@ int main() {
 		topology
 	};
 
-	miscellaneous_controller.run();
+	miscellaneous_controller.main();
 
 	return 0;
 }

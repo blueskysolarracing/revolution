@@ -1,7 +1,6 @@
 #ifndef REVOLUTION_LOGGER_H
 #define REVOLUTION_LOGGER_H
 
-#include <mutex>
 #include <sstream>
 
 namespace Revolution {

@@ -1,6 +1,10 @@
 #ifndef REVOLUTION_MARSHAL_H
 #define REVOLUTION_MARSHAL_H
 
+#include <optional>
+#include <string>
+#include <vector>
+
 #include "application.h"
 #include "configuration.h"
 
@@ -35,18 +39,6 @@ namespace Revolution {
 			const std::vector<std::string>& data = {},
 			const unsigned int& priority = 0
 		) const;
-		std::vector<Messenger::Message> communicate_soldiers(
-			const std::string& header,
-			const std::vector<std::string>& data = {},
-			const unsigned int& priority = 0
-		);
-		std::vector<std::optional<Messenger::Message>>
-			communicate_soldiers_except(
-			const std::string& recipient_name,
-			const std::string& header,
-			const std::vector<std::string>& data = {},
-			const unsigned int& priority = 0
-		);
 	};
 }
 

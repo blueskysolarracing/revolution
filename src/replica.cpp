@@ -21,7 +21,7 @@ int main() {
 	Revolution::Topology topology;
 	Revolution::Replica replica{header_space, key_space, topology};
 
-	replica.run();
+	replica.main();
 
 	return 0;
 }

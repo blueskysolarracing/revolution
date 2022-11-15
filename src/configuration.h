@@ -71,6 +71,8 @@ namespace Revolution {
 
 		const std::vector<std::reference_wrapper<const Endpoint>>
 			get_soldiers() const;
+		const std::vector<std::reference_wrapper<const Endpoint>>
+			get_endpoints() const;
 	private:
 		const Endpoint marshal;
 		const Endpoint display_driver;

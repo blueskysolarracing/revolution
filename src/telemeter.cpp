@@ -21,7 +21,7 @@ int main() {
 	Revolution::Topology topology;
 	Revolution::Telemeter telemeter{header_space, key_space, topology};
 
-	telemeter.run();
+	telemeter.main();
 
 	return 0;
 }

@@ -25,7 +25,7 @@ int main() {
 		topology
 	};
 
-	voltage_controller.run();
+	voltage_controller.main();
 
 	return 0;
 }

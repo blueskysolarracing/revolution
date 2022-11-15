@@ -2,6 +2,7 @@
 
 #include <cerrno>
 #include <chrono>
+#include <cstddef>
 #include <cstring>
 #include <ctime>
 #include <functional>
@@ -304,6 +305,6 @@ namespace Revolution {
 		= std::chrono::milliseconds(100);
 
 	const Messenger::Timeout& Messenger::get_default_timeout() {
-			return default_timeout;
+		return default_timeout;
 	}
 }
