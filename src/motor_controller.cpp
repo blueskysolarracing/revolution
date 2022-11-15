@@ -25,7 +25,7 @@ int main() {
 		topology
 	};
 
-	motor_controller.run();
+	motor_controller.main();
 
 	return 0;
 }

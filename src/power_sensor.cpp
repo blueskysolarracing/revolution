@@ -25,7 +25,7 @@ int main() {
 		topology
 	};
 
-	power_sensor.run();
+	power_sensor.main();
 
 	return 0;
 }

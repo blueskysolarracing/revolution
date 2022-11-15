@@ -115,7 +115,7 @@ int main() {
 	Revolution::Topology topology;
 	Revolution::Marshal marshal{header_space, key_space, topology};
 
-	marshal.run();
+	marshal.main();
 
 	return 0;
 }

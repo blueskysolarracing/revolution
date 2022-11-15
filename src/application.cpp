@@ -13,6 +13,7 @@
 #include "configuration.h"
 #include "logger.h"
 #include "messenger.h"
+#include "worker_pool.h"
 
 namespace Revolution {
 	Application::Application(
@@ -32,19 +33,16 @@ namespace Revolution {
 	    response_mutex{},
 	    response_condition_variable{} {}
 
-	void Application::run() {
-		get_status() = true;
+	void Application::main() {
 		get_logger() << Logger::Severity::information
 			<< "Starting: \""
 			<< get_endpoint().get_name()
 			<< "\"..."
 			<< std::endl;
-		add_handlers();
 
-		std::thread thread{&Application::monitor, this};
-		main();
+		setup();
+		run();
 
-		thread.join();
 		get_logger() << Logger::Severity::information
 			<< "Stopping: \""
 			<< get_endpoint().get_name()
@@ -72,11 +70,23 @@ namespace Revolution {
 		return status;
 	}
 
+	std::optional<const std::reference_wrapper<const Application::Handler>>
+		Application::get_handler(const std::string& header) {
+		std::scoped_lock lock{get_handler_mutex()};
+
+		if (get_handlers().count(header))
+			return get_handlers().at(header);
+		else
+			return std::nullopt;
+	}
+
 	void Application::set_handler(
 		const std::string& header,
 		const Handler& handler
 	) {
-		if (get_handler(header))
+		std::scoped_lock lock{get_handler_mutex()};
+
+		if (get_handlers().count(header))
 			get_logger() << Logger::Severity::warning
 				<< "Overriding an existing handler: \""
 				<< header
@@ -237,6 +247,12 @@ namespace Revolution {
 		return {};
 	}
 
+	void Application::setup() {
+		get_status() = true;
+		add_handlers();
+		sync();
+	}
+
 	void Application::add_handlers() {
 		get_logger() << Logger::Severity::information
 			<< "Adding handlers..."
@@ -320,24 +336,6 @@ namespace Revolution {
 		return sleep(message.get_identity());
 	}
 
-	void Application::main() {
-		auto message = communicate(
-			get_syncer().get_name(),
-			get_header_space().get_get()
-		);
-
-		handle_write(
-			Messenger::Message{
-				message.get_sender_name(),
-				message.get_recipient_name(),
-				get_header_space().get_reset(),
-				message.get_data(),
-				message.get_priority(),
-				message.get_identity()
-			}
-		);
-	}
-
 	const Messenger& Application::get_messenger() const {
 		return messenger;
 	}
@@ -356,12 +354,12 @@ namespace Revolution {
 		return handlers;
 	}
 
-	std::optional<const std::reference_wrapper<const Application::Handler>>
-		Application::get_handler(const std::string& header) const {
-		if (get_handlers().count(header))
-			return get_handlers().at(header);
-		else
-			return std::nullopt;
+	const std::mutex& Application::get_handler_mutex() const {
+		return handler_mutex;
+	}
+
+	std::mutex& Application::get_handler_mutex() {
+		return handler_mutex;
 	}
 
 	const std::unordered_map<std::string, std::string>&
@@ -372,6 +370,10 @@ namespace Revolution {
 	std::unordered_map<std::string, std::string>&
 		Application::get_states() {
 		return states;
+	}
+
+	const std::mutex& Application::get_state_mutex() const {
+		return state_mutex;
 	}
 
 	std::mutex& Application::get_state_mutex() {
@@ -388,16 +390,43 @@ namespace Revolution {
 		return responses;
 	}
 
+	const std::mutex& Application::get_response_mutex() const {
+		return response_mutex;
+	}
+
 	std::mutex& Application::get_response_mutex() {
 		return response_mutex;
+	}
+
+	const std::condition_variable&
+		Application::get_response_condition_variable() const {
+		return response_condition_variable;
 	}
 
 	std::condition_variable& Application::get_response_condition_variable() {
 		return response_condition_variable;
 	}
 
-	void Application::monitor() {
-		std::list<std::thread> threads;  // TODO: USE THREAD POOL
+	void Application::sync() {
+		auto message = communicate(
+			get_syncer().get_name(),
+			get_header_space().get_get()
+		);
+
+		handle_write(
+			Messenger::Message{
+				message.get_sender_name(),
+				message.get_recipient_name(),
+				get_header_space().get_reset(),
+				message.get_data(),
+				message.get_priority(),
+				message.get_identity()
+			}
+		);
+	}
+
+	void Application::run() {
+		Worker_pool worker_pool;
 
 		while (get_status()) {
 			auto message = get_messenger().timed_receive(
@@ -411,15 +440,14 @@ namespace Revolution {
 				== get_header_space().get_response())
 				wake(message.value());
 			else
-				threads.emplace_back(
-					&Application::handle,
-					this,
-					message.value()
+				worker_pool.work(
+					std::bind(
+						&Application::handle,
+						this,
+						message.value()
+					)
 				);
 		}
-
-		for (auto& thread : threads)
-			thread.join();
 	}
 
 	Messenger::Message Application::sleep(const unsigned int& identity) {
@@ -444,7 +472,7 @@ namespace Revolution {
 		get_response_condition_variable().notify_all();
 	}
 
-	void Application::handle(const Messenger::Message& message) const {
+	void Application::handle(const Messenger::Message& message) {
 		auto handler = get_handler(message.get_header());
 
 		if (!handler) {

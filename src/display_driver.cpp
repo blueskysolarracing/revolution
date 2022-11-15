@@ -25,7 +25,7 @@ int main() {
 		topology
 	};
 
-	display_driver.run();
+	display_driver.main();
 
 	return 0;
 }
