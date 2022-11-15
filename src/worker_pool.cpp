@@ -36,7 +36,7 @@ namespace Revolution {
 		get_jobs().emplace(job);
 
 		lock.unlock();
-		get_job_condition_variable().notify_all();
+		get_job_condition_variable().notify_one();
 	}
 
 	const unsigned int Worker_pool::default_thread_count{
@@ -90,17 +90,22 @@ namespace Revolution {
 	
 	void Worker_pool::worker() {
 		while (get_status()) {
-			std::unique_lock lock{get_job_mutex()};
+			Job job = nullptr;
 
-			while (get_jobs().empty() && get_status())
-				get_job_condition_variable().wait(lock);
-			
-			if (!get_jobs().empty()) {
-				const auto job = get_jobs().front();
-				get_jobs().pop();
+			{
+				std::unique_lock lock{get_job_mutex()};
 
-				job();
+				while (get_jobs().empty() && get_status())
+					get_job_condition_variable().wait(lock);
+
+				if (!get_jobs().empty()) {
+					job = get_jobs().front();
+					get_jobs().pop();
+				}
 			}
+
+			if (job)
+				job();
 		}
 	}
 }

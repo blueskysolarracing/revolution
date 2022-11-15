@@ -28,6 +28,7 @@ namespace Revolution {
 	    topology{topology},
 	    logger{},
 	    messenger{},
+	    worker_pool{},
 	    status{},
 	    handlers{},
 	    states{},
@@ -72,6 +73,10 @@ namespace Revolution {
 
 	const std::atomic_bool& Application::get_status() const {
 		return status;
+	}
+
+	Worker_pool& Application::get_worker_pool() {
+		return worker_pool;
 	}
 
 	std::optional<const std::reference_wrapper<const Application::Handler>>
@@ -165,9 +170,7 @@ namespace Revolution {
 		return get_response(message);
 	}
 
-	void Application::setup() {
-		get_status() = true;
-
+	void Application::add_handlers() {
 		get_logger() << Logger::Severity::information
 			<< "Adding handlers..."
 			<< std::endl;
@@ -220,7 +223,9 @@ namespace Revolution {
 				std::placeholders::_1
 			)
 		);
+	}
 
+	void Application::sync() {
 		get_logger() << Logger::Severity::information
 			<< "Syncing with "
 			<< get_syncer().get_name()
@@ -242,6 +247,12 @@ namespace Revolution {
 				message.get_identity()
 			}
 		);
+	}
+
+	void Application::setup() {
+		get_status() = true;
+		add_handlers();
+		get_worker_pool().work(std::bind(&Application::sync, this));
 	}
 
 	const Messenger& Application::get_messenger() const {
@@ -379,11 +390,10 @@ namespace Revolution {
 				<< std::endl;
 
 			for (const auto& key : message.get_data()) {
-				data.push_back(key);
-
-				if (get_states().count(key))
+				if (get_states().count(key)) {
+					data.push_back(key);
 					data.push_back(get_states().at(key));
-				else
+				} else
 					get_logger()
 						<< Logger::Severity::warning
 						<< "Key \""
@@ -495,8 +505,6 @@ namespace Revolution {
 	}
 
 	void Application::run() {
-		Worker_pool worker_pool;
-
 		while (get_status()) {
 			auto message = get_messenger().timed_receive(
 				get_endpoint().get_name()
@@ -505,7 +513,7 @@ namespace Revolution {
 			if (!message)
 				continue;
 
-			worker_pool.work(
+			get_worker_pool().work(
 				std::bind(
 					&Application::handle,
 					this,

@@ -13,6 +13,7 @@
 #include "configuration.h"
 #include "logger.h"
 #include "messenger.h"
+#include "worker_pool.h"
 
 namespace Revolution {
 	class Application {
@@ -34,6 +35,8 @@ namespace Revolution {
 		const Topology& get_topology() const;
 		const Logger& get_logger() const;
 		const std::atomic_bool& get_status() const;
+
+		Worker_pool& get_worker_pool();
 
 		std::optional<const std::reference_wrapper<const Handler>>
 			get_handler(const std::string& header);
@@ -69,6 +72,9 @@ namespace Revolution {
 		virtual void broadcast(
 			const Messenger::Message& message
 		) const = 0;
+
+		virtual void add_handlers();
+		virtual void sync();
 
 		virtual void setup();
 	private:
@@ -118,6 +124,7 @@ namespace Revolution {
 		const Topology topology;
 		const Logger logger;
 		const Messenger messenger;
+		Worker_pool worker_pool;
 		std::atomic_bool status;
 		std::unordered_map<std::string, Handler> handlers;
 		std::unordered_map<std::string, std::string> states;
