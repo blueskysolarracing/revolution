@@ -29,7 +29,7 @@ At project root,
 
 	sudo ./install.sh
 
-### Running
+### Starting
 
 At project root,
 
