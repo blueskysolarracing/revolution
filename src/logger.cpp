@@ -1,7 +1,5 @@
 #include "logger.h"
 
-#include <iostream>
-#include <mutex>
 #include <sstream>
 
 #include <systemd/sd-journal.h>

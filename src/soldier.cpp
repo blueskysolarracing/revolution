@@ -10,16 +10,16 @@ namespace Revolution {
 		const Topology& topology
 	) : Application{header_space, key_space, topology} {}
 
+	const Topology::Endpoint& Soldier::get_syncer() const {
+		return get_topology().get_marshal();
+	}
+
 	void Soldier::broadcast(
 		const std::string& header,
 		const std::vector<std::string>& data,
 		const unsigned int& priority
 	) const {
 		send_marshal(header, data, priority);
-	}
-
-	const Topology::Endpoint& Soldier::get_syncer() const {
-		return get_topology().get_marshal();
 	}
 
 	void Soldier::broadcast(
@@ -34,12 +34,12 @@ namespace Revolution {
 			);
 	}
 
-	void Soldier::send_marshal(
+	Messenger::Message Soldier::send_marshal(
 		const std::string& header,
 		const std::vector<std::string>& data,
 		const unsigned int& priority
 	) const {
-		send(
+		return send(
 			get_topology().get_marshal().get_name(),
 			header,
 			data,

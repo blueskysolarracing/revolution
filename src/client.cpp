@@ -1,4 +1,5 @@
 #include <atomic>
+#include <functional>
 #include <iostream>
 #include <optional>
 #include <sstream>

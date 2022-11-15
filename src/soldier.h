@@ -23,7 +23,7 @@ namespace Revolution {
 		void broadcast(
 			const Messenger::Message& message
 		) const override;
-		void send_marshal(
+		Messenger::Message send_marshal(
 			const std::string& header,
 			const std::vector<std::string>& data = {},
 			const unsigned int& priority = 0

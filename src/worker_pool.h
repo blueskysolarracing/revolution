@@ -14,14 +14,17 @@ namespace Revolution {
 	public:
 		using Job = std::function<void()>;
 
-		Worker_pool();
+		Worker_pool(
+			const unsigned int& thread_count
+				= get_default_thread_count()
+		);
 		~Worker_pool();
 
 		void work(const Job& job);
 	private:
-		static const unsigned int thread_count;
+		static const unsigned int default_thread_count;
 
-		static const unsigned int& get_thread_count();
+		static const unsigned int& get_default_thread_count();
 
 		const std::atomic_bool& get_status() const;
 		const std::list<std::thread>& get_threads() const;

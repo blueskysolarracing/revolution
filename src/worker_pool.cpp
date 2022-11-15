@@ -9,13 +9,14 @@
 #include <thread>
 
 namespace Revolution {
-	Worker_pool::Worker_pool()
-		: status{true},
-		  threads{},
-		  jobs{},
-		  job_mutex{},
-		  job_condition_variable{} {
-		for (unsigned int i = 0; i < get_thread_count(); ++i)
+	Worker_pool::Worker_pool(
+		const unsigned int& thread_count
+	) : status{true},
+	    threads{},
+	    jobs{},
+	    job_mutex{},
+	    job_condition_variable{} {
+		for (unsigned int i = 0; i < thread_count; ++i)
 			threads.emplace_back(
 				std::bind(&Worker_pool::worker, this)
 			);
@@ -38,11 +39,12 @@ namespace Revolution {
 		get_job_condition_variable().notify_all();
 	}
 
-	const unsigned int
-		Worker_pool::thread_count{std::thread::hardware_concurrency()};
+	const unsigned int Worker_pool::default_thread_count{
+		std::thread::hardware_concurrency()
+	};
 
-	const unsigned int& Worker_pool::get_thread_count() {
-		return thread_count;
+	const unsigned int& Worker_pool::get_default_thread_count() {
+		return default_thread_count;
 	}
 
 	const std::atomic_bool& Worker_pool::get_status() const {

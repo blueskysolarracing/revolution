@@ -1,5 +1,9 @@
 #include "marshal.h"
 
+#include <optional>
+#include <string>
+#include <vector>
+
 #include "application.h"
 #include "configuration.h"
 
@@ -60,52 +64,6 @@ namespace Revolution {
 					data,
 					priority
 				);
-	}
-
-	std::vector<Messenger::Message> Marshal::communicate_soldiers(
-		const std::string& header,
-		const std::vector<std::string>& data,
-		const unsigned int& priority
-	) {
-		std::vector<Messenger::Message> messages;
-
-		for (const auto& soldier : get_topology().get_soldiers())
-			messages.push_back(
-				communicate(
-					soldier.get().get_name(),
-					header,
-					data,
-					priority
-				)
-			);
-
-		return messages;
-	}
-
-	std::vector<std::optional<Messenger::Message>>
-		Marshal::communicate_soldiers_except(
-		const std::string& recipient_name,
-		const std::string& header,
-		const std::vector<std::string>& data,
-		const unsigned int& priority
-	) {
-		std::vector<std::optional<Messenger::Message>> messages;
-
-		for (const auto& soldier : get_topology().get_soldiers()) {
-			if (soldier.get().get_name() == recipient_name)
-				messages.push_back(std::nullopt);
-			else
-				messages.push_back(
-					communicate(
-						soldier.get().get_name(),
-						header,
-						data,
-						priority
-					)
-				);
-		}
-
-		return messages;
 	}
 }
 
