@@ -3,5 +3,5 @@
 TODOS:
 
 - Message timestamps
-- use sd-journalctl for logger
-- do not blindly create new threads and instead have a bunch of worker threads for each app.
+- Message handle empty strings when serializing/deserializing (now, there is a bug)
+- Unit tests

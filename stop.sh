@@ -9,3 +9,5 @@ systemctl stop \
 	revolution@replica \
 	revolution@telemeter \
 	revolution@voltage_controller
+
+./src/resetter
