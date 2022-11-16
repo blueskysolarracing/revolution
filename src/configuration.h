@@ -9,6 +9,7 @@ namespace Revolution {
 	class Header_space {
 	public:
 		explicit Header_space(
+			const std::string& abort = "ABORT",
 			const std::string& exit = "EXIT",
 			const std::string& get = "GET",
 			const std::string& reset = "RESET",
@@ -17,6 +18,7 @@ namespace Revolution {
 			const std::string& status = "STATUS"
 		);
 
+		const std::string& get_abort() const;
 		const std::string& get_exit() const;
 		const std::string& get_get() const;
 		const std::string& get_reset() const;
@@ -24,6 +26,7 @@ namespace Revolution {
 		const std::string& get_set() const;
 		const std::string& get_status() const;
 	private:
+		const std::string abort;
 		const std::string exit;
 		const std::string get;
 		const std::string reset;

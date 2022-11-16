@@ -2,7 +2,7 @@
 
 #include <atomic>
 #include <condition_variable>
-#include <cstddef>
+#include <cstdlib>
 #include <functional>
 #include <list>
 #include <mutex>
@@ -108,7 +108,7 @@ namespace Revolution {
 				<< "\"..."
 				<< std::endl;
 
-		get_handlers().emplace(header, handler);
+		get_handlers()[header] = handler;
 	}
 
 	std::optional<std::string>
@@ -135,7 +135,7 @@ namespace Revolution {
 	) {
 		std::scoped_lock lock{get_state_mutex()};
 
-		get_states().emplace(key, value);
+		get_states()[key] = value;
 
 		broadcast(get_header_space().get_set(), {key, value});
 	}
@@ -175,6 +175,14 @@ namespace Revolution {
 			<< "Adding handlers..."
 			<< std::endl;
 
+		set_handler(
+			get_header_space().get_abort(),
+			std::bind(
+				&Application::handle_abort,
+				this,
+				std::placeholders::_1
+			)
+		);
 		set_handler(
 			get_header_space().get_exit(),
 			std::bind(
@@ -350,6 +358,22 @@ namespace Revolution {
 	}
 
 	std::vector<std::string>
+		Application::handle_abort(const Messenger::Message& message) {
+		if (!message.get_data().empty())
+			get_logger() << Logger::Severity::warning
+				<< "Abort expects no arguments, "
+				<< "but at least one was supplied. "
+				<< "They will be ignored."
+				<< std::endl;
+
+		get_logger() << Logger::Severity::information
+			<< "Aborting..."
+			<< std::endl;
+
+		abort();
+	}
+
+	std::vector<std::string>
 		Application::handle_exit(const Messenger::Message& message) {
 		if (!message.get_data().empty())
 			get_logger() << Logger::Severity::warning
@@ -460,10 +484,8 @@ namespace Revolution {
 				<< std::endl;
 
 		for (std::size_t i{}; i + 1 < message.get_data().size(); i += 2)
-			get_states().emplace(
-				message.get_data()[i],
-				message.get_data()[i + 1]
-			);
+			get_states()[message.get_data()[i]]
+				= message.get_data()[i + 1];
 
 		broadcast(message);
 
@@ -491,17 +513,24 @@ namespace Revolution {
 
 		auto values = handler.value()(message);
 
-		if (message.get_header() != get_header_space().get_response())
-			get_messenger().send(
-				Messenger::Message{
-					get_endpoint().get_name(),
-					message.get_sender_name(),
-					get_header_space().get_response(),
-					values,
-					message.get_priority(),
-					message.get_identity()
-				}
-			);
+		if (message.get_header() != get_header_space().get_response()) {
+			Messenger::Message response{
+				get_endpoint().get_name(),
+				message.get_sender_name(),
+				get_header_space().get_response(),
+				values,
+				message.get_priority(),
+				message.get_identity()
+			};
+
+			get_logger() << Logger::Severity::information
+				<< "Sending response: \""
+				<< response.serialize()
+				<< "\"..."
+				<< std::endl;
+
+			get_messenger().send(response);
+		}
 	}
 
 	void Application::run() {

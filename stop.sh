@@ -1,5 +1,7 @@
 #!/bin/bash
 
+PROJECT_PATH=$(realpath $(dirname ${BASH_SOURCE[0]}))
+
 systemctl stop \
 	revolution@marshal \
 	revolution@display_driver \
@@ -10,4 +12,4 @@ systemctl stop \
 	revolution@telemeter \
 	revolution@voltage_controller
 
-./src/resetter
+$PROJECT_PATH/src/unlinker

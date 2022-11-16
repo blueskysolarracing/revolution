@@ -106,6 +106,8 @@ namespace Revolution {
 		void set_response(const Messenger::Message& message);
 
 		std::vector<std::string>
+			handle_abort(const Messenger::Message& message);
+		std::vector<std::string>
 			handle_exit(const Messenger::Message& message);
 		std::vector<std::string>
 			handle_read(const Messenger::Message& message);

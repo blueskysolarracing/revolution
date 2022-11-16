@@ -6,18 +6,24 @@
 
 namespace Revolution {
 	Header_space::Header_space(
+		const std::string& abort,
 		const std::string& exit,
 		const std::string& get,
 		const std::string& reset,
 		const std::string& response,
 		const std::string& set,
 		const std::string& status
-	) : exit{exit},
+	) : abort{abort},
+	    exit{exit},
 	    get{get},
 	    reset{reset},
 	    response{response},
 	    set{set},
 	    status{status} {}
+
+	const std::string& Header_space::get_abort() const {
+		return abort;
+	}
 
 	const std::string& Header_space::get_exit() const {
 		return exit;
