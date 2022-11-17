@@ -1,13 +1,15 @@
 #include "replica.h"
 
+#include <functional>
+
 #include "configuration.h"
 #include "soldier.h"
 
 namespace Revolution {
 	Replica::Replica(
-		const Header_space& header_space,
-		const Key_space& key_space,
-		const Topology& topology
+		const std::reference_wrapper<const Header_space>& header_space,
+		const std::reference_wrapper<const Key_space>& key_space,
+		const std::reference_wrapper<const Topology>& topology
 	) : Soldier{header_space, key_space, topology} {}
 
 	const Topology::Endpoint& Replica::get_endpoint() const {

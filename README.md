@@ -23,6 +23,12 @@ At project root,
 
 	make
 
+### Integration Testing
+
+At project root,
+
+	python -m unittest discover
+
 ### Installing
 
 At project root,

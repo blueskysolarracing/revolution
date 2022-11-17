@@ -1,13 +1,17 @@
 #include "soldier.h"
 
+#include <functional>
+#include <string>
+#include <vector>
+
 #include "application.h"
 #include "configuration.h"
 
 namespace Revolution {
 	Soldier::Soldier(
-		const Header_space& header_space,
-		const Key_space& key_space,
-		const Topology& topology
+		const std::reference_wrapper<const Header_space>& header_space,
+		const std::reference_wrapper<const Key_space>& key_space,
+		const std::reference_wrapper<const Topology>& topology
 	) : Application{header_space, key_space, topology} {}
 
 	const Topology::Endpoint& Soldier::get_syncer() const {

@@ -20,9 +20,9 @@
 
 namespace Revolution {
 	Application::Application(
-		const Header_space& header_space,
-		const Key_space& key_space,
-		const Topology& topology
+		const std::reference_wrapper<const Header_space>& header_space,
+		const std::reference_wrapper<const Key_space>& key_space,
+		const std::reference_wrapper<const Topology>& topology
 	) : header_space{header_space},
 	    key_space{key_space},
 	    topology{topology},

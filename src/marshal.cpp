@@ -1,6 +1,6 @@
 #include "marshal.h"
 
-#include <optional>
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -9,9 +9,9 @@
 
 namespace Revolution {
 	Marshal::Marshal(
-		const Header_space& header_space,
-		const Key_space& key_space,
-		const Topology& topology
+		const std::reference_wrapper<const Header_space>& header_space,
+		const std::reference_wrapper<const Key_space>& key_space,
+		const std::reference_wrapper<const Topology>& topology
 	) : Application{header_space, key_space, topology} {}
 
 	const Topology::Endpoint& Marshal::get_endpoint() const {

@@ -22,10 +22,12 @@ class FailoverTestCase(TestCase):
 
     def setUp(self):
         start()
+        sleep(1)
         self.client = Client('client')
 
     def tearDown(self):
         stop()
+        sleep(1)
         del self.client
 
     def test_marshal_failover(self):
@@ -60,7 +62,6 @@ class FailoverTestCase(TestCase):
             )
 
         Topology.MARSHAL.abort(self.client)
-
         sleep(1)
 
         for endpoint in Topology.get_endpoints():
@@ -81,7 +82,6 @@ class FailoverTestCase(TestCase):
                 )
 
         start()
-
         sleep(1)
 
         self.client.receive()
@@ -110,7 +110,6 @@ class FailoverTestCase(TestCase):
             )
 
         Topology.REPLICA.abort(self.client)
-
         sleep(1)
 
         for endpoint in Topology.get_endpoints():
@@ -131,7 +130,6 @@ class FailoverTestCase(TestCase):
                 )
 
         start()
-
         sleep(1)
 
         self.client.receive()
@@ -172,7 +170,6 @@ class FailoverTestCase(TestCase):
             )
 
         Topology.DISPLAY_DRIVER.abort(self.client)
-
         sleep(1)
 
         for endpoint in Topology.get_endpoints():
@@ -193,7 +190,6 @@ class FailoverTestCase(TestCase):
                 )
 
         start()
-
         sleep(1)
 
         self.client.receive()
@@ -252,7 +248,6 @@ class FailoverTestCase(TestCase):
                 )
 
         start()
-
         sleep(1)
 
         for endpoint in Topology.get_endpoints():
@@ -311,7 +306,6 @@ class FailoverTestCase(TestCase):
                 )
 
         start()
-
         sleep(1)
 
         for endpoint in Topology.get_endpoints():
@@ -345,7 +339,6 @@ class FailoverTestCase(TestCase):
 
         Topology.MARSHAL.abort(self.client)
         Topology.REPLICA.abort(self.client)
-
         sleep(1)
 
         for endpoint in Topology.get_endpoints():
@@ -373,7 +366,6 @@ class FailoverTestCase(TestCase):
                 )
 
         start()
-
         sleep(1)
 
         self.client.receive()

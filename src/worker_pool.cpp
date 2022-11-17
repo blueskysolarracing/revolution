@@ -9,13 +9,12 @@
 #include <thread>
 
 namespace Revolution {
-	Worker_pool::Worker_pool(
-		const unsigned int& thread_count
-	) : status{true},
-	    threads{},
-	    jobs{},
-	    job_mutex{},
-	    job_condition_variable{} {
+	Worker_pool::Worker_pool(const unsigned int& thread_count)
+		: status{true},
+		  threads{},
+	    	  jobs{},
+	    	  job_mutex{},
+	    	  job_condition_variable{} {
 		for (unsigned int i = 0; i < thread_count; ++i)
 			threads.emplace_back(
 				std::bind(&Worker_pool::worker, this)

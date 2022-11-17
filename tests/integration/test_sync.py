@@ -1,3 +1,4 @@
+from time import sleep
 from unittest import TestCase, main
 
 from tests.integration.utilities import (
@@ -21,10 +22,12 @@ class SyncTestCase(TestCase):
 
     def setUp(self):
         start()
+        sleep(1)
         self.client = Client('client')
 
     def tearDown(self):
         stop()
+        sleep(1)
         del self.client
 
     def test_marshal_write(self):
