@@ -129,6 +129,10 @@ namespace Revolution {
 		Application::get_state(const std::string& key) {
 		std::scoped_lock lock{get_state_mutex()};
 
+		get_logger() << Logger::Severity::information
+			<< "Locked states..."
+			<< std::endl;
+
 		if (!get_states().count(key)) {
 			get_logger() << Logger::Severity::warning
 				<< "Key \""
@@ -140,6 +144,10 @@ namespace Revolution {
 			return std::nullopt;
 		}
 
+		get_logger() << Logger::Severity::information
+			<< "Unlocking states..."
+			<< std::endl;
+
 		return get_states().at(key);
 	}
 
@@ -149,28 +157,180 @@ namespace Revolution {
 	) {
 		std::scoped_lock lock{get_state_mutex()};
 
-		get_states()[key] = value;
+		get_logger() << Logger::Severity::information
+			<< "Locked states..."
+			<< std::endl;
 
-		broadcast(get_header_space().get_set(), {key, value});
+		help_set_state(key, value);
+
+		get_logger() << Logger::Severity::information
+			<< "Unlocking states..."
+			<< std::endl;
 	}
 
-	Messenger::Message Application::send(
-		const std::string& recipient_name,
-		const std::string& header,
-		const std::vector<std::string>& data,
-		const unsigned int& priority
-	) const {
-		Messenger::Message message{
-			get_endpoint().get_name(),
-			recipient_name,
-			header,
-			data,
-			priority
-		};
+	void Application::help_set_state(
+		const std::string& key,
+		const std::string& value
+	) {
+		get_states()[key] = value;
+	}
 
-		get_messenger().send(message);
+	std::vector<std::string>
+		Application::handle_abort(const Messenger::Message& message) {
+		if (!message.get_data().empty())
+			get_logger() << Logger::Severity::warning
+				<< "Abort expects no arguments, "
+				<< "but at least one was supplied. "
+				<< "They will be ignored."
+				<< std::endl;
 
-		return message;
+		get_logger() << Logger::Severity::information
+			<< "Aborting..."
+			<< std::endl;
+
+		std::abort();
+	}
+
+	std::vector<std::string>
+		Application::handle_exit(const Messenger::Message& message) {
+		if (!message.get_data().empty())
+			get_logger() << Logger::Severity::warning
+				<< "Exit expects no arguments, "
+				<< "but at least one was supplied. "
+				<< "They will be ignored."
+				<< std::endl;
+
+		get_logger() << Logger::Severity::information
+			<< "Exiting gracefully..."
+			<< std::endl;
+
+		get_status() = false;
+
+		return {};
+	}
+
+	std::vector<std::string>
+		Application::handle_read(const Messenger::Message& message) {
+		std::scoped_lock lock{get_state_mutex()};
+		std::vector<std::string> data;
+
+		get_logger() << Logger::Severity::information
+			<< "Locked states..."
+			<< std::endl;
+
+		if (message.get_data().empty()) {
+			get_logger() << Logger::Severity::information
+				<< "Reading all key(s)..."
+				<< std::endl;
+
+			for (const auto& [key, value] : get_states()) {
+				data.push_back(key);
+				data.push_back(value);
+			}
+		} else {
+			get_logger() << Logger::Severity::information
+				<< "Reading "
+				<< message.get_data().size()
+				<< " key(s)..."
+				<< std::endl;
+
+			for (const auto& key : message.get_data()) {
+				if (get_states().count(key)) {
+					data.push_back(key);
+					data.push_back(get_states().at(key));
+				} else
+					get_logger()
+						<< Logger::Severity::warning
+						<< "Key \""
+						<< key
+						<< "\" not found. "
+						<< "Ignoring key..."
+						<< std::endl;
+			}
+		}
+
+		get_logger() << Logger::Severity::information
+			<< "Unlocking states..."
+			<< std::endl;
+
+		return data;
+	}
+
+	std::vector<std::string> Application::handle_response(
+		const Messenger::Message& message
+	) {
+		get_logger() << Logger::Severity::information
+			<< "Waking up a corresponding thread (if any)..."
+			<< std::endl;
+
+		set_response(message);
+
+		return {};
+	}
+
+	std::vector<std::string>
+		Application::handle_status(const Messenger::Message& message) const {
+		if (!message.get_data().empty())
+			get_logger() << Logger::Severity::warning
+				<< "Status expects no arguments, "
+				<< "but at least one was supplied. "
+				<< "They will be ignored."
+				<< std::endl;
+
+		get_logger() << Logger::Severity::information
+			<< "Status report requested. Sending response..."
+			<< std::endl;
+
+		return {};
+	}
+
+	std::vector<std::string>
+		Application::handle_write(const Messenger::Message& message) {
+		std::scoped_lock lock{get_state_mutex()};
+
+		get_logger() << Logger::Severity::information
+			<< "Locked states..."
+			<< std::endl;
+
+		auto data = help_handle_write(message);
+
+		get_logger() << Logger::Severity::information
+			<< "Unlocking states..."
+			<< std::endl;
+
+		return data;
+	}
+
+	std::vector<std::string> Application::help_handle_write(
+		const Messenger::Message& message
+	) {
+		if (message.get_header() == get_header_space().get_reset()) {
+			get_logger() << Logger::Severity::information
+				<< "Clearing states..."
+				<< std::endl;
+
+			get_states().clear();
+		}
+
+		get_logger() << Logger::Severity::information
+			<< "Writing "
+			<< message.get_data().size() / 2
+			<< " key(s)..."
+			<< std::endl;
+
+		if (message.get_data().size() % 2 == 1)
+			get_logger() << Logger::Severity::warning
+				<< "Unpaired key \""
+				<< message.get_data().back()
+				<< "\" provided. "
+				<< "This key will be ignored."
+				<< std::endl;
+
+		for (std::size_t i{}; i + 1 < message.get_data().size(); i += 2)
+			get_states()[message.get_data()[i]]
+				= message.get_data()[i + 1];
+
+		return {};
 	}
 
 	Messenger::Message Application::communicate(
@@ -244,30 +404,6 @@ namespace Revolution {
 				this,
 				std::placeholders::_1
 			)
-		);
-	}
-
-	void Application::sync() {
-		get_logger() << Logger::Severity::information
-			<< "Syncing with "
-			<< get_syncer().get_name()
-			<< "..."
-			<< std::endl;
-
-		auto message = communicate(
-			get_syncer().get_name(),
-			get_header_space().get_get()
-		);
-
-		handle_write(
-			Messenger::Message{
-				message.get_sender_name(),
-				message.get_recipient_name(),
-				get_header_space().get_reset(),
-				message.get_data(),
-				message.get_priority(),
-				message.get_identity()
-			}
 		);
 	}
 
@@ -371,142 +507,68 @@ namespace Revolution {
 		get_response_condition_variable().notify_all();
 	}
 
-	std::vector<std::string>
-		Application::handle_abort(const Messenger::Message& message) {
-		if (!message.get_data().empty())
-			get_logger() << Logger::Severity::warning
-				<< "Abort expects no arguments, "
-				<< "but at least one was supplied. "
-				<< "They will be ignored."
-				<< std::endl;
-
-		get_logger() << Logger::Severity::information
-			<< "Aborting..."
-			<< std::endl;
-
-		std::abort();
-	}
-
-	std::vector<std::string>
-		Application::handle_exit(const Messenger::Message& message) {
-		if (!message.get_data().empty())
-			get_logger() << Logger::Severity::warning
-				<< "Exit expects no arguments, "
-				<< "but at least one was supplied. "
-				<< "They will be ignored."
-				<< std::endl;
-
-		get_logger() << Logger::Severity::information
-			<< "Exiting gracefully..."
-			<< std::endl;
-
-		get_status() = false;
-
-		return {};
-	}
-
-	std::vector<std::string> Application::handle_read(
-		const Messenger::Message& message
-	) {
-		std::scoped_lock lock{get_state_mutex()};
-		std::vector<std::string> data;
-
-		if (message.get_data().empty()) {
-			get_logger() << Logger::Severity::information
-				<< "Reading all key(s)..."
-				<< std::endl;
-
-			for (const auto& [key, value] : get_states()) {
-				data.push_back(key);
-				data.push_back(value);
-			}
-		} else {
-			get_logger() << Logger::Severity::information
-				<< "Reading "
-				<< message.get_data().size()
-				<< " key(s)..."
-				<< std::endl;
-
-			for (const auto& key : message.get_data()) {
-				if (get_states().count(key)) {
-					data.push_back(key);
-					data.push_back(get_states().at(key));
-				} else
-					get_logger()
-						<< Logger::Severity::warning
-						<< "Key \""
-						<< key
-						<< "\" not found. "
-						<< "Ignoring key..."
-						<< std::endl;
-			}
-		}
-
-		return data;
-	}
-
-	std::vector<std::string> Application::handle_response(
-		const Messenger::Message& message
-	) {
-		set_response(message);
-
-		return {};
-	}
-
-	std::vector<std::string> Application::handle_status(
-		const Messenger::Message& message
+	Messenger::Message Application::send(
+		const std::string& recipient_name,
+		const std::string& header,
+		const std::vector<std::string>& data,
+		const unsigned int& priority
 	) const {
-		if (!message.get_data().empty())
-			get_logger() << Logger::Severity::warning
-				<< "Status expects no arguments, "
-				<< "but at least one was supplied. "
-				<< "They will be ignored."
-				<< std::endl;
+		Messenger::Message message{
+			get_endpoint().get_name(),
+			recipient_name,
+			header,
+			data,
+			priority
+		};
 
 		get_logger() << Logger::Severity::information
-			<< "Status report requested. Sending response..."
+			<< "Sending message: \""
+			<< message.serialize()
+			<< "\"..."
 			<< std::endl;
 
-		return {};
+		get_messenger().send(message);
+
+		return message;
 	}
 
-	std::vector<std::string> Application::handle_write(
-		const Messenger::Message& message
-	) {
-		std::scoped_lock lock{get_state_mutex()};
-
-		if (message.get_header() == get_header_space().get_reset()) {
-			get_logger() << Logger::Severity::information
-				<< "Clearing states..."
-				<< std::endl;
-
-			get_states().clear();
-		}
-
+	void Application::sync() {
 		get_logger() << Logger::Severity::information
-			<< "Writing "
-			<< message.get_data().size() / 2
-			<< " key(s)..."
+			<< "Syncing with "
+			<< get_syncer().get_name()
+			<< "..."
 			<< std::endl;
 
-		if (message.get_data().size() % 2 == 1)
-			get_logger() << Logger::Severity::warning
-				<< "Unpaired key \""
-				<< message.get_data().back()
-				<< "\" provided. "
-				<< "This key will be ignored."
-				<< std::endl;
+		auto message = communicate(
+			get_syncer().get_name(),
+			get_header_space().get_get()
+		);
 
-		for (std::size_t i{}; i + 1 < message.get_data().size(); i += 2)
-			get_states()[message.get_data()[i]]
-				= message.get_data()[i + 1];
-
-		broadcast(message);
-
-		return {};
+		handle_write(
+			Messenger::Message{
+				message.get_sender_name(),
+				message.get_recipient_name(),
+				get_header_space().get_reset(),
+				message.get_data(),
+				message.get_priority(),
+				message.get_identity()
+			}
+		);
 	}
 
 	void Application::handle(const Messenger::Message& message) {
+		if (message.get_header() == get_header_space().get_response()) {
+			handle_response(message);
+
+			return;
+		}
+
+		get_worker_pool().work(
+			std::bind(&Application::help_handle, this, message)
+		);
+	}
+
+	void Application::help_handle(const Messenger::Message& message) {
 		auto handler = get_handler(message.get_header());
 
 		if (!handler) {
@@ -519,32 +581,24 @@ namespace Revolution {
 			return;
 		}
 
+		auto data = handler.value()(message);
+
+		Messenger::Message response{
+			get_endpoint().get_name(),
+			message.get_sender_name(),
+			get_header_space().get_response(),
+			data,
+			message.get_priority(),
+			message.get_identity()
+		};
+
 		get_logger() << Logger::Severity::information
-			<< "Handling message: \""
-			<< message.serialize()
+			<< "Sending response: \""
+			<< response.serialize()
 			<< "\"..."
 			<< std::endl;
 
-		auto values = handler.value()(message);
-
-		if (message.get_header() != get_header_space().get_response()) {
-			Messenger::Message response{
-				get_endpoint().get_name(),
-				message.get_sender_name(),
-				get_header_space().get_response(),
-				values,
-				message.get_priority(),
-				message.get_identity()
-			};
-
-			get_logger() << Logger::Severity::information
-				<< "Sending response: \""
-				<< response.serialize()
-				<< "\"..."
-				<< std::endl;
-
-			get_messenger().send(response);
-		}
+		get_messenger().send(response);
 	}
 
 	void Application::run() {
@@ -553,14 +607,15 @@ namespace Revolution {
 				get_endpoint().get_name()
 			);
 
-			if (message)
-				get_worker_pool().work(
-					std::bind(
-						&Application::handle,
-						this,
-						message.value()
-					)
-				);
+			if (message) {
+				get_logger() << Logger::Severity::information
+					<< "Received message: \""
+					<< message.value().serialize()
+					<< "\"..."
+					<< std::endl;
+
+				handle(message.value());
+			}
 
 			get_heart().beat();
 		}

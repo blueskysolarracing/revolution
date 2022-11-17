@@ -14,6 +14,22 @@ namespace Revolution {
 		const std::reference_wrapper<const Topology>& topology
 	) : Application{header_space, key_space, topology} {}
 
+	void Marshal::help_set_state(
+		const std::string& key,
+		const std::string& value
+	) {
+		Application::help_set_state(key, value);
+
+		get_logger() << Logger::Severity::information
+			<< "Broadcasting write to soldiers..."
+			<< std::endl;
+
+		communicate_soldiers(
+			get_header_space().get_set(),
+			{key, value}
+		);
+	}
+
 	const Topology::Endpoint& Marshal::get_endpoint() const {
 		return get_topology().get_marshal();
 	}
@@ -22,48 +38,43 @@ namespace Revolution {
 		return get_topology().get_replica();
 	}
 
-	void Marshal::broadcast(
-		const std::string& header,
-		const std::vector<std::string>& data,
-		const unsigned int& priority
-	) const {
-		send_soldiers(header, data, priority);
-	}
+	std::vector<std::string>
+		Marshal::help_handle_write(const Messenger::Message& message) {
+		auto data = Application::help_handle_write(message);
 
-	void Marshal::broadcast(
-		const Messenger::Message& message
-	) const {
-		send_soldiers_except(
-			message.get_sender_name(),
+		get_logger() << Logger::Severity::information
+			<< "Broadcasting message: \""
+			<< message.serialize()
+			<< "\" to soldiers..."
+			<< std::endl;
+
+		communicate_soldiers(
 			message.get_header(),
 			message.get_data(),
 			message.get_priority()
 		);
+
+		return data;
 	}
 
-	void Marshal::send_soldiers(
+	std::vector<Messenger::Message> Marshal::communicate_soldiers(
 		const std::string& header,
 		const std::vector<std::string>& data,
 		const unsigned int& priority
-	) const {
-		for (const auto& soldier : get_topology().get_soldiers())
-			send(soldier.get().get_name(), header, data, priority);
-	}
+	) {
+		std::vector<Messenger::Message> messages;
 
-	void Marshal::send_soldiers_except(
-		const std::string& recipient_name,
-		const std::string& header,
-		const std::vector<std::string>& data,
-		const unsigned int& priority
-	) const {
 		for (const auto& soldier : get_topology().get_soldiers())
-			if (soldier.get().get_name() != recipient_name)
-				send(
+			messages.push_back(
+				communicate(
 					soldier.get().get_name(),
 					header,
 					data,
 					priority
-				);
+				)
+			);
+
+		return messages;
 	}
 }
 

@@ -268,7 +268,7 @@ class FailoverTestCase(TestCase):
                 state,
             )
 
-    def test_master_and_non_replica_soldiers_failover(self):
+    def test_marshal_and_non_replica_soldiers_failover(self):
         state = {
             'Tsubasa': 'Family',
             'Mayoi': 'Jiangshi',
@@ -327,7 +327,7 @@ class FailoverTestCase(TestCase):
                 state,
             )
 
-    def test_master_and_replica_failover(self):
+    def test_marshal_and_replica_failover(self):
         state = {
             'Ougi': 'Formula',
             'Sodachi': 'Riddle',

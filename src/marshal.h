@@ -19,28 +19,22 @@ namespace Revolution {
 			const std::reference_wrapper<const Topology>& topology
 		);
 	protected:
+		void help_set_state(
+			const std::string& key,
+			const std::string& value
+		) override;
 		const Topology::Endpoint& get_endpoint() const override;
 		const Topology::Endpoint& get_syncer() const override;
 
-		void broadcast(
-			const std::string& header,
-			const std::vector<std::string>& data = {},
-			const unsigned int& priority = 0
-		) const override;
-		void broadcast(
+		std::vector<std::string> help_handle_write(
 			const Messenger::Message& message
-		) const override;
-		void send_soldiers(
+		) override;
+
+		std::vector<Messenger::Message> communicate_soldiers(
 			const std::string& header,
 			const std::vector<std::string>& data = {},
 			const unsigned int& priority = 0
-		) const;
-		void send_soldiers_except(
-			const std::string& recipient_name,
-			const std::string& header,
-			const std::vector<std::string>& data = {},
-			const unsigned int& priority = 0
-		) const;
+		);
 	};
 }
 

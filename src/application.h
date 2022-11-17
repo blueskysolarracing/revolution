@@ -51,37 +51,40 @@ namespace Revolution {
 			const Handler& handler
 		);
 		std::optional<std::string> get_state(const std::string& key);
-		void set_state(
+		virtual void set_state(
+			const std::string& key,
+			const std::string& value
+		);
+		virtual void help_set_state(
 			const std::string& key,
 			const std::string& value
 		);
 		virtual const Topology::Endpoint& get_endpoint() const = 0;
 		virtual const Topology::Endpoint& get_syncer() const = 0;
 
-		Messenger::Message send(
-			const std::string& recipient_name,
-			const std::string& header,
-			const std::vector<std::string>& data = {},
-			const unsigned int& priority = 0
-		) const;
+		std::vector<std::string>
+			handle_abort(const Messenger::Message& message);
+		std::vector<std::string>
+			handle_exit(const Messenger::Message& message);
+		std::vector<std::string>
+			handle_read(const Messenger::Message& message);
+		std::vector<std::string>
+			handle_response(const Messenger::Message& message);
+		std::vector<std::string>
+			handle_status(const Messenger::Message& message) const;
+		virtual std::vector<std::string>
+			handle_write(const Messenger::Message& message);
+		virtual std::vector<std::string>
+			help_handle_write(const Messenger::Message& message);
+
 		Messenger::Message communicate(
 			const std::string& recipient_name,
 			const std::string& header,
 			const std::vector<std::string>& data = {},
 			const unsigned int& priority = 0
 		);
-		virtual void broadcast(
-			const std::string& header,
-			const std::vector<std::string>& data = {},
-			const unsigned int& priority = 0
-		) const = 0;
-		virtual void broadcast(
-			const Messenger::Message& message
-		) const = 0;
 
 		virtual void add_handlers();
-		virtual void sync();
-
 		virtual void setup();
 	private:
 		const Messenger& get_messenger() const;
@@ -111,20 +114,16 @@ namespace Revolution {
 			get_response(const Messenger::Message& message);
 		void set_response(const Messenger::Message& message);
 
-		std::vector<std::string>
-			handle_abort(const Messenger::Message& message);
-		std::vector<std::string>
-			handle_exit(const Messenger::Message& message);
-		std::vector<std::string>
-			handle_read(const Messenger::Message& message);
-		std::vector<std::string>
-			handle_response(const Messenger::Message& message);
-		std::vector<std::string>
-			handle_status(const Messenger::Message& message) const;
-		std::vector<std::string>
-			handle_write(const Messenger::Message& message);
-		void handle(const Messenger::Message& message);
+		Messenger::Message send(
+			const std::string& recipient_name,
+			const std::string& header,
+			const std::vector<std::string>& data = {},
+			const unsigned int& priority = 0
+		) const;
 
+		void sync();
+		void handle(const Messenger::Message& message);
+		void help_handle(const Messenger::Message& message);
 		void run();
 
 		const std::reference_wrapper<const Header_space> header_space;
