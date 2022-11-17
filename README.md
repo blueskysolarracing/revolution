@@ -58,3 +58,7 @@ At project root,
 - Message timestamps
 - Handle empty strings properly when serializing/deserializing messages
 - Unit tests
+- Performance tests
+- Documentation (probably using sphinx)
+- Integration test for stress testing
+- Improve python integration test utilities to directly use c++ stuff and use message queues (current approach far too slow)
