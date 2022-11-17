@@ -12,6 +12,8 @@ from tests.integration.utilities import (
 
 
 class SyncTestCase(TestCase):
+    TIMEOUT = 1
+
     @classmethod
     def setUpClass(cls):
         install()
@@ -22,12 +24,12 @@ class SyncTestCase(TestCase):
 
     def setUp(self):
         start()
-        sleep(1)
+        sleep(self.TIMEOUT)
         self.client = Client('client')
 
     def tearDown(self):
         stop()
-        sleep(1)
+        sleep(self.TIMEOUT)
         del self.client
 
     def test_marshal_write(self):

@@ -12,6 +12,8 @@ from tests.integration.utilities import (
 
 
 class FailoverTestCase(TestCase):
+    TIMEOUT = 1
+
     @classmethod
     def setUpClass(cls):
         install()
@@ -22,12 +24,12 @@ class FailoverTestCase(TestCase):
 
     def setUp(self):
         start()
-        sleep(1)
+        sleep(self.TIMEOUT)
         self.client = Client('client')
 
     def tearDown(self):
         stop()
-        sleep(1)
+        sleep(self.TIMEOUT)
         del self.client
 
     def test_marshal_failover(self):
@@ -62,7 +64,7 @@ class FailoverTestCase(TestCase):
             )
 
         Topology.MARSHAL.abort(self.client)
-        sleep(1)
+        sleep(self.TIMEOUT)
 
         for endpoint in Topology.get_endpoints():
             self.assertDictEqual(
@@ -71,6 +73,7 @@ class FailoverTestCase(TestCase):
             )
 
         Topology.MARSHAL.exit(self.client)
+        sleep(self.TIMEOUT)
 
         for endpoint in Topology.get_endpoints():
             if endpoint == Topology.MARSHAL:
@@ -82,7 +85,7 @@ class FailoverTestCase(TestCase):
                 )
 
         start()
-        sleep(1)
+        sleep(self.TIMEOUT)
 
         self.client.receive()
 
@@ -110,7 +113,7 @@ class FailoverTestCase(TestCase):
             )
 
         Topology.REPLICA.abort(self.client)
-        sleep(1)
+        sleep(self.TIMEOUT)
 
         for endpoint in Topology.get_endpoints():
             self.assertDictEqual(
@@ -119,6 +122,7 @@ class FailoverTestCase(TestCase):
             )
 
         Topology.REPLICA.exit(self.client)
+        sleep(self.TIMEOUT)
 
         for endpoint in Topology.get_endpoints():
             if endpoint == Topology.REPLICA:
@@ -130,7 +134,7 @@ class FailoverTestCase(TestCase):
                 )
 
         start()
-        sleep(1)
+        sleep(self.TIMEOUT)
 
         self.client.receive()
 
@@ -170,7 +174,7 @@ class FailoverTestCase(TestCase):
             )
 
         Topology.DISPLAY_DRIVER.abort(self.client)
-        sleep(1)
+        sleep(self.TIMEOUT)
 
         for endpoint in Topology.get_endpoints():
             self.assertDictEqual(
@@ -179,6 +183,7 @@ class FailoverTestCase(TestCase):
             )
 
         Topology.DISPLAY_DRIVER.exit(self.client)
+        sleep(self.TIMEOUT)
 
         for endpoint in Topology.get_endpoints():
             if endpoint == Topology.DISPLAY_DRIVER:
@@ -190,7 +195,7 @@ class FailoverTestCase(TestCase):
                 )
 
         start()
-        sleep(1)
+        sleep(self.TIMEOUT)
 
         self.client.receive()
 
@@ -224,7 +229,7 @@ class FailoverTestCase(TestCase):
                     and endpoint != Topology.REPLICA:
                 endpoint.abort(self.client)
 
-        sleep(1)
+        sleep(self.TIMEOUT)
 
         for endpoint in Topology.get_endpoints():
             self.assertDictEqual(
@@ -237,6 +242,8 @@ class FailoverTestCase(TestCase):
                     and endpoint != Topology.REPLICA:
                 endpoint.exit(self.client)
 
+        sleep(self.TIMEOUT)
+
         for endpoint in Topology.get_endpoints():
             if endpoint != Topology.MARSHAL \
                     and endpoint != Topology.REPLICA:
@@ -248,7 +255,7 @@ class FailoverTestCase(TestCase):
                 )
 
         start()
-        sleep(1)
+        sleep(self.TIMEOUT)
 
         for endpoint in Topology.get_endpoints():
             if endpoint != Topology.MARSHAL \
@@ -284,7 +291,7 @@ class FailoverTestCase(TestCase):
             if endpoint != Topology.REPLICA:
                 endpoint.abort(self.client)
 
-        sleep(1)
+        sleep(self.TIMEOUT)
 
         for endpoint in Topology.get_endpoints():
             self.assertDictEqual(
@@ -296,6 +303,8 @@ class FailoverTestCase(TestCase):
             if endpoint != Topology.REPLICA:
                 endpoint.exit(self.client)
 
+        sleep(self.TIMEOUT)
+
         for endpoint in Topology.get_endpoints():
             if endpoint != Topology.REPLICA:
                 self.assertIsNone(endpoint.get_state(self.client))
@@ -306,7 +315,7 @@ class FailoverTestCase(TestCase):
                 )
 
         start()
-        sleep(1)
+        sleep(self.TIMEOUT)
 
         for endpoint in Topology.get_endpoints():
             if endpoint != Topology.REPLICA:
@@ -339,7 +348,7 @@ class FailoverTestCase(TestCase):
 
         Topology.MARSHAL.abort(self.client)
         Topology.REPLICA.abort(self.client)
-        sleep(1)
+        sleep(self.TIMEOUT)
 
         for endpoint in Topology.get_endpoints():
             self.assertDictEqual(endpoint.get_state(self.client), {})
@@ -354,6 +363,7 @@ class FailoverTestCase(TestCase):
 
         Topology.MARSHAL.exit(self.client)
         Topology.REPLICA.exit(self.client)
+        sleep(self.TIMEOUT)
 
         for endpoint in Topology.get_endpoints():
             if endpoint == Topology.MARSHAL \
@@ -366,7 +376,7 @@ class FailoverTestCase(TestCase):
                 )
 
         start()
-        sleep(1)
+        sleep(self.TIMEOUT)
 
         self.client.receive()
         self.client.receive()
