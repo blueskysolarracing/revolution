@@ -4,11 +4,17 @@ CXXFLAGS=-pedantic -std=c++17 -Wall -Wextra
 LOADLIBES=-lpthread -lrt -lsystemd
 
 MARSHAL_NAME=marshal
-MARSHAL_OBJECTS=configuration.o logger.o messenger.o worker_pool.o application.o
-
+MARSHAL_OBJECTS=\
+	configuration.o \
+	heart.o \
+	logger.o \
+	messenger.o \
+	worker_pool.o \
+	application.o
 DISPLAY_DRIVER_NAME=display_driver
 DISPLAY_DRIVER_OBJECTS=\
 	configuration.o \
+	heart.o \
 	logger.o \
 	messenger.o \
 	worker_pool.o \
@@ -17,6 +23,7 @@ DISPLAY_DRIVER_OBJECTS=\
 MISCELLANEOUS_CONTROLLER_NAME=miscellaneous_controller
 MISCELLANEOUS_CONTROLLER_OBJECTS=\
 	configuration.o \
+	heart.o \
 	logger.o \
 	messenger.o \
 	worker_pool.o \
@@ -25,6 +32,7 @@ MISCELLANEOUS_CONTROLLER_OBJECTS=\
 MOTOR_CONTROLLER_NAME=motor_controller
 MOTOR_CONTROLLER_OBJECTS=\
 	configuration.o \
+	heart.o \
 	logger.o \
 	messenger.o \
 	worker_pool.o \
@@ -33,6 +41,7 @@ MOTOR_CONTROLLER_OBJECTS=\
 POWER_SENSOR_NAME=power_sensor
 POWER_SENSOR_OBJECTS=\
 	configuration.o \
+	heart.o \
 	logger.o \
 	messenger.o \
 	worker_pool.o \
@@ -41,6 +50,7 @@ POWER_SENSOR_OBJECTS=\
 REPLICA_NAME=replica
 REPLICA_OBJECTS=\
 	configuration.o \
+	heart.o \
 	logger.o \
 	messenger.o \
 	worker_pool.o \
@@ -49,6 +59,7 @@ REPLICA_OBJECTS=\
 TELEMETER_NAME=telemeter
 TELEMETER_OBJECTS=\
 	configuration.o \
+	heart.o \
 	logger.o \
 	messenger.o \
 	worker_pool.o \
@@ -57,12 +68,12 @@ TELEMETER_OBJECTS=\
 VOLTAGE_CONTROLLER_NAME=voltage_controller
 VOLTAGE_CONTROLLER_OBJECTS=\
 	configuration.o \
+	heart.o \
 	logger.o \
 	messenger.o \
 	worker_pool.o \
 	application.o \
 	soldier.o
-
 CLIENT_NAME=client
 CLIENT_OBJECTS=messenger.o
 UNLINKER_NAME=unlinker

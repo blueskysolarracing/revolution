@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "configuration.h"
+#include "heart.h"
 #include "logger.h"
 #include "messenger.h"
 #include "worker_pool.h"
@@ -28,6 +29,7 @@ namespace Revolution {
 	    topology{topology},
 	    logger{},
 	    messenger{},
+	    heart{},
 	    worker_pool{},
 	    status{},
 	    handlers{},
@@ -71,8 +73,20 @@ namespace Revolution {
 		return logger;
 	}
 
+	const Heart& Application::get_heart() const {
+		return heart;
+	}
+
+	const Worker_pool& Application::get_worker_pool() const {
+		return worker_pool;
+	}
+
 	const std::atomic_bool& Application::get_status() const {
 		return status;
+	}
+
+	Heart& Application::get_heart() {
+		return heart;
 	}
 
 	Worker_pool& Application::get_worker_pool() {
@@ -370,7 +384,7 @@ namespace Revolution {
 			<< "Aborting..."
 			<< std::endl;
 
-		abort();
+		std::abort();
 	}
 
 	std::vector<std::string>
@@ -539,16 +553,16 @@ namespace Revolution {
 				get_endpoint().get_name()
 			);
 
-			if (!message)
-				continue;
+			if (message)
+				get_worker_pool().work(
+					std::bind(
+						&Application::handle,
+						this,
+						message.value()
+					)
+				);
 
-			get_worker_pool().work(
-				std::bind(
-					&Application::handle,
-					this,
-					message.value()
-				)
-			);
+			get_heart().beat();
 		}
 	}
 }

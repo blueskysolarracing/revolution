@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "configuration.h"
+#include "heart.h"
 #include "logger.h"
 #include "messenger.h"
 #include "worker_pool.h"
@@ -36,8 +37,11 @@ namespace Revolution {
 		const Key_space& get_key_space() const;
 		const Topology& get_topology() const;
 		const Logger& get_logger() const;
+		const Heart& get_heart() const;
+		const Worker_pool& get_worker_pool() const;
 		const std::atomic_bool& get_status() const;
 
+		Heart& get_heart();
 		Worker_pool& get_worker_pool();
 
 		std::optional<const std::reference_wrapper<const Handler>>
@@ -128,6 +132,7 @@ namespace Revolution {
 		const std::reference_wrapper<const Topology> topology;
 		const Logger logger;
 		const Messenger messenger;
+		Heart heart;
 		Worker_pool worker_pool;
 		std::atomic_bool status;
 		std::unordered_map<std::string, Handler> handlers;
