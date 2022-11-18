@@ -1,3 +1,4 @@
+from random import choice
 from time import sleep
 from unittest import TestCase, main
 
@@ -237,6 +238,39 @@ class SyncTestCase(TestCase):
             self.assertDictEqual(
                 endpoint.get_state(self.client),
                 state | extra_state,
+            )
+
+    def test_random_update(self):
+        count = 100
+        key = 'voice'
+        values = 'dub', 'sub'
+        state = None
+
+        for _ in range(count):
+            endpoint = choice(Topology.get_endpoints())
+            value = choice(values)
+            state = {key: value}
+            endpoint.set_state(self.client, state)
+
+        for endpoint in Topology.get_endpoints():
+            self.assertEqual(
+                endpoint.get_state(self.client),
+                state,
+            )
+
+    def test_write(self):
+        count = 100
+
+        for i in range(count):
+            endpoint = choice(Topology.get_endpoints())
+            endpoint.set_state(self.client, {str(i): str(i)})
+
+        state = dict(zip(map(str, range(count)), map(str, range(count))))
+
+        for endpoint in Topology.get_endpoints():
+            self.assertEqual(
+                endpoint.get_state(self.client),
+                state,
             )
 
 
