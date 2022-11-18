@@ -3,7 +3,6 @@
 
 #include <atomic>
 #include <chrono>
-#include <functional>
 #include <thread>
 
 #include "logger.h"

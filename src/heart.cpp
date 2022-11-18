@@ -1,7 +1,6 @@
 #include <atomic>
 #include <chrono>
 #include <cstdlib>
-#include <functional>
 #include <iostream>
 #include <thread>
 
@@ -20,15 +19,15 @@ namespace Revolution {
 		get_thread().join();
 	}
 
+	void Heart::beat() {
+		++get_count();
+	}
+
 	const Heart::Timeout Heart::default_timeout
 		= std::chrono::seconds(1);
 
 	const Heart::Timeout& Heart::get_default_timeout() {
 		return default_timeout;
-	}
-
-	void Heart::beat() {
-		++get_count();
 	}
 
 	const Heart::Timeout& Heart::get_timeout() const {

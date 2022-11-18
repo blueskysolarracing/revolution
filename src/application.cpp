@@ -4,12 +4,10 @@
 #include <condition_variable>
 #include <cstdlib>
 #include <functional>
-#include <list>
 #include <mutex>
 #include <optional>
 #include <ostream>
 #include <string>
-#include <thread>
 #include <unordered_map>
 #include <vector>
 
@@ -127,10 +125,14 @@ namespace Revolution {
 
 	std::optional<std::string>
 		Application::get_state(const std::string& key) {
+		get_logger() << Logger::Severity::information
+			<< "Locking states..."
+			<< std::endl;
+
 		std::scoped_lock lock{get_state_mutex()};
 
 		get_logger() << Logger::Severity::information
-			<< "Locked states..."
+			<< "Locked states."
 			<< std::endl;
 
 		if (!get_states().count(key)) {
@@ -155,10 +157,14 @@ namespace Revolution {
 		const std::string& key,
 		const std::string& value
 	) {
+		get_logger() << Logger::Severity::information
+			<< "Locking states..."
+			<< std::endl;
+
 		std::scoped_lock lock{get_state_mutex()};
 
 		get_logger() << Logger::Severity::information
-			<< "Locked states..."
+			<< "Locked states."
 			<< std::endl;
 
 		help_set_state(key, value);
@@ -211,11 +217,15 @@ namespace Revolution {
 
 	std::vector<std::string>
 		Application::handle_read(const Messenger::Message& message) {
+		get_logger() << Logger::Severity::information
+			<< "Locking states..."
+			<< std::endl;
+
 		std::scoped_lock lock{get_state_mutex()};
 		std::vector<std::string> data;
 
 		get_logger() << Logger::Severity::information
-			<< "Locked states..."
+			<< "Locked states."
 			<< std::endl;
 
 		if (message.get_data().empty()) {
@@ -286,10 +296,14 @@ namespace Revolution {
 
 	std::vector<std::string>
 		Application::handle_write(const Messenger::Message& message) {
+		get_logger() << Logger::Severity::information
+			<< "Locking states..."
+			<< std::endl;
+
 		std::scoped_lock lock{get_state_mutex()};
 
 		get_logger() << Logger::Severity::information
-			<< "Locked states..."
+			<< "Locked states."
 			<< std::endl;
 
 		auto data = help_handle_write(message);
@@ -573,7 +587,7 @@ namespace Revolution {
 
 		if (!handler) {
 			get_logger() << Logger::Severity::warning
-				<< "Unhandled message: \""
+				<< "Skipping handling of message: \""
 				<< message.serialize()
 				<< "\"..."
 				<< std::endl;
@@ -611,7 +625,7 @@ namespace Revolution {
 				get_logger() << Logger::Severity::information
 					<< "Received message: \""
 					<< message.value().serialize()
-					<< "\"..."
+					<< "\"."
 					<< std::endl;
 
 				handle(message.value());

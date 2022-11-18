@@ -8,7 +8,7 @@ Gen 12 software for Blue Sky Solar Racing.
 
 - systemd
 - libsystemd-dev
-- g++ (supports c++17)
+- g++ (c++17 support)
 
 Below command will take care of dependencies in most systems.
 
@@ -61,4 +61,4 @@ At project root,
 - Performance tests
 - Documentation (probably using sphinx)
 - Integration test for stress testing
-- Improve python integration test utilities to directly use c++ stuff and use message queues (current approach far too slow)
+- Improve python integration test utilities to directly use c++ stuff and mqueue
