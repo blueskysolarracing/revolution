@@ -31,9 +31,11 @@ namespace Revolution {
 	    worker_pool{},
 	    status{},
 	    handlers{},
+	    watchers{},
 	    states{},
 	    responses{},
 	    handler_mutex{},
+	    watcher_mutex{},
 	    state_mutex{},
 	    response_mutex{},
 	    response_condition_variable{} {}
@@ -123,6 +125,38 @@ namespace Revolution {
 		get_handlers()[header] = handler;
 	}
 
+	std::optional<const std::reference_wrapper<const Application::Watcher>>
+		Application::get_watcher(const std::string& key) {
+		std::scoped_lock lock{get_watcher_mutex()};
+
+		if (!get_watchers().count(key))
+			return std::nullopt;
+
+		return get_watchers().at(key);
+	}
+
+	void Application::set_watcher(
+		const std::string& key,
+		const Watcher& watcher
+	) {
+		std::scoped_lock lock{get_watcher_mutex()};
+
+		if (get_watchers().count(key))
+			get_logger() << Logger::Severity::warning
+				<< "Overriding an existing watcher: \""
+				<< key
+				<< "\"..."
+				<< std::endl;
+		else
+			get_logger() << Logger::Severity::information
+				<< "Adding watcher: \""
+				<< key
+				<< "\"..."
+				<< std::endl;
+
+		get_watchers()[key] = watcher;
+	}
+
 	std::optional<std::string>
 		Application::get_state(const std::string& key) {
 		get_logger() << Logger::Severity::information
@@ -179,6 +213,11 @@ namespace Revolution {
 		const std::string& value
 	) {
 		get_states()[key] = value;
+
+		auto watcher = get_watcher(key);
+
+		if (watcher)
+			watcher.value()(key, value);
 	}
 
 	std::vector<std::string>
@@ -318,14 +357,6 @@ namespace Revolution {
 	std::vector<std::string> Application::help_handle_write(
 		const Messenger::Message& message
 	) {
-		if (message.get_header() == get_header_space().get_reset()) {
-			get_logger() << Logger::Severity::information
-				<< "Clearing states..."
-				<< std::endl;
-
-			get_states().clear();
-		}
-
 		get_logger() << Logger::Severity::information
 			<< "Writing "
 			<< message.get_data().size() / 2
@@ -341,8 +372,10 @@ namespace Revolution {
 				<< std::endl;
 
 		for (std::size_t i{}; i + 1 < message.get_data().size(); i += 2)
-			get_states()[message.get_data()[i]]
-				= message.get_data()[i + 1];
+			help_set_state(
+				message.get_data()[i],
+				message.get_data()[i + 1]
+			);
 
 		return {};
 	}
@@ -388,14 +421,6 @@ namespace Revolution {
 			)
 		);
 		set_handler(
-			get_header_space().get_reset(),
-			std::bind(
-				&Application::handle_write,
-				this,
-				std::placeholders::_1
-			)
-		);
-		set_handler(
 			get_header_space().get_response(),
 			std::bind(
 				&Application::handle_response,
@@ -421,9 +446,16 @@ namespace Revolution {
 		);
 	}
 
+	void Application::add_watchers() {
+		get_logger() << Logger::Severity::information
+			<< "Adding watchers..."
+			<< std::endl;
+	}
+
 	void Application::setup() {
 		get_status() = true;
 		add_handlers();
+		add_watchers();
 		get_worker_pool().work(std::bind(&Application::sync, this));
 	}
 
@@ -434,6 +466,11 @@ namespace Revolution {
 	const std::unordered_map<std::string, Application::Handler>&
 		Application::get_handlers() const {
 		return handlers;
+	}
+
+	const std::unordered_map<std::string, Application::Watcher>&
+		Application::get_watchers() const {
+		return watchers;
 	}
 
 	const std::unordered_map<std::string, std::string>&
@@ -448,6 +485,10 @@ namespace Revolution {
 
 	const std::mutex& Application::get_handler_mutex() const {
 		return handler_mutex;
+	}
+
+	const std::mutex& Application::get_watcher_mutex() const {
+		return watcher_mutex;
 	}
 
 	const std::mutex& Application::get_state_mutex() const {
@@ -472,6 +513,11 @@ namespace Revolution {
 		return handlers;
 	}
 
+	std::unordered_map<std::string, Application::Watcher>&
+		Application::get_watchers() {
+		return watchers;
+	}
+
 	std::unordered_map<std::string, std::string>&
 		Application::get_states() {
 		return states;
@@ -484,6 +530,10 @@ namespace Revolution {
 
 	std::mutex& Application::get_handler_mutex() {
 		return handler_mutex;
+	}
+
+	std::mutex& Application::get_watcher_mutex() {
+		return watcher_mutex;
 	}
 
 	std::mutex& Application::get_state_mutex() {
@@ -562,7 +612,7 @@ namespace Revolution {
 			Messenger::Message{
 				message.get_sender_name(),
 				message.get_recipient_name(),
-				get_header_space().get_reset(),
+				get_header_space().get_set(),
 				message.get_data(),
 				message.get_priority(),
 				message.get_identity()

@@ -9,14 +9,12 @@ namespace Revolution {
 		const std::string& abort,
 		const std::string& exit,
 		const std::string& get,
-		const std::string& reset,
 		const std::string& response,
 		const std::string& set,
 		const std::string& status
 	) : abort{abort},
 	    exit{exit},
 	    get{get},
-	    reset{reset},
 	    response{response},
 	    set{set},
 	    status{status} {}
@@ -31,10 +29,6 @@ namespace Revolution {
 
 	const std::string& Header_space::get_get() const {
 		return get;
-	}
-
-	const std::string& Header_space::get_reset() const {
-		return reset;
 	}
 
 	const std::string& Header_space::get_response() const {

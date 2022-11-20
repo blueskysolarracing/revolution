@@ -12,7 +12,6 @@ namespace Revolution {
 			const std::string& abort = "ABORT",
 			const std::string& exit = "EXIT",
 			const std::string& get = "GET",
-			const std::string& reset = "RESET",
 			const std::string& response = "RESPONSE",
 			const std::string& set = "SET",
 			const std::string& status = "STATUS"
@@ -21,7 +20,6 @@ namespace Revolution {
 		const std::string& get_abort() const;
 		const std::string& get_exit() const;
 		const std::string& get_get() const;
-		const std::string& get_reset() const;
 		const std::string& get_response() const;
 		const std::string& get_set() const;
 		const std::string& get_status() const;
@@ -29,7 +27,6 @@ namespace Revolution {
 		const std::string abort;
 		const std::string exit;
 		const std::string get;
-		const std::string reset;
 		const std::string response;
 		const std::string set;
 		const std::string status;

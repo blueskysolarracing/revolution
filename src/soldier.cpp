@@ -68,14 +68,6 @@ namespace Revolution {
 		Application::add_handlers();
 
 		set_handler(
-			get_header_space().get_reset(),
-			std::bind(
-				&Soldier::handle_write,
-				this,
-				std::placeholders::_1
-			)
-		);
-		set_handler(
 			get_header_space().get_set(),
 			std::bind(
 				&Soldier::handle_write,

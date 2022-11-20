@@ -39,12 +39,9 @@ class SyncTestCase(TestCase):
         Topology.MARSHAL.set_state(self.client, state)
 
         for endpoint in Topology.get_endpoints():
-            self.assertDictEqual(
-                endpoint.get_state(self.client),
-                state,
-            )
+            self.assertDictEqual(endpoint.get_state(self.client), state)
 
-        state = {
+        state |= {
             'Zero': '0',
             'One': '1',
             'Two': '2',
@@ -57,31 +54,26 @@ class SyncTestCase(TestCase):
             'Nine': '9',
         }
 
-        Topology.MARSHAL.reset_state(self.client, state)
+        Topology.MARSHAL.set_state(self.client, state)
 
         for endpoint in Topology.get_endpoints():
-            self.assertDictEqual(
-                endpoint.get_state(self.client),
-                state,
-            )
+            self.assertDictEqual(endpoint.get_state(self.client), state)
 
         extra_state = {
             'One': 'Ichi',
             'Two': 'Ni',
         }
+        state |= extra_state
 
         Topology.MARSHAL.set_state(self.client, extra_state)
 
         for endpoint in Topology.get_endpoints():
-            self.assertDictEqual(
-                endpoint.get_state(self.client),
-                state | extra_state,
-            )
+            self.assertDictEqual(endpoint.get_state(self.client), state)
 
-        Topology.MARSHAL.reset_state(self.client, {})
+        Topology.MARSHAL.set_state(self.client, {})
 
         for endpoint in Topology.get_endpoints():
-            self.assertDictEqual(endpoint.get_state(self.client), {})
+            self.assertDictEqual(endpoint.get_state(self.client), state)
 
     def test_soldier_write(self):
         state = {
@@ -96,68 +88,53 @@ class SyncTestCase(TestCase):
         Topology.REPLICA.set_state(self.client, state)
 
         for endpoint in Topology.get_endpoints():
-            self.assertDictEqual(
-                endpoint.get_state(self.client),
-                state,
-            )
+            self.assertDictEqual(endpoint.get_state(self.client), state)
 
-        delta = {
+        extra_state = {
             'A': 'alpha',
             'B': 'beta',
             'C': 'theta',
             'D': 'gamma',
         }
-        state |= delta
+        state |= extra_state
 
-        Topology.REPLICA.set_state(self.client, delta)
+        Topology.REPLICA.set_state(self.client, extra_state)
 
         for endpoint in Topology.get_endpoints():
-            self.assertDictEqual(
-                endpoint.get_state(self.client),
-                state,
-            )
+            self.assertDictEqual(endpoint.get_state(self.client), state)
 
-        delta = {
+        extra_state = {
             'O': 'Omega',
             'Z': 'zeta',
         }
-        state |= delta
+        state |= extra_state
 
-        Topology.TELEMETER.set_state(self.client, delta)
+        Topology.TELEMETER.set_state(self.client, extra_state)
 
         for endpoint in Topology.get_endpoints():
-            self.assertDictEqual(
-                endpoint.get_state(self.client),
-                state,
-            )
+            self.assertDictEqual(endpoint.get_state(self.client), state)
 
-        state = {
+        state |= {
             'A': 'A',
             'B': 'B',
             'C': 'C',
         }
 
-        Topology.MISCELLANEOUS_CONTROLLER.reset_state(self.client, state)
+        Topology.MISCELLANEOUS_CONTROLLER.set_state(self.client, state)
 
         for endpoint in Topology.get_endpoints():
-            self.assertDictEqual(
-                endpoint.get_state(self.client),
-                state,
-            )
+            self.assertDictEqual(endpoint.get_state(self.client), state)
 
-        delta = {
+        extra_state = {
             'Y': 'Y',
             'Z': 'Z',
         }
-        state |= delta
+        state |= extra_state
 
-        Topology.VOLTAGE_CONTROLLER.set_state(self.client, delta)
+        Topology.VOLTAGE_CONTROLLER.set_state(self.client, extra_state)
 
         for endpoint in Topology.get_endpoints():
-            self.assertDictEqual(
-                endpoint.get_state(self.client),
-                state,
-            )
+            self.assertDictEqual(endpoint.get_state(self.client), state)
 
     def test_mixed_write(self):
         state = {
@@ -168,61 +145,49 @@ class SyncTestCase(TestCase):
         Topology.MARSHAL.set_state(self.client, state)
 
         for endpoint in Topology.get_endpoints():
-            self.assertDictEqual(
-                endpoint.get_state(self.client),
-                state,
-            )
+            self.assertDictEqual(endpoint.get_state(self.client), state)
 
         extra_state = {
             'Alexander': 'Borodin',
         }
+        state |= extra_state
 
         Topology.POWER_SENSOR.set_state(self.client, extra_state)
 
         for endpoint in Topology.get_endpoints():
-            self.assertDictEqual(
-                endpoint.get_state(self.client),
-                state | extra_state,
-            )
+            self.assertDictEqual(endpoint.get_state(self.client), state)
 
-        state = {
+        extra_state = {
             'Anton': 'Webern',
         }
+        state |= extra_state
 
-        Topology.DISPLAY_DRIVER.reset_state(self.client, state)
+        Topology.DISPLAY_DRIVER.set_state(self.client, extra_state)
         for endpoint in Topology.get_endpoints():
-            self.assertDictEqual(
-                endpoint.get_state(self.client),
-                state,
-            )
+            self.assertDictEqual(endpoint.get_state(self.client), state)
 
-        state = {
+        state |= {
             'Franz': 'Liszt',
             'Charles-Valentin': 'Alkan',
             'Frederic': 'Chopin',
         }
 
-        Topology.REPLICA.reset_state(self.client, state)
+        Topology.REPLICA.set_state(self.client, state)
 
         for endpoint in Topology.get_endpoints():
-            self.assertDictEqual(
-                endpoint.get_state(self.client),
-                state,
-            )
+            self.assertDictEqual(endpoint.get_state(self.client), state)
 
         extra_state = {
             'Dmitri': 'Shostakovich',
             'Sergei': 'Prokofiev',
             'Nikolai': 'Medtner',
         }
+        state |= extra_state
 
         Topology.MARSHAL.set_state(self.client, extra_state)
 
         for endpoint in Topology.get_endpoints():
-            self.assertDictEqual(
-                endpoint.get_state(self.client),
-                state | extra_state,
-            )
+            self.assertDictEqual(endpoint.get_state(self.client), state)
 
         extra_state |= {
             'Maurice': 'Ravel',
@@ -231,14 +196,12 @@ class SyncTestCase(TestCase):
             'Camille': 'Saint-Saens',
             'Kaikhorsru': 'Sorabji',
         }
+        state |= extra_state
 
         Topology.MOTOR_CONTROLLER.set_state(self.client, extra_state)
 
         for endpoint in Topology.get_endpoints():
-            self.assertDictEqual(
-                endpoint.get_state(self.client),
-                state | extra_state,
-            )
+            self.assertDictEqual(endpoint.get_state(self.client), state)
 
     def test_random_update(self):
         count = 100
@@ -253,10 +216,7 @@ class SyncTestCase(TestCase):
             endpoint.set_state(self.client, state)
 
         for endpoint in Topology.get_endpoints():
-            self.assertEqual(
-                endpoint.get_state(self.client),
-                state,
-            )
+            self.assertEqual(endpoint.get_state(self.client), state)
 
     def test_write(self):
         count = 100
@@ -268,10 +228,7 @@ class SyncTestCase(TestCase):
         state = dict(zip(map(str, range(count)), map(str, range(count))))
 
         for endpoint in Topology.get_endpoints():
-            self.assertEqual(
-                endpoint.get_state(self.client),
-                state,
-            )
+            self.assertEqual(endpoint.get_state(self.client), state)
 
 
 if __name__ == '__main__':

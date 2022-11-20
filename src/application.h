@@ -32,6 +32,9 @@ namespace Revolution {
 		using Handler = std::function<
 			std::vector<std::string>(const Messenger::Message&)
 		>;
+		using Watcher = std::function<
+			void(const std::string&, const std::string&)
+		>;
 
 		const Header_space& get_header_space() const;
 		const Key_space& get_key_space() const;
@@ -49,6 +52,12 @@ namespace Revolution {
 		void set_handler(
 			const std::string& header,
 			const Handler& handler
+		);
+		std::optional<const std::reference_wrapper<const Watcher>>
+			get_watcher(const std::string& key);
+		void set_watcher(
+			const std::string& key,
+			const Watcher& watcher
 		);
 		std::optional<std::string> get_state(const std::string& key);
 		virtual void set_state(
@@ -85,16 +94,19 @@ namespace Revolution {
 		);
 
 		virtual void add_handlers();
+		virtual void add_watchers();
 		virtual void setup();
 	private:
 		const Messenger& get_messenger() const;
 		const std::unordered_map<std::string, Handler>&
 			get_handlers() const;
+		const std::unordered_map<std::string, Watcher>& get_watchers() const;
 		const std::unordered_map<std::string, std::string>&
 			get_states() const;
 		const std::unordered_map<unsigned int, Messenger::Message>&
 			get_responses() const;
 		const std::mutex& get_handler_mutex() const;
+		const std::mutex& get_watcher_mutex() const;
 		const std::mutex& get_state_mutex() const;
 		const std::mutex& get_response_mutex() const;
 		const std::condition_variable&
@@ -102,10 +114,12 @@ namespace Revolution {
 
 		std::atomic_bool& get_status();
 		std::unordered_map<std::string, Handler>& get_handlers();
+		std::unordered_map<std::string, Watcher>& get_watchers();
 		std::unordered_map<std::string, std::string>& get_states();
 		std::unordered_map<unsigned int, Messenger::Message>&
 			get_responses();
 		std::mutex& get_handler_mutex();
+		std::mutex& get_watcher_mutex();
 		std::mutex& get_state_mutex();
 		std::mutex& get_response_mutex();
 		std::condition_variable& get_response_condition_variable();
@@ -135,9 +149,11 @@ namespace Revolution {
 		Worker_pool worker_pool;
 		std::atomic_bool status;
 		std::unordered_map<std::string, Handler> handlers;
+		std::unordered_map<std::string, Watcher> watchers;
 		std::unordered_map<std::string, std::string> states;
 		std::unordered_map<unsigned int, Messenger::Message> responses;
 		std::mutex handler_mutex;
+		std::mutex watcher_mutex;
 		std::mutex state_mutex;
 		std::mutex response_mutex;
 		std::condition_variable response_condition_variable;
