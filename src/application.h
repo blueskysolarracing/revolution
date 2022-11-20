@@ -103,8 +103,10 @@ namespace Revolution {
 		const std::unordered_map<std::string, Watcher>& get_watchers() const;
 		const std::unordered_map<std::string, std::string>&
 			get_states() const;
-		const std::unordered_map<unsigned int, Messenger::Message>&
-			get_responses() const;
+		const std::unordered_map<
+			unsigned int,
+			std::optional<Messenger::Message>
+		>& get_responses() const;
 		const std::mutex& get_handler_mutex() const;
 		const std::mutex& get_watcher_mutex() const;
 		const std::mutex& get_state_mutex() const;
@@ -116,8 +118,10 @@ namespace Revolution {
 		std::unordered_map<std::string, Handler>& get_handlers();
 		std::unordered_map<std::string, Watcher>& get_watchers();
 		std::unordered_map<std::string, std::string>& get_states();
-		std::unordered_map<unsigned int, Messenger::Message>&
-			get_responses();
+		std::unordered_map<
+			unsigned int,
+			std::optional<Messenger::Message>
+		>& get_responses();
 		std::mutex& get_handler_mutex();
 		std::mutex& get_watcher_mutex();
 		std::mutex& get_state_mutex();
@@ -151,7 +155,10 @@ namespace Revolution {
 		std::unordered_map<std::string, Handler> handlers;
 		std::unordered_map<std::string, Watcher> watchers;
 		std::unordered_map<std::string, std::string> states;
-		std::unordered_map<unsigned int, Messenger::Message> responses;
+		std::unordered_map<
+			unsigned int,
+			std::optional<Messenger::Message>
+		> responses;
 		std::mutex handler_mutex;
 		std::mutex watcher_mutex;
 		std::mutex state_mutex;

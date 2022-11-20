@@ -478,7 +478,10 @@ namespace Revolution {
 		return states;
 	}
 
-	const std::unordered_map<unsigned int, Messenger::Message>&
+	const std::unordered_map<
+		unsigned int,
+		std::optional<Messenger::Message>
+	>&
 		Application::get_responses() const {
 		return responses;
 	}
@@ -523,7 +526,7 @@ namespace Revolution {
 		return states;
 	}
 
-	std::unordered_map<unsigned int, Messenger::Message>&
+	std::unordered_map<unsigned int, std::optional<Messenger::Message>>&
 		Application::get_responses() {
 		return responses;
 	}
@@ -552,10 +555,13 @@ namespace Revolution {
 		Application::get_response(const Messenger::Message& message) {
 		std::unique_lock lock{get_response_mutex()};
 
-		while (!get_responses().count(message.get_identity()))
+		get_responses().emplace(message.get_identity(), std::nullopt);
+
+		while (!get_responses().at(message.get_identity()))
 			get_response_condition_variable().wait(lock);
 
-		auto response = get_responses().at(message.get_identity());
+		auto response
+			= get_responses().at(message.get_identity()).value();
 
 		get_responses().erase(message.get_identity());
 
@@ -565,9 +571,14 @@ namespace Revolution {
 	void Application::set_response(const Messenger::Message& message) {
 		std::unique_lock lock{get_response_mutex()};
 
-		get_responses().emplace(message.get_identity(), message);
+		if (get_responses().count(message.get_identity())) {
+			get_responses().erase(message.get_identity());
+			get_responses().emplace(
+				message.get_identity(),
+				message
+			);
+		}
 
-		lock.unlock();
 		get_response_condition_variable().notify_all();
 	}
 

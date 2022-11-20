@@ -34,7 +34,6 @@ namespace Revolution {
 
 		get_jobs().emplace(job);
 
-		lock.unlock();
 		get_job_condition_variable().notify_one();
 	}
 
