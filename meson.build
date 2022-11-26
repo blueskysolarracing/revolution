@@ -14,57 +14,49 @@ threads = dependency('threads')
 librt = cpp.find_library('rt')
 libsystemd = dependency('libsystemd')
 
-dependencies = [threads, librt, libsystemd]
+subdir('src/librevolution')
 
-librevolution_srcs = files(
-  'src/configuration.cpp',
-  'src/heart.cpp',
-  'src/logger.cpp',
-  'src/messenger.cpp',
-  'src/worker_pool.cpp',
-  'src/application.cpp',
-  'src/soldier.cpp',
+librevolution_dep = declare_dependency(
+  link_with: librevolution,
+  include_directories: librevolution_incs,
 )
-librevolution = static_library('revolution',
-  librevolution_srcs,
-  dependencies: dependencies)
 
 executable('marshal',
   'src/marshal.cpp',
-  link_with: librevolution)
+  dependencies: [librevolution_dep])
 
 executable('display_driver',
   'src/display_driver.cpp',
-  link_with: librevolution)
+  dependencies: [librevolution_dep])
 
 executable('miscellaneous_controller',
   'src/miscellaneous_controller.cpp',
-  link_with: librevolution)
+  dependencies: [librevolution_dep])
 
 executable('motor_controller',
   'src/motor_controller.cpp',
-  link_with: librevolution)
+  dependencies: [librevolution_dep])
 
 executable('power_sensor',
   'src/power_sensor.cpp',
-  link_with: librevolution)
+  dependencies: [librevolution_dep])
 
 executable('replica',
   'src/replica.cpp',
-  link_with: librevolution)
+  dependencies: [librevolution_dep])
 
 executable('telemeter',
   'src/telemeter.cpp',
-  link_with: librevolution)
+  dependencies: [librevolution_dep])
 
 executable('voltage_controller',
   'src/voltage_controller.cpp',
-  link_with: librevolution)
+  dependencies: [librevolution_dep])
 
 executable('client',
   'src/client.cpp',
-  link_with: librevolution)
+  dependencies: [librevolution_dep])
 
 executable('unlinker',
   'src/unlinker.cpp',
-  link_with: librevolution)
+  dependencies: [librevolution_dep])
