@@ -9,19 +9,26 @@ Gen 12 software for Blue Sky Solar Racing.
 - systemd
 - libsystemd-dev
 - g++ (c++17 support)
+- meson
+- ninja
 
 Below command will take care of dependencies in most systems.
 
 Debian:
 
-	sudo apt install build-essential libsystemd-dev
+	sudo apt install build-essential libsystemd-dev meson
 	pkg-config --cflags --libs libsystemd
 
 ### Building
 
 At project root,
 
-	make
+```
+meson setup build
+ninja -C build
+```
+
+The executables will be located under the `build/` folder.
 
 ### Integration Testing
 
@@ -33,7 +40,9 @@ At project root,
 
 At project root,
 
-	sudo ./install.sh
+```
+sudo ninja -C build install
+```
 
 ### Starting
 
@@ -51,7 +60,9 @@ At project root,
 
 At project root,
 
-	sudo ./uninstall.sh
+```
+sudo ninja -C build uninstall
+```
 
 ## Todos
 

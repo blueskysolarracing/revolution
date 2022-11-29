@@ -3,10 +3,9 @@ Description=Blue Sky Solar Racing Revolution %I
 
 [Service]
 Type=simple
-User={{ username }}
-ExecStart={{ project_path }}/src/%I
+User=@username@
+ExecStart=@bindir@/%I
 Restart=on-failure
-WorkingDirectory={{ project_path }}/src
 
 [Install]
 WantedBy=multi-user.target
