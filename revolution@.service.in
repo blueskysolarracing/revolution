@@ -1,0 +1,11 @@
+[Unit]
+Description=Blue Sky Solar Racing Revolution %I
+
+[Service]
+Type=simple
+User=@username@
+ExecStart=@bindir@/%I
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
