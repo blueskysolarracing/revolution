@@ -106,6 +106,13 @@ namespace Revolution {
 		return !status;
 	}
 
+	static void unlink_message_queue(const std::string& name) {
+		auto status = mq_unlink(('/' + name).data());
+
+		if (status == -1)
+			throw Messenger::Error{"Cannot unlink message queue"};
+	}
+
 	Messenger::Message Messenger::Message::deserialize(
 		const std::string& raw_message
 	) {
@@ -207,8 +214,13 @@ namespace Revolution {
 	Messenger::Error::Error(const std::string& message)
 		: std::system_error{errno, std::system_category(), message} {}
 
-	Messenger::Message
-		Messenger::receive(const std::string& recipient_name) const {
+	void Messenger::unlink(const std::string& name) {
+		unlink_message_queue(name);
+	}
+
+	Messenger::Message Messenger::receive(
+		const std::string& recipient_name
+	) const {
 		return receive_from_message_queue(recipient_name, [] (
 			const auto& descriptor,
 			auto& raw_message,
@@ -238,22 +250,19 @@ namespace Revolution {
 			);
 		timespec abs_timeout{seconds.count(), nanoseconds.count()};
 
-		return receive_from_message_queue(
-			recipient_name,
-			[&abs_timeout] (
-				const auto& descriptor,
-				auto& raw_message,
-				auto& priority
-			) {
-				return mq_timedreceive(
-					descriptor,
-					raw_message.data(),
-					raw_message.size(),
-					&priority,
-					&abs_timeout
-				);
-			}
-		);
+		return receive_from_message_queue(recipient_name, [&abs_timeout] (
+			const auto& descriptor,
+			auto& raw_message,
+			auto& priority
+		) {
+			return mq_timedreceive(
+				descriptor,
+				raw_message.data(),
+				raw_message.size(),
+				&priority,
+				&abs_timeout
+			);
+		});
 	}
 
 	void Messenger::send(const Message& message) const {
@@ -301,8 +310,9 @@ namespace Revolution {
 		});
 	}
 
-	const Messenger::Timeout Messenger::default_timeout
-		= std::chrono::milliseconds(100);
+	const Messenger::Timeout Messenger::default_timeout{
+		std::chrono::milliseconds(100)
+	};
 
 	const Messenger::Timeout& Messenger::get_default_timeout() {
 		return default_timeout;

@@ -1,15 +1,15 @@
-#ifndef REVOLUTION_MOTOR_CONTROLLER_H
-#define REVOLUTION_MOTOR_CONTROLLER_H
+#ifndef REVOLUTION_DISPLAY_H
+#define REVOLUTION_DISPLAY_H
 
 #include <functional>
 
+#include "application.h"
 #include "configuration.h"
-#include "soldier.h"
 
 namespace Revolution {
-	class Motor_controller : public Soldier {
+	class Display : public Application {
 	public:
-		explicit Motor_controller(
+		explicit Display(
 			const std::reference_wrapper<const Header_space>&
 				header_space,
 			const std::reference_wrapper<const Key_space>&
@@ -17,9 +17,8 @@ namespace Revolution {
 			const std::reference_wrapper<const Topology>& topology
 		);
 	protected:
-		const Topology::Endpoint& get_endpoint() const override;
+		const std::string& get_name() const override;
 	};
 }
 
-#endif	// REVOLUTION_MOTOR_CONTROLLER_H
-
+#endif	// REVOLUTION_DISPLAY_H

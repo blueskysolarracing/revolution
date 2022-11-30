@@ -5,8 +5,6 @@
 #include <chrono>
 #include <thread>
 
-#include "logger.h"
-
 namespace Revolution {
 	class Heart {
 	public:

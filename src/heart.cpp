@@ -1,11 +1,10 @@
+#include "heart.h"
+
 #include <atomic>
 #include <chrono>
 #include <cstdlib>
 #include <iostream>
 #include <thread>
-
-#include "heart.h"
-#include "logger.h"
 
 namespace Revolution {
 	Heart::Heart(const Timeout& timeout)
@@ -23,8 +22,9 @@ namespace Revolution {
 		++get_count();
 	}
 
-	const Heart::Timeout Heart::default_timeout
-		= std::chrono::seconds(1);
+	const Heart::Timeout Heart::default_timeout{
+		std::chrono::seconds(5)
+	};
 
 	const Heart::Timeout& Heart::get_default_timeout() {
 		return default_timeout;

@@ -92,7 +92,10 @@ int main(int argc, char *argv[]) {
 
 	if (argc > 3) {
 		std::string header{argv[3]};
-		std::vector<std::string> data{std::next(argv, 4), std::next(argv, argc)};
+		std::vector<std::string> data{
+			std::next(argv, 4),
+			std::next(argv, argc)
+		};
 
 		messenger.send(
 			Revolution::Messenger::Message{

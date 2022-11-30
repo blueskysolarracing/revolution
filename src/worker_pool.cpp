@@ -12,9 +12,9 @@ namespace Revolution {
 	Worker_pool::Worker_pool(const unsigned int& thread_count)
 		: status{true},
 		  threads{},
-	    	  jobs{},
-	    	  job_mutex{},
-	    	  job_condition_variable{} {
+		  jobs{},
+		  job_mutex{},
+		  job_condition_variable{} {
 		for (unsigned int i = 0; i < thread_count; ++i)
 			threads.emplace_back(
 				std::bind(&Worker_pool::worker, this)
@@ -32,7 +32,7 @@ namespace Revolution {
 	void Worker_pool::work(const Job& job) {
 		std::unique_lock lock{get_job_mutex()};
 
-		get_jobs().emplace(job);
+		get_jobs().push(job);
 
 		get_job_condition_variable().notify_one();
 	}

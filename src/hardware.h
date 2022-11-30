@@ -1,15 +1,15 @@
-#ifndef REVOLUTION_POWER_SENSOR_H
-#define REVOLUTION_POWER_SENSOR_H
+#ifndef REVOLUTION_HARDWARE_H
+#define REVOLUTION_HARDWARE_H
 
 #include <functional>
 
+#include "application.h"
 #include "configuration.h"
-#include "soldier.h"
 
 namespace Revolution {
-	class Power_sensor : public Soldier {
+	class Hardware : public Application {
 	public:
-		explicit Power_sensor(
+		explicit Hardware(
 			const std::reference_wrapper<const Header_space>&
 				header_space,
 			const std::reference_wrapper<const Key_space>&
@@ -17,9 +17,9 @@ namespace Revolution {
 			const std::reference_wrapper<const Topology>& topology
 		);
 	protected:
-		const Topology::Endpoint& get_endpoint() const override;
+		const std::string& get_name() const override;
 	};
 }
 
-#endif	// REVOLUTION_POWER_SENSOR_H
+#endif	// REVOLUTION_HARDWARE_H
 

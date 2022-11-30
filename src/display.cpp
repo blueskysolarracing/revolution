@@ -1,19 +1,19 @@
-#include "voltage_controller.h"
+#include "display.h"
 
 #include <functional>
 
+#include "application.h"
 #include "configuration.h"
-#include "soldier.h"
 
 namespace Revolution {
-	Voltage_controller::Voltage_controller(
+	Display::Display(
 		const std::reference_wrapper<const Header_space>& header_space,
 		const std::reference_wrapper<const Key_space>& key_space,
 		const std::reference_wrapper<const Topology>& topology
-	) : Soldier{header_space, key_space, topology} {}
+	) : Application{header_space, key_space, topology} {}
 
-	const Topology::Endpoint& Voltage_controller::get_endpoint() const {
-		return get_topology().get_voltage_controller();
+	const std::string& Display::get_name() const {
+		return get_topology().get_display();
 	}
 }
 
@@ -21,14 +21,13 @@ int main() {
 	Revolution::Header_space header_space;
 	Revolution::Key_space key_space;
 	Revolution::Topology topology;
-	Revolution::Voltage_controller voltage_controller{
+	Revolution::Display display{
 		header_space,
 		key_space,
 		topology
 	};
 
-	voltage_controller.main();
+	display.main();
 
 	return 0;
 }
-

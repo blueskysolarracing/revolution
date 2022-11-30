@@ -53,6 +53,8 @@ namespace Revolution {
 			explicit Error(const std::string& message);
 		};
 
+		static void unlink(const std::string& name);
+
 		Message receive(const std::string& recipient_name) const;
 		std::optional<Message> timed_receive(
 			const std::string& recipient_name,

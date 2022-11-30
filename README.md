@@ -16,8 +16,10 @@ Below command will take care of dependencies in most systems.
 
 Debian:
 
-	sudo apt install build-essential libsystemd-dev meson
-	pkg-config --cflags --libs libsystemd
+```
+sudo apt install build-essential libsystemd-dev meson
+pkg-config --cflags --libs libsystemd
+```
 
 ### Building
 
@@ -34,7 +36,9 @@ The executables will be located under the `build/` folder.
 
 At project root,
 
-	python -m unittest discover
+```
+python -m unittest discover
+```
 
 ### Installing
 
@@ -48,13 +52,17 @@ sudo ninja -C build install
 
 At project root,
 
-	sudo ./start.sh
+```
+sudo ninja -C build start
+```
 
 ### Stopping
 
 At project root,
 
-	sudo ./stop.sh
+```
+sudo ninja -C build stop
+```
 
 ### Uninstalling
 

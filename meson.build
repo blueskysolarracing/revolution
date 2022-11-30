@@ -1,79 +1,77 @@
 project(
   'revolution',
   'cpp',
-  version: '0.0.0.dev0',
+  version: '0.0.0',
   default_options: [
     'warning_level=3',
     'cpp_std=c++17',
   ],
 )
 
-cpp = meson.get_compiler('cpp')
+cpp_compiler = meson.get_compiler('cpp')
 
-threads = dependency('threads')
-librt = cpp.find_library('rt')
-libsystemd = dependency('libsystemd')
-
-subdir('src/librevolution')
-
-librevolution_dep = declare_dependency(
-  link_with: librevolution,
-  include_directories: librevolution_incs,
+project_source_files = files(
+  'src/application.cpp',
+  'src/configuration.cpp',
+  'src/heart.cpp',
+  'src/logger.cpp',
+  'src/messenger.cpp',
+  'src/worker_pool.cpp',
 )
 
-executable('marshal',
-  'src/marshal.cpp',
-  dependencies: [librevolution_dep],
-  install: true)
+project_dependencies = [
+  dependency('threads'),
+  dependency('libsystemd'),
+  cpp_compiler.find_library('rt'),
+]
 
-executable('display_driver',
-  'src/display_driver.cpp',
-  dependencies: [librevolution_dep],
-  install: true)
+database_target = executable(
+  'database',
+  [project_source_files, './src/database.cpp'],
+  dependencies: project_dependencies,
+  install: true,
+)
 
-executable('miscellaneous_controller',
-  'src/miscellaneous_controller.cpp',
-  dependencies: [librevolution_dep],
-  install: true)
+replica_target = executable(
+  'replica',
+  [project_source_files, 'src/replica.cpp'],
+  dependencies: project_dependencies,
+  install: true,
+)
 
-executable('motor_controller',
-  'src/motor_controller.cpp',
-  dependencies: [librevolution_dep],
-  install: true)
+hardware_target = executable(
+  'hardware',
+  [project_source_files, './src/hardware.cpp'],
+  dependencies: project_dependencies,
+  install: true,
+)
 
-executable('power_sensor',
-  'src/power_sensor.cpp',
-  dependencies: [librevolution_dep],
-  install: true)
+display_target = executable(
+  'display',
+  [project_source_files, 'src/display.cpp'],
+  dependencies: project_dependencies,
+  install: true,
+)
 
-executable('replica',
-  'src/replica.cpp',
-  dependencies: [librevolution_dep],
-  install: true)
+client_target = executable(
+  'client',
+  [project_source_files, 'src/client.cpp'],
+  dependencies: project_dependencies,
+  install: true,
+)
 
-executable('telemeter',
-  'src/telemeter.cpp',
-  dependencies: [librevolution_dep],
-  install: true)
-
-executable('voltage_controller',
-  'src/voltage_controller.cpp',
-  dependencies: [librevolution_dep],
-  install: true)
-
-executable('client',
-  'src/client.cpp',
-  dependencies: [librevolution_dep],
-  install: true)
-
-executable('unlinker',
-  'src/unlinker.cpp',
-  dependencies: [librevolution_dep],
-  install: true)
+unlinker_target = executable(
+  'unlinker',
+  [project_source_files, 'src/unlinker.cpp'],
+  dependencies: project_dependencies,
+  install: true,
+)
 
 systemd = dependency('systemd')
+
 systemd_system_unit_dir = systemd.get_pkgconfig_variable('systemdsystemunitdir')
-configure_file(
+
+systemd_unit_file = configure_file(
   input: 'revolution@.service.in',
   output: 'revolution@.service',
   configuration: {
