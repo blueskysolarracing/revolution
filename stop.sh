@@ -4,4 +4,4 @@ systemctl stop \
 	revolution@database \
 	revolution@replica \
 	revolution@hardware \
-	revolution@display_driver
+	revolution@display

@@ -18,14 +18,15 @@ namespace Revolution {
 		const std::reference_wrapper<const Key_space>& key_space,
 		const std::reference_wrapper<const Topology>& topology,
 		const Timeout& timeout
-	) : Application{header_space, key_space, topology},
+	) : Application{
+		header_space,
+		key_space,
+		topology,
+		topology.get().get_database()
+	    },
 	    timeout{timeout},
 	    states{},
 	    state_mutex{} {}
-
-	const std::string& Database::get_name() const {
-		return get_topology().get_database();
-	}
 
 	void Database::setup() {
 		Application::setup();

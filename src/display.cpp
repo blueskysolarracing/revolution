@@ -10,11 +10,12 @@ namespace Revolution {
 		const std::reference_wrapper<const Header_space>& header_space,
 		const std::reference_wrapper<const Key_space>& key_space,
 		const std::reference_wrapper<const Topology>& topology
-	) : Application{header_space, key_space, topology} {}
-
-	const std::string& Display::get_name() const {
-		return get_topology().get_display();
-	}
+	) : Application{
+		header_space,
+		key_space,
+		topology,
+		topology.get().get_display()
+	    } {}
 }
 
 int main() {

@@ -16,8 +16,6 @@ namespace Revolution {
 				key_space,
 			const std::reference_wrapper<const Topology>& topology
 		);
-	protected:
-		const std::string& get_name() const override;
 	};
 }
 

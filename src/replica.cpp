@@ -13,12 +13,13 @@ namespace Revolution {
 		const std::reference_wrapper<const Header_space>& header_space,
 		const std::reference_wrapper<const Key_space>& key_space,
 		const std::reference_wrapper<const Topology>& topology
-	) : Application{header_space, key_space, topology},
+	) : Application{
+		header_space,
+		key_space,
+		topology,
+		topology.get().get_replica()
+	    },
 	    state_data{} {}
-
-	const std::string& Replica::get_name() const {
-		return get_topology().get_replica();
-	}
 
 	void Replica::setup() {
 		Application::setup();

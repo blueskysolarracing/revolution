@@ -24,8 +24,10 @@ namespace Revolution {
 				header_space,
 			const std::reference_wrapper<const Key_space>&
 				key_space,
-			const std::reference_wrapper<const Topology>& topology
+			const std::reference_wrapper<const Topology>& topology,
+			const std::string& name
 		);
+		~Application();
 
 		void main();
 	protected:
@@ -36,6 +38,7 @@ namespace Revolution {
 		const Header_space& get_header_space() const;
 		const Key_space& get_key_space() const;
 		const Topology& get_topology() const;
+		const std::string& get_name() const;
 		const Logger& get_logger() const;
 		const Worker_pool& get_worker_pool() const;
 		const std::atomic_bool& get_status() const;
@@ -52,7 +55,6 @@ namespace Revolution {
 			const std::string& key,
 			const std::string& value
 		);
-		virtual const std::string& get_name() const = 0;
 
 		Messenger::Message send(
 			const std::string& recipient_name,
@@ -114,6 +116,7 @@ namespace Revolution {
 		const std::reference_wrapper<const Header_space> header_space;
 		const std::reference_wrapper<const Key_space> key_space;
 		const std::reference_wrapper<const Topology> topology;
+		const std::string name;
 		const Logger logger;
 		const Messenger messenger;
 		Heart heart;

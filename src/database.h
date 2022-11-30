@@ -26,8 +26,6 @@ namespace Revolution {
 			const Timeout& timeout = get_default_timeout()
 		);
 	protected:
-		const std::string& get_name() const override;
-
 		void setup() override;
 	private:
 		static const Timeout default_timeout;

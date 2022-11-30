@@ -20,8 +20,6 @@ namespace Revolution {
 			const std::reference_wrapper<const Topology>& topology
 		);
 	protected:
-		const std::string& get_name() const override;
-
 		void setup() override;
 	private:
 		const std::vector<std::string>& get_state_data() const;

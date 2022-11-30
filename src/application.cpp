@@ -22,10 +22,12 @@ namespace Revolution {
 	Application::Application(
 		const std::reference_wrapper<const Header_space>& header_space,
 		const std::reference_wrapper<const Key_space>& key_space,
-		const std::reference_wrapper<const Topology>& topology
+		const std::reference_wrapper<const Topology>& topology,
+		const std::string& name
 	) : header_space{header_space},
 	    key_space{key_space},
 	    topology{topology},
+	    name{name},
 	    logger{},
 	    messenger{},
 	    heart{},
@@ -36,6 +38,10 @@ namespace Revolution {
 	    responses{},
 	    response_mutex{},
 	    response_condition_variable{} {}
+
+	Application::~Application() {
+		Messenger::unlink(get_name());
+	}
 
 	void Application::main() {
 		get_logger() << Logger::Severity::information
@@ -64,6 +70,10 @@ namespace Revolution {
 
 	const Topology& Application::get_topology() const {
 		return topology;
+	}
+
+	const std::string& Application::get_name() const {
+		return name;
 	}
 
 	const Logger& Application::get_logger() const {

@@ -83,6 +83,7 @@ int main(int argc, char *argv[]) {
 
 	if (argc == 2) {
 		receiver(sender_name, messenger, status);
+		Revolution::Messenger::unlink(sender_name);
 
 		return 0;
 	} else if (argc == 3)
@@ -123,6 +124,8 @@ int main(int argc, char *argv[]) {
 
 	receiver_thread.join();
 	sender_thread.join();
+
+	Revolution::Messenger::unlink(sender_name);
 
 	return 0;
 }
