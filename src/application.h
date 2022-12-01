@@ -50,11 +50,6 @@ namespace Revolution {
 			const std::string& header,
 			const Handler& handler
 		);
-		std::optional<std::string> get_state(const std::string& key);
-		void set_state(
-			const std::string& key,
-			const std::string& value
-		);
 
 		Messenger::Message send(
 			const std::string& recipient_name,

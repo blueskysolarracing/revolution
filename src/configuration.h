@@ -14,6 +14,7 @@ namespace Revolution {
 			const std::string& get = "GET",
 			const std::string& gpio = "GPIO",
 			const std::string& key = "KEY",
+			const std::string& pwm = "PWM",
 			const std::string& response = "RESPONSE",
 			const std::string& set = "SET",
 			const std::string& spi = "SPI",
@@ -26,6 +27,7 @@ namespace Revolution {
 		const std::string& get_get() const;
 		const std::string& get_gpio() const;
 		const std::string& get_key() const;
+		const std::string& get_pwm() const;
 		const std::string& get_response() const;
 		const std::string& get_set() const;
 		const std::string& get_spi() const;
@@ -37,6 +39,7 @@ namespace Revolution {
 		const std::string get;
 		const std::string gpio;
 		const std::string key;
+		const std::string pwm;
 		const std::string response;
 		const std::string set;
 		const std::string spi;
@@ -61,7 +64,7 @@ namespace Revolution {
 		const std::string& get_display() const;
 
 		const std::vector<std::reference_wrapper<const std::string>>
-			get_applications() const;
+			get_peripherals() const;
 	private:
 		const std::string database;
 		const std::string replica;

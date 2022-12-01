@@ -1,7 +1,6 @@
 #include "application.h"
 
 #include <atomic>
-#include <cassert>
 #include <condition_variable>
 #include <cstdlib>
 #include <functional>
@@ -116,33 +115,6 @@ namespace Revolution {
 				<< std::endl;
 
 		get_handlers()[header] = handler;
-	}
-
-	std::optional<std::string>
-		Application::get_state(const std::string& key) {
-		auto message = communicate(
-			get_topology().get_database(),
-			get_header_space().get_get(),
-			{key}
-		);
-
-		if (message.get_data().empty())
-			return std::nullopt;
-
-		assert(message.get_data().size() == 1);
-
-		return message.get_data().front();
-	}
-
-	void Application::set_state(
-		const std::string& key,
-		const std::string& value
-	) {
-		communicate(
-			get_topology().get_database(),
-			get_header_space().get_set(),
-			{key, value}
-		);
 	}
 
 	Messenger::Message Application::send(
@@ -324,38 +296,44 @@ namespace Revolution {
 
 	std::vector<std::string>
 		Application::handle_abort(const Messenger::Message& message) {
-		if (!message.get_data().empty())
+		if (!message.get_data().empty()) {
 			get_logger() << Logger::Severity::error
-				<< "Abort expects no arguments, "
-				<< "but at least one was supplied. "
-				<< "The message will be ignored."
+				<< "Abort expects no arguments, but "
+				<< message.get_data().size()
+				<< " argument(s) were supplied. "
+				<< "This message will be ignored."
 				<< std::endl;
-		else {
-			get_logger() << Logger::Severity::information
-				<< "Aborting..."
-				<< std::endl;
-
-			std::abort();
+			
+			return {};
 		}
+
+		get_logger() << Logger::Severity::information
+			<< "Aborting..."
+			<< std::endl;
+
+		std::abort();
 
 		return {};
 	}
 
 	std::vector<std::string>
 		Application::handle_exit(const Messenger::Message& message) {
-		if (!message.get_data().empty())
+		if (!message.get_data().empty()) {
 			get_logger() << Logger::Severity::error
-				<< "Exit expects no arguments, "
-				<< "but at least one was supplied. "
+				<< "Exit expects no arguments, but "
+				<< message.get_data().size()
+				<< " argument(s) were supplied. "
 				<< "This message will be ignored."
 				<< std::endl;
-		else {
-			get_logger() << Logger::Severity::information
-				<< "Exiting gracefully..."
-				<< std::endl;
 
-			get_status() = false;
+			return {};
 		}
+
+		get_logger() << Logger::Severity::information
+			<< "Exiting gracefully..."
+			<< std::endl;
+
+		get_status() = false;
 
 		return {};
 	}
@@ -376,14 +354,15 @@ namespace Revolution {
 		Application::handle_status(const Messenger::Message& message) const {
 		if (!message.get_data().empty())
 			get_logger() << Logger::Severity::warning
-				<< "Status expects no arguments, "
-				<< "but at least one was supplied. "
+				<< "Status expects no arguments, but "
+				<< message.get_data().size()
+				<< " argument(s) were supplied. "
 				<< "The argument(s) will be ignored."
 				<< std::endl;
-		else
-			get_logger() << Logger::Severity::information
-				<< "Status report requested. Sending response..."
-				<< std::endl;
+
+		get_logger() << Logger::Severity::information
+			<< "Status report requested. Sending response..."
+			<< std::endl;
 
 		return {};
 	}

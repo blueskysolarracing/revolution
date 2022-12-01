@@ -2,15 +2,15 @@
 
 #include <functional>
 
-#include "application.h"
 #include "configuration.h"
+#include "peripheral.h"
 
 namespace Revolution {
 	Display::Display(
 		const std::reference_wrapper<const Header_space>& header_space,
 		const std::reference_wrapper<const Key_space>& key_space,
 		const std::reference_wrapper<const Topology>& topology
-	) : Application{
+	) : Peripheral{
 		header_space,
 		key_space,
 		topology,

@@ -133,7 +133,12 @@ namespace Revolution {
 			get_states()[key] = value;
 		}
 
-		// TODO: SEND KEY COMMANDS TO SOME APPLICATIONS
+		for (const auto& peripheral : get_topology().get_peripherals())
+			send(
+				peripheral,
+				get_header_space().get_key(),
+				{key, value}
+			);
 	}
 
 	std::vector<std::string>

@@ -3,11 +3,11 @@
 
 #include <functional>
 
-#include "application.h"
 #include "configuration.h"
+#include "peripheral.h"
 
 namespace Revolution {
-	class Display : public Application {
+	class Display : public Peripheral {
 	public:
 		explicit Display(
 			const std::reference_wrapper<const Header_space>&

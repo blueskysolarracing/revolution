@@ -16,6 +16,7 @@ project_source_files = files(
   'src/heart.cpp',
   'src/logger.cpp',
   'src/messenger.cpp',
+  'src/peripheral.cpp',
   'src/worker_pool.cpp',
 )
 

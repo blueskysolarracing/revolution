@@ -11,6 +11,7 @@ namespace Revolution {
 		const std::string& get,
 		const std::string& gpio,
 		const std::string& key,
+		const std::string& pwm,
 		const std::string& response,
 		const std::string& set,
 		const std::string& spi,
@@ -21,6 +22,7 @@ namespace Revolution {
 	    get{get},
 	    gpio{gpio},
 	    key{key},
+	    pwm{pwm},
 	    response{response},
 	    set{set},
 	    spi{spi},
@@ -45,6 +47,10 @@ namespace Revolution {
 
 	const std::string& Header_space::get_key() const {
 		return key;
+	}
+
+	const std::string& Header_space::get_pwm() const {
+		return pwm;
 	}
 
 	const std::string& Header_space::get_response() const {
@@ -94,11 +100,8 @@ namespace Revolution {
 	}
 
 	const std::vector<std::reference_wrapper<const std::string>>
-		Topology::get_applications() const {
+		Topology::get_peripherals() const {
 		return {
-			get_database(),
-			get_replica(),
-			get_hardware(),
 			get_display()
 		};
 	}
