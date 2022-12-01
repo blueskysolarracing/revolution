@@ -64,4 +64,3 @@ namespace Revolution {
 }
 
 #endif	// REVOLUTION_DATABASE_H
-

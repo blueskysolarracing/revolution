@@ -20,4 +20,3 @@ namespace Revolution {
 }
 
 #endif	// REVOLUTION_HARDWARE_H
-

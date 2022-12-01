@@ -12,27 +12,36 @@ namespace Revolution {
 			const std::string& abort = "ABORT",
 			const std::string& exit = "EXIT",
 			const std::string& get = "GET",
+			const std::string& gpio = "GPIO",
 			const std::string& key = "KEY",
 			const std::string& response = "RESPONSE",
 			const std::string& set = "SET",
-			const std::string& status = "STATUS"
+			const std::string& spi = "SPI",
+			const std::string& status = "STATUS",
+			const std::string& uart = "UART"
 		);
 
 		const std::string& get_abort() const;
 		const std::string& get_exit() const;
 		const std::string& get_get() const;
+		const std::string& get_gpio() const;
 		const std::string& get_key() const;
 		const std::string& get_response() const;
 		const std::string& get_set() const;
+		const std::string& get_spi() const;
 		const std::string& get_status() const;
+		const std::string& get_uart() const;
 	private:
 		const std::string abort;
 		const std::string exit;
 		const std::string get;
+		const std::string gpio;
 		const std::string key;
 		const std::string response;
 		const std::string set;
+		const std::string spi;
 		const std::string status;
+		const std::string uart;
 	};
 
 	class Key_space {};
