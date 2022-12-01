@@ -22,11 +22,7 @@ int main() {
 	Revolution::Header_space header_space;
 	Revolution::Key_space key_space;
 	Revolution::Topology topology;
-	Revolution::Hardware hardware{
-		header_space,
-		key_space,
-		topology
-	};
+	Revolution::Hardware hardware{header_space, key_space, topology};
 
 	hardware.main();
 

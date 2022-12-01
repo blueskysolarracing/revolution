@@ -11,6 +11,7 @@
 
 #include "application.h"
 #include "configuration.h"
+#include "messenger.h"
 
 namespace Revolution {
 	class Database : public Application {

@@ -11,6 +11,8 @@
 
 #include "application.h"
 #include "configuration.h"
+#include "logger.h"
+#include "messenger.h"
 
 namespace Revolution {
 	Database::Database(

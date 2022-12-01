@@ -2,11 +2,14 @@
 
 #include <functional>
 #include <mutex>
+#include <ostream>
 #include <string>
 #include <vector>
 
 #include "application.h"
 #include "configuration.h"
+#include "logger.h"
+#include "messenger.h"
 
 namespace Revolution {
 	Replica::Replica(
