@@ -40,9 +40,9 @@ replica_target = executable(
   install: true,
 )
 
-hardware_target = executable(
-  'hardware',
-  [project_source_files, './src/hardware.cpp'],
+controller_target = executable(
+  'controller',
+  [project_source_files, './src/controller.cpp'],
   dependencies: project_dependencies,
   install: true,
 )

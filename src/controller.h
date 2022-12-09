@@ -1,5 +1,5 @@
-#ifndef REVOLUTION_HARDWARE_H
-#define REVOLUTION_HARDWARE_H
+#ifndef REVOLUTION_CONTROLLER_H
+#define REVOLUTION_CONTROLLER_H
 
 #include <functional>
 #include <string>
@@ -9,9 +9,9 @@
 #include "configuration.h"
 
 namespace Revolution {
-	class Hardware : public Application {
+	class Controller : public Application {
 	public:
-		explicit Hardware(
+		explicit Controller(
 			const std::reference_wrapper<const Header_space>&
 				header_space,
 			const std::reference_wrapper<const Key_space>&
@@ -32,4 +32,4 @@ namespace Revolution {
 	};
 }
 
-#endif	// REVOLUTION_HARDWARE_H
+#endif	// REVOLUTION_CONTROLLER_H

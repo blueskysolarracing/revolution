@@ -3,5 +3,5 @@
 systemctl start \
 	revolution@database \
 	revolution@replica \
-	revolution@hardware \
+	revolution@controller \
 	revolution@display

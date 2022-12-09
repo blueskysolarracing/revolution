@@ -55,7 +55,7 @@ namespace Revolution {
 		const unsigned int& offset
 	) {
 		auto message = communicate(
-			get_topology().get_hardware(),
+			get_topology().get_controller(),
 			get_header_space().get_gpio(),
 			{device, std::to_string(offset)}
 		);
@@ -79,7 +79,7 @@ namespace Revolution {
 		const bool& active_low
 	) {
 		communicate(
-			get_topology().get_hardware(),
+			get_topology().get_controller(),
 			get_header_space().get_gpio(),
 			{
 				device,
@@ -91,7 +91,7 @@ namespace Revolution {
 
 	std::string Peripheral::receive_spi(const std::string& device) {
 		auto message = communicate(
-			get_topology().get_hardware(),
+			get_topology().get_controller(),
 			get_header_space().get_spi(),
 			{device}
 		);
@@ -112,7 +112,7 @@ namespace Revolution {
 		const std::string& tx
 	) {
 		communicate(
-			get_topology().get_hardware(),
+			get_topology().get_controller(),
 			get_header_space().get_spi(),
 			{device, tx}
 		);

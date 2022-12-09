@@ -1,4 +1,4 @@
-#include "hardware.h"
+#include "controller.h"
 
 #include <functional>
 #include <string>
@@ -8,7 +8,7 @@
 #include "configuration.h"
 
 namespace Revolution {
-	Hardware::Hardware(
+	Controller::Controller(
 		const std::reference_wrapper<const Header_space>& header_space,
 		const std::reference_wrapper<const Key_space>& key_space,
 		const std::reference_wrapper<const Topology>& topology
@@ -16,16 +16,16 @@ namespace Revolution {
 		header_space,
 		key_space,
 		topology,
-		topology.get().get_hardware()
+		topology.get().get_controller()
 	    } {}
 
-	void Hardware::setup() {
+	void Controller::setup() {
 		Application::setup();
 
 		set_handler(
 			get_header_space().get_gpio(),
 			std::bind(
-				&Hardware::handle_gpio,
+				&Controller::handle_gpio,
 				this,
 				std::placeholders::_1
 			)
@@ -33,7 +33,7 @@ namespace Revolution {
 		set_handler(
 			get_header_space().get_pwm(),
 			std::bind(
-				&Hardware::handle_pwm,
+				&Controller::handle_pwm,
 				this,
 				std::placeholders::_1
 			)
@@ -41,7 +41,7 @@ namespace Revolution {
 		set_handler(
 			get_header_space().get_spi(),
 			std::bind(
-				&Hardware::handle_spi,
+				&Controller::handle_spi,
 				this,
 				std::placeholders::_1
 			)
@@ -49,7 +49,7 @@ namespace Revolution {
 		set_handler(
 			get_header_space().get_uart(),
 			std::bind(
-				&Hardware::handle_uart,
+				&Controller::handle_uart,
 				this,
 				std::placeholders::_1
 			)
@@ -59,7 +59,7 @@ namespace Revolution {
 	}
 
 	std::vector<std::string>
-		Hardware::handle_gpio(const Messenger::Message& message) {
+		Controller::handle_gpio(const Messenger::Message& message) {
 		if (message.get_data().size() == 2) {
 			const auto& device = message.get_data().front();
 			const auto& raw_offset = message.get_data().back();
@@ -87,12 +87,12 @@ namespace Revolution {
 	}
 
 	std::vector<std::string>
-		Hardware::handle_pwm(const Messenger::Message& message) {
+		Controller::handle_pwm(const Messenger::Message& message) {
 		return {};  // TODO
 	}
 
 	std::vector<std::string>
-		Hardware::handle_spi(const Messenger::Message& message) {
+		Controller::handle_spi(const Messenger::Message& message) {
 		if (message.get_data().size() == 1) {
 			const auto& device = message.get_data().front();
 
@@ -115,7 +115,7 @@ namespace Revolution {
 	}
 
 	std::vector<std::string>
-		Hardware::handle_uart(const Messenger::Message& message) {
+		Controller::handle_uart(const Messenger::Message& message) {
 		return {};  // TODO
 	}
 }
@@ -124,9 +124,9 @@ int main() {
 	Revolution::Header_space header_space;
 	Revolution::Key_space key_space;
 	Revolution::Topology topology;
-	Revolution::Hardware hardware{header_space, key_space, topology};
+	Revolution::Controller controller{header_space, key_space, topology};
 
-	hardware.main();
+	controller.main();
 
 	return 0;
 }

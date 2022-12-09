@@ -70,11 +70,11 @@ namespace Revolution {
 	Topology::Topology(
 		const std::string& database,
 		const std::string& replica,
-		const std::string& hardware,
+		const std::string& controller,
 		const std::string& display
 	) : database{database},
 	    replica{replica},
-	    hardware{hardware},
+	    controller{controller},
 	    display{display} {}
 
 	const std::string& Topology::get_database() const {
@@ -85,8 +85,8 @@ namespace Revolution {
 		return replica;
 	}
 
-	const std::string& Topology::get_hardware() const {
-		return hardware;
+	const std::string& Topology::get_controller() const {
+		return controller;
 	}
 
 	const std::string& Topology::get_display() const {

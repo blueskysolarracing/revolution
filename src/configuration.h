@@ -51,13 +51,13 @@ namespace Revolution {
 		explicit Topology(
 			const std::string& database = "database",
 			const std::string& replica = "replica",
-			const std::string& hardware = "hardware",
+			const std::string& controller = "controller",
 			const std::string& display = "display"
 		);
 
 		const std::string& get_database() const;
 		const std::string& get_replica() const;
-		const std::string& get_hardware() const;
+		const std::string& get_controller() const;
 		const std::string& get_display() const;
 
 		const std::vector<std::reference_wrapper<const std::string>>
@@ -65,7 +65,7 @@ namespace Revolution {
 	private:
 		const std::string database;
 		const std::string replica;
-		const std::string hardware;
+		const std::string controller;
 		const std::string display;
 	};
 }
