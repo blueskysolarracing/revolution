@@ -18,7 +18,7 @@ namespace Revolution {
 		const std::reference_wrapper<const Header_space>& header_space,
 		const std::reference_wrapper<const State_space>& state_space,
 		const std::reference_wrapper<const Topology>& topology,
-		const Timeout& timeout
+		const Timeout& sync_timeout
 	) : Application{
 		header_space,
 		state_space,

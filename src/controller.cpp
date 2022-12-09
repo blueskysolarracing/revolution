@@ -55,23 +55,27 @@ namespace Revolution {
 			)
 		);
 
-		// TODO
+		// TODO: https://github.com/toradex/torizon-samples/blob/bullseye/gpio/c/gpio-event.c
+		// TODO: https://developer.toradex.com/linux-bsp/application-development/peripheral-access/gpio-linux
 	}
 
 	std::vector<std::string>
 		Controller::handle_gpio(const Messenger::Message& message) {
+		// TODO: https://github.com/toradex/torizon-samples/blob/bullseye/gpio/c/gpio-toggle.c
+		// TODO: https://developer.toradex.com/linux-bsp/application-development/peripheral-access/gpio-linux
+
 		if (message.get_data().size() == 2) {
-			const auto& device = message.get_data().front();
-			const auto& raw_offset = message.get_data().back();
-			unsigned int offset = (unsigned int) std::stoi(raw_offset);
+			// const auto& device = message.get_data().front();
+			// const auto& raw_offset = message.get_data().back();
+			// unsigned int offset = (unsigned int) std::stoi(raw_offset);
 			
 			// TODO
 		} else if (message.get_data().size() == 3) {
-			const auto& device = message.get_data().front();
-			const auto& raw_offset = message.get_data()[1];
-			const auto& raw_active_low = message.get_data().back();
-			unsigned int offset = (unsigned int) std::stoi(raw_offset);
-			bool active_low = (bool) std::stoi(raw_active_low);
+			// const auto& device = message.get_data().front();
+			// const auto& raw_offset = message.get_data()[1];
+			// const auto& raw_active_low = message.get_data().back();
+			// unsigned int offset = (unsigned int) std::stoi(raw_offset);
+			// bool active_low = (bool) std::stoi(raw_active_low);
 
 			// TODO
 		}
@@ -88,24 +92,45 @@ namespace Revolution {
 
 	std::vector<std::string>
 		Controller::handle_pwm(const Messenger::Message& message) {
-		return {};  // TODO
-	}
+		// TODO: https://github.com/toradex/torizon-samples/tree/bullseye/pwm
 
-	std::vector<std::string>
-		Controller::handle_spi(const Messenger::Message& message) {
 		if (message.get_data().size() == 1) {
-			const auto& device = message.get_data().front();
-
+			// const auto& device = message.get_data().front();
+			
 			// TODO
 		} else if (message.get_data().size() == 2) {
-			const auto& device = message.get_data().front();
-			const auto& tx = message.get_data().back();
+			// const auto& device = message.get_data().front();
 
 			// TODO
 		}
 
 		get_logger() << Logger::Severity::error
-			<< "Gpio expects 1 or 2 arguments, but "
+			<< "Pwm expects 1 or 2 arguments, but "
+			<< message.get_data().size()
+			<< " argument(s) were supplied. "
+			<< "This message will be ignored."
+			<< std::endl;
+
+		return {};
+	}
+
+	std::vector<std::string>
+		Controller::handle_spi(const Messenger::Message& message) {
+		// TODO: https://github.com/torvalds/linux/blob/v5.15/tools/spi/spidev_test.c
+
+		if (message.get_data().size() == 1) {
+			// const auto& device = message.get_data().front();
+
+			// TODO
+		} else if (message.get_data().size() == 2) {
+			// const auto& device = message.get_data().front();
+			// const auto& tx = message.get_data().back();
+
+			// TODO
+		}
+
+		get_logger() << Logger::Severity::error
+			<< "Spi expects 1 or 2 arguments, but "
 			<< message.get_data().size()
 			<< " argument(s) were supplied. "
 			<< "This message will be ignored."
@@ -116,7 +141,27 @@ namespace Revolution {
 
 	std::vector<std::string>
 		Controller::handle_uart(const Messenger::Message& message) {
-		return {};  // TODO
+		// TODO: https://developer.toradex.com/linux-bsp/application-development/peripheral-access/uart-linux#boards
+
+		if (message.get_data().size() == 1) {
+			// const auto& device = message.get_data().front();
+			
+			// TODO
+		} else if (message.get_data().size() == 2) {
+			// const auto& device = message.get_data().front();
+			// const auto& tx = message.get_data().back();
+
+			// TODO
+		}
+
+		get_logger() << Logger::Severity::error
+			<< "Uart expects 1 or 2 arguments, but "
+			<< message.get_data().size()
+			<< " argument(s) were supplied. "
+			<< "This message will be ignored."
+			<< std::endl;
+
+		return {};
 	}
 }
 
