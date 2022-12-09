@@ -20,11 +20,11 @@
 namespace Revolution {
 	Application::Application(
 		const std::reference_wrapper<const Header_space>& header_space,
-		const std::reference_wrapper<const Key_space>& key_space,
+		const std::reference_wrapper<const State_space>& state_space,
 		const std::reference_wrapper<const Topology>& topology,
 		const std::string& name
 	) : header_space{header_space},
-	    key_space{key_space},
+	    state_space{state_space},
 	    topology{topology},
 	    name{name},
 	    logger{},
@@ -63,8 +63,8 @@ namespace Revolution {
 		return header_space;
 	}
 
-	const Key_space& Application::get_key_space() const {
-		return key_space;
+	const State_space& Application::get_state_space() const {
+		return state_space;
 	}
 
 	const Topology& Application::get_topology() const {

@@ -16,8 +16,8 @@ namespace Revolution {
 		explicit Replica(
 			const std::reference_wrapper<const Header_space>&
 				header_space,
-			const std::reference_wrapper<const Key_space>&
-				key_space,
+			const std::reference_wrapper<const State_space>&
+				state_space,
 			const std::reference_wrapper<const Topology>& topology
 		);
 	protected:

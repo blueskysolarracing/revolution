@@ -10,11 +10,11 @@
 namespace Revolution {
 	Controller::Controller(
 		const std::reference_wrapper<const Header_space>& header_space,
-		const std::reference_wrapper<const Key_space>& key_space,
+		const std::reference_wrapper<const State_space>& state_space,
 		const std::reference_wrapper<const Topology>& topology
 	) : Application{
 		header_space,
-		key_space,
+		state_space,
 		topology,
 		topology.get().get_controller()
 	    } {}
@@ -122,9 +122,9 @@ namespace Revolution {
 
 int main() {
 	Revolution::Header_space header_space;
-	Revolution::Key_space key_space;
+	Revolution::State_space state_space;
 	Revolution::Topology topology;
-	Revolution::Controller controller{header_space, key_space, topology};
+	Revolution::Controller controller{header_space, state_space, topology};
 
 	controller.main();
 

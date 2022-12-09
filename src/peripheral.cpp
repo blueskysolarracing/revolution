@@ -14,16 +14,16 @@
 namespace Revolution {
 	Peripheral::Peripheral(
 		const std::reference_wrapper<const Header_space>& header_space,
-		const std::reference_wrapper<const Key_space>& key_space,
+		const std::reference_wrapper<const State_space>& state_space,
 		const std::reference_wrapper<const Topology>& topology,
 		const std::string& name
-	) : Application{header_space, key_space, topology, name} {}
+	) : Application{header_space, state_space, topology, name} {}
 
 	std::optional<std::string>
 		Peripheral::get_state(const std::string& key) {
 		auto message = communicate(
 			get_topology().get_database(),
-			get_header_space().get_key(),
+			get_header_space().get_state(),
 			{key}
 		);
 
@@ -45,7 +45,7 @@ namespace Revolution {
 	) {
 		communicate(
 			get_topology().get_database(),
-			get_header_space().get_key(),
+			get_header_space().get_state(),
 			{key, value}
 		);
 	}
@@ -128,13 +128,13 @@ namespace Revolution {
 		get_gpio_watchers()[device][offset] = gpio_watcher;
 	}
 
-	void Peripheral::set_key_watcher(
+	void Peripheral::set_state_watcher(
 		const std::string& key,
-		const Key_watcher& key_watcher
+		const State_watcher& state_watcher
 	) {
-		std::scoped_lock lock{get_key_watcher_mutex()};
+		std::scoped_lock lock{get_state_watcher_mutex()};
 
-		get_key_watchers()[key] = key_watcher;
+		get_state_watchers()[key] = state_watcher;
 	}
 
 	void Peripheral::setup() {
@@ -149,9 +149,9 @@ namespace Revolution {
 			)
 		);
 		set_handler(
-			get_header_space().get_key(),
+			get_header_space().get_state(),
 			std::bind(
-				&Peripheral::handle_key,
+				&Peripheral::handle_state,
 				this,
 				std::placeholders::_1
 			)
@@ -169,13 +169,13 @@ namespace Revolution {
 		return gpio_watcher_mutex;
 	}
 
-	const std::unordered_map<std::string, Peripheral::Key_watcher>&
-		Peripheral::get_key_watchers() const {
-		return key_watchers;
+	const std::unordered_map<std::string, Peripheral::State_watcher>&
+		Peripheral::get_state_watchers() const {
+		return state_watchers;
 	}
 
-	const std::mutex& Peripheral::get_key_watcher_mutex() const {
-		return key_watcher_mutex;
+	const std::mutex& Peripheral::get_state_watcher_mutex() const {
+		return state_watcher_mutex;
 	}
 
 	std::unordered_map<
@@ -189,13 +189,13 @@ namespace Revolution {
 		return gpio_watcher_mutex;
 	}
 
-	std::unordered_map<std::string, Peripheral::Key_watcher>&
-		Peripheral::get_key_watchers() {
-		return key_watchers;
+	std::unordered_map<std::string, Peripheral::State_watcher>&
+		Peripheral::get_state_watchers() {
+		return state_watchers;
 	}
 
-	std::mutex& Peripheral::get_key_watcher_mutex() {
-		return key_watcher_mutex;
+	std::mutex& Peripheral::get_state_watcher_mutex() {
+		return state_watcher_mutex;
 	}
 
 	std::optional<
@@ -214,14 +214,14 @@ namespace Revolution {
 	}
 
 	std::optional<
-		const std::reference_wrapper<const Peripheral::Key_watcher>
-	> Peripheral::get_key_watcher(const std::string& key) {
-		std::scoped_lock lock{get_key_watcher_mutex()};
+		const std::reference_wrapper<const Peripheral::State_watcher>
+	> Peripheral::get_state_watcher(const std::string& key) {
+		std::scoped_lock lock{get_state_watcher_mutex()};
 
-		if (!get_key_watchers().count(key))
+		if (!get_state_watchers().count(key))
 			return std::nullopt;
 
-		return get_key_watchers().at(key);
+		return get_state_watchers().at(key);
 	}
 
 	std::vector<std::string>
@@ -251,10 +251,10 @@ namespace Revolution {
 	}
 
 	std::vector<std::string>
-		Peripheral::handle_key(const Messenger::Message& message) {
+		Peripheral::handle_state(const Messenger::Message& message) {
 		if (message.get_data().size() != 2) {
 			get_logger() << Logger::Severity::error
-				<< "Key expects 2 arguments, but "
+				<< "State expects 2 arguments, but "
 				<< message.get_data().size()
 				<< " argument(s) were supplied. "
 				<< "The message will be ignored."
@@ -265,10 +265,10 @@ namespace Revolution {
 
 		const auto& key = message.get_data().front();
 		const auto& value = message.get_data().back();
-		const auto key_watcher = get_key_watcher(key);
+		const auto state_watcher = get_state_watcher(key);
 
-		if (key_watcher)
-			key_watcher.value()(key, value);
+		if (state_watcher)
+			state_watcher.value()(key, value);
 
 		return {};
 	}

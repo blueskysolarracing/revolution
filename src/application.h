@@ -22,8 +22,8 @@ namespace Revolution {
 		explicit Application(
 			const std::reference_wrapper<const Header_space>&
 				header_space,
-			const std::reference_wrapper<const Key_space>&
-				key_space,
+			const std::reference_wrapper<const State_space>&
+				state_space,
 			const std::reference_wrapper<const Topology>& topology,
 			const std::string& name
 		);
@@ -36,7 +36,7 @@ namespace Revolution {
 		>;
 
 		const Header_space& get_header_space() const;
-		const Key_space& get_key_space() const;
+		const State_space& get_state_space() const;
 		const Topology& get_topology() const;
 		const std::string& get_name() const;
 		const Logger& get_logger() const;
@@ -109,7 +109,7 @@ namespace Revolution {
 		void run();
 
 		const std::reference_wrapper<const Header_space> header_space;
-		const std::reference_wrapper<const Key_space> key_space;
+		const std::reference_wrapper<const State_space> state_space;
 		const std::reference_wrapper<const Topology> topology;
 		const std::string name;
 		const Logger logger;

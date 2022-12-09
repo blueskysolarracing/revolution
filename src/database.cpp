@@ -16,12 +16,12 @@
 namespace Revolution {
 	Database::Database(
 		const std::reference_wrapper<const Header_space>& header_space,
-		const std::reference_wrapper<const Key_space>& key_space,
+		const std::reference_wrapper<const State_space>& state_space,
 		const std::reference_wrapper<const Topology>& topology,
 		const Timeout& timeout
 	) : Application{
 		header_space,
-		key_space,
+		state_space,
 		topology,
 		topology.get().get_database()
 	    },
@@ -33,9 +33,9 @@ namespace Revolution {
 		Application::setup();
 
 		set_handler(
-			get_header_space().get_key(),
+			get_header_space().get_state(),
 			std::bind(
-				&Database::handle_key,
+				&Database::handle_state,
 				this,
 				std::placeholders::_1
 			)
@@ -117,7 +117,7 @@ namespace Revolution {
 	}
 
 	std::vector<std::string>
-		Database::handle_key(const Messenger::Message& message) {
+		Database::handle_state(const Messenger::Message& message) {
 		std::scoped_lock lock{get_state_mutex()};
 
 		if (message.get_data().size() == 1) {
@@ -165,7 +165,7 @@ namespace Revolution {
 			for (const auto& peripheral : get_topology().get_peripherals())
 				send(
 					peripheral,
-					get_header_space().get_key(),
+					get_header_space().get_state(),
 					{key, value}
 				);
 
@@ -173,7 +173,7 @@ namespace Revolution {
 		}
 
 		get_logger() << Logger::Severity::error
-			<< "Key expects 1 or 2 arguments, but "
+			<< "State expects 1 or 2 arguments, but "
 			<< message.get_data().size()
 			<< " argument(s) were supplied. "
 			<< "This message will be ignored."
@@ -213,9 +213,9 @@ namespace Revolution {
 
 int main() {
 	Revolution::Header_space header_space;
-	Revolution::Key_space key_space;
+	Revolution::State_space state_space;
 	Revolution::Topology topology;
-	Revolution::Database database{header_space, key_space, topology};
+	Revolution::Database database{header_space, state_space, topology};
 
 	database.main();
 

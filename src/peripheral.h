@@ -16,8 +16,8 @@ namespace Revolution {
 		explicit Peripheral(
 			const std::reference_wrapper<const Header_space>&
 				header_space,
-			const std::reference_wrapper<const Key_space>&
-				key_space,
+			const std::reference_wrapper<const State_space>&
+				state_space,
 			const std::reference_wrapper<const Topology>& topology,
 			const std::string& name
 		);
@@ -29,7 +29,7 @@ namespace Revolution {
 				const bool&
 			)
 		>;
-		using Key_watcher = std::function<
+		using State_watcher = std::function<
 			void(const std::string&, const std::string&)
 		>;
 
@@ -58,9 +58,9 @@ namespace Revolution {
 			const unsigned int& offset,
 			const Gpio_watcher& gpio_watcher
 		);
-		void set_key_watcher(
+		void set_state_watcher(
 			const std::string& key,
-			const Key_watcher& key_watcher
+			const State_watcher& state_watcher
 		);
 
 		virtual void setup() override;
@@ -70,38 +70,39 @@ namespace Revolution {
 			std::unordered_map<unsigned int, Gpio_watcher>
 		>& get_gpio_watchers() const;
 		const std::mutex& get_gpio_watcher_mutex() const;
-		const std::unordered_map<std::string, Key_watcher>&
-			get_key_watchers() const;
-		const std::mutex& get_key_watcher_mutex() const;
+		const std::unordered_map<std::string, State_watcher>&
+			get_state_watchers() const;
+		const std::mutex& get_state_watcher_mutex() const;
 
 		std::unordered_map<
 			std::string,
 			std::unordered_map<unsigned int, Gpio_watcher>
 		>& get_gpio_watchers();
 		std::mutex& get_gpio_watcher_mutex();
-		std::unordered_map<std::string, Key_watcher>& get_key_watchers();
-		std::mutex& get_key_watcher_mutex();
+		std::unordered_map<std::string, State_watcher>&
+			get_state_watchers();
+		std::mutex& get_state_watcher_mutex();
 
 		std::optional<const std::reference_wrapper<const Gpio_watcher>>
 			get_gpio_watcher(
 			const std::string& device,
 			const unsigned int& gpio
 		);
-		std::optional<const std::reference_wrapper<const Key_watcher>>
-			get_key_watcher(const std::string& key);
+		std::optional<const std::reference_wrapper<const State_watcher>>
+			get_state_watcher(const std::string& key);
 
 		std::vector<std::string>
 			handle_gpio(const Messenger::Message& message);
 		std::vector<std::string>
-			handle_key(const Messenger::Message& message);
+			handle_state(const Messenger::Message& message);
 
 		std::unordered_map<
 			std::string,
 			std::unordered_map<unsigned int, Gpio_watcher>
 		> gpio_watchers;
 		std::mutex gpio_watcher_mutex;
-		std::unordered_map<std::string, Key_watcher> key_watchers;
-		std::mutex key_watcher_mutex;
+		std::unordered_map<std::string, State_watcher> state_watchers;
+		std::mutex state_watcher_mutex;
 	};
 }
 

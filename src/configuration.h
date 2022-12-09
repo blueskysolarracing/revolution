@@ -13,10 +13,10 @@ namespace Revolution {
 			const std::string& data = "DATA",
 			const std::string& exit = "EXIT",
 			const std::string& gpio = "GPIO",
-			const std::string& key = "KEY",
 			const std::string& pwm = "PWM",
 			const std::string& response = "RESPONSE",
 			const std::string& spi = "SPI",
+			const std::string& state = "STATE",
 			const std::string& status = "STATUS",
 			const std::string& uart = "UART"
 		);
@@ -25,10 +25,10 @@ namespace Revolution {
 		const std::string& get_data() const;
 		const std::string& get_exit() const;
 		const std::string& get_gpio() const;
-		const std::string& get_key() const;
 		const std::string& get_pwm() const;
 		const std::string& get_response() const;
 		const std::string& get_spi() const;
+		const std::string& get_state() const;
 		const std::string& get_status() const;
 		const std::string& get_uart() const;
 	private:
@@ -36,15 +36,15 @@ namespace Revolution {
 		const std::string data;
 		const std::string exit;
 		const std::string gpio;
-		const std::string key;
 		const std::string pwm;
 		const std::string response;
 		const std::string spi;
+		const std::string state;
 		const std::string status;
 		const std::string uart;
 	};
 
-	class Key_space {};
+	class State_space {};
 
 	class Topology {
 	public:

@@ -10,20 +10,20 @@ namespace Revolution {
 		const std::string& data,
 		const std::string& exit,
 		const std::string& gpio,
-		const std::string& key,
 		const std::string& pwm,
 		const std::string& response,
 		const std::string& spi,
+		const std::string& state,
 		const std::string& status,
 		const std::string& uart
 	) : abort{abort},
 	    data{data},
 	    exit{exit},
 	    gpio{gpio},
-	    key{key},
 	    pwm{pwm},
 	    response{response},
 	    spi{spi},
+	    state{state},
 	    status{status},
 	    uart{uart} {}
 
@@ -43,16 +43,16 @@ namespace Revolution {
 		return gpio;
 	}
 
-	const std::string& Header_space::get_key() const {
-		return key;
-	}
-
 	const std::string& Header_space::get_pwm() const {
 		return pwm;
 	}
 
 	const std::string& Header_space::get_response() const {
 		return response;
+	}
+
+	const std::string& Header_space::get_state() const {
+		return state;
 	}
 
 	const std::string& Header_space::get_spi() const {
