@@ -47,6 +47,11 @@ namespace Revolution {
 			const unsigned int& offset,
 			const bool& active_low
 		);
+		std::string receive_spi(const std::string& device);
+		void send_spi(
+			const std::string& device,
+			const std::string& tx
+		);
 
 		void set_gpio_watcher(
 			const std::string& device,

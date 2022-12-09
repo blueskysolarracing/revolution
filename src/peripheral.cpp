@@ -43,7 +43,7 @@ namespace Revolution {
 		const std::string& key,
 		const std::string& value
 	) {
-		send(
+		communicate(
 			get_topology().get_database(),
 			get_header_space().get_key(),
 			{key, value}
@@ -78,7 +78,7 @@ namespace Revolution {
 		const unsigned int& offset,
 		const bool& active_low
 	) {
-		send(
+		communicate(
 			get_topology().get_hardware(),
 			get_header_space().get_gpio(),
 			{
@@ -86,6 +86,35 @@ namespace Revolution {
 				std::to_string(offset),
 				std::to_string((int) active_low)
 			}
+		);
+	}
+
+	std::string Peripheral::receive_spi(const std::string& device) {
+		auto message = communicate(
+			get_topology().get_hardware(),
+			get_header_space().get_spi(),
+			{device}
+		);
+
+		if (message.get_data().size() != 1) {
+			get_logger() << Logger::Severity::error
+				<< "Invalid number of elements in the reply."
+				<< std::endl;
+
+			return "";
+		}
+
+		return message.get_data().front();
+	}
+
+	void Peripheral::send_spi(
+		const std::string& device,
+		const std::string& tx
+	) {
+		communicate(
+			get_topology().get_hardware(),
+			get_header_space().get_spi(),
+			{device, tx}
 		);
 	}
 
