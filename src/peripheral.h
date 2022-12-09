@@ -38,10 +38,19 @@ namespace Revolution {
 			const std::string& key,
 			const std::string& value
 		);
+		bool get_gpio(
+			const std::string& device,
+			const unsigned int& offset
+		);
+		void set_gpio(
+			const std::string& device,
+			const unsigned int& offset,
+			const bool& active_low
+		);
 
 		void set_gpio_watcher(
-			const std::string& bank,
-			const unsigned int& gpio,
+			const std::string& device,
+			const unsigned int& offset,
 			const Gpio_watcher& gpio_watcher
 		);
 		void set_key_watcher(
@@ -70,7 +79,7 @@ namespace Revolution {
 
 		std::optional<const std::reference_wrapper<const Gpio_watcher>>
 			get_gpio_watcher(
-			const std::string& bank,
+			const std::string& device,
 			const unsigned int& gpio
 		);
 		std::optional<const std::reference_wrapper<const Key_watcher>>

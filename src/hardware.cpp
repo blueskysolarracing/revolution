@@ -60,24 +60,30 @@ namespace Revolution {
 
 	std::vector<std::string>
 		Hardware::handle_gpio(const Messenger::Message& message) {
-		if (message.get_data().size() != 3) {
-			get_logger() << Logger::Severity::error
-				<< "Gpio expects 3 arguments, but "
-				<< message.get_data().size()
-				<< " argument(s) were supplied. "
-				<< "The message will be ignored."
-				<< std::endl;
+		if (message.get_data().size() == 2) {
+			const auto& device = message.get_data().front();
+			const auto& raw_offset = message.get_data().back();
+			unsigned int offset = (unsigned int) std::stoi(raw_offset);
+			
+			// TODO
+		} else if (message.get_data().size() == 3) {
+			const auto& device = message.get_data().front();
+			const auto& raw_offset = message.get_data()[1];
+			const auto& raw_active_low = message.get_data().back();
+			unsigned int offset = (unsigned int) std::stoi(raw_offset);
+			bool active_low = (bool) std::stoi(raw_active_low);
 
-			return {};
+			// TODO
 		}
 
-		const auto& bank = message.get_data().front();
-		const auto& raw_gpio = message.get_data()[1];
-		const auto& raw_status = message.get_data().back();
-		unsigned int gpio = std::stoi(raw_gpio);
-		bool status = std::stoi(raw_status);
+		get_logger() << Logger::Severity::error
+			<< "Gpio expects 2 or 3 arguments, but "
+			<< message.get_data().size()
+			<< " argument(s) were supplied. "
+			<< "This message will be ignored."
+			<< std::endl;
 
-		return {};  // TODO
+		return {};
 	}
 
 	std::vector<std::string>
@@ -87,7 +93,25 @@ namespace Revolution {
 
 	std::vector<std::string>
 		Hardware::handle_spi(const Messenger::Message& message) {
-		return {};  // TODO
+		if (message.get_data().size() == 1) {
+			const auto& device = message.get_data().front();
+
+			// TODO
+		} else if (message.get_data().size() == 2) {
+			const auto& device = message.get_data().front();
+			const auto& tx = message.get_data().back();
+
+			// TODO
+		}
+
+		get_logger() << Logger::Severity::error
+			<< "Gpio expects 1 or 2 arguments, but "
+			<< message.get_data().size()
+			<< " argument(s) were supplied. "
+			<< "This message will be ignored."
+			<< std::endl;
+
+		return {};
 	}
 
 	std::vector<std::string>

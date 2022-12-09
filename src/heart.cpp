@@ -7,8 +7,8 @@
 #include <thread>
 
 namespace Revolution {
-	Heart::Heart(const Timeout& timeout)
-		: timeout{timeout},
+	Heart::Heart(const Timeout& beat_timeout)
+		: beat_timeout{beat_timeout},
 		  thread{&Heart::monitor, this},
 		  status{true},
 		  count{1} {}
@@ -22,16 +22,16 @@ namespace Revolution {
 		++get_count();
 	}
 
-	const Heart::Timeout Heart::default_timeout{
+	const Heart::Timeout Heart::default_beat_timeout{
 		std::chrono::seconds(5)
 	};
 
-	const Heart::Timeout& Heart::get_default_timeout() {
-		return default_timeout;
+	const Heart::Timeout& Heart::get_default_beat_timeout() {
+		return default_beat_timeout;
 	}
 
-	const Heart::Timeout& Heart::get_timeout() const {
-		return timeout;
+	const Heart::Timeout& Heart::get_beat_timeout() const {
+		return beat_timeout;
 	}
 
 	const std::thread& Heart::get_thread() const {
@@ -70,7 +70,7 @@ namespace Revolution {
 
 			get_count() = 0;
 
-			std::this_thread::sleep_for(get_timeout());
+			std::this_thread::sleep_for(get_beat_timeout());
 		}
 	}
 }

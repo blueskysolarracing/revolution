@@ -10,16 +10,18 @@ namespace Revolution {
 	public:
 		using Timeout = std::chrono::high_resolution_clock::duration;
 
-		explicit Heart(const Timeout& timeout = get_default_timeout());
+		explicit Heart(
+			const Timeout& beat_timeout = get_default_beat_timeout()
+		);
 		~Heart();
 
 		void beat();
 	private:
-		static const Timeout default_timeout;
+		static const Timeout default_beat_timeout;
 
-		static const Timeout& get_default_timeout();
+		static const Timeout& get_default_beat_timeout();
 
-		const Timeout& get_timeout() const;
+		const Timeout& get_beat_timeout() const;
 		const std::thread& get_thread() const;
 		const std::atomic_bool& get_status() const;
 		const std::atomic_uint& get_count() const;
@@ -30,7 +32,7 @@ namespace Revolution {
 
 		void monitor();
 
-		const Timeout timeout;
+		const Timeout beat_timeout;
 		std::thread thread;
 		std::atomic_bool status;
 		std::atomic_uint count;

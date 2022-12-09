@@ -7,24 +7,22 @@
 namespace Revolution {
 	Header_space::Header_space(
 		const std::string& abort,
+		const std::string& data,
 		const std::string& exit,
-		const std::string& get,
 		const std::string& gpio,
 		const std::string& key,
 		const std::string& pwm,
 		const std::string& response,
-		const std::string& set,
 		const std::string& spi,
 		const std::string& status,
 		const std::string& uart
 	) : abort{abort},
+	    data{data},
 	    exit{exit},
-	    get{get},
 	    gpio{gpio},
 	    key{key},
 	    pwm{pwm},
 	    response{response},
-	    set{set},
 	    spi{spi},
 	    status{status},
 	    uart{uart} {}
@@ -33,12 +31,12 @@ namespace Revolution {
 		return abort;
 	}
 
-	const std::string& Header_space::get_exit() const {
-		return exit;
+	const std::string& Header_space::get_data() const {
+		return data;
 	}
 
-	const std::string& Header_space::get_get() const {
-		return get;
+	const std::string& Header_space::get_exit() const {
+		return exit;
 	}
 
 	const std::string& Header_space::get_gpio() const {
@@ -55,10 +53,6 @@ namespace Revolution {
 
 	const std::string& Header_space::get_response() const {
 		return response;
-	}
-
-	const std::string& Header_space::get_set() const {
-		return set;
 	}
 
 	const std::string& Header_space::get_spi() const {

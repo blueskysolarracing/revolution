@@ -1,7 +1,6 @@
 #include "database.h"
 
 #include <atomic>
-#include <cassert>
 #include <functional>
 #include <mutex>
 #include <optional>
@@ -26,7 +25,7 @@ namespace Revolution {
 		topology,
 		topology.get().get_database()
 	    },
-	    timeout{timeout},
+	    sync_timeout{sync_timeout},
 	    states{},
 	    state_mutex{} {}
 
@@ -34,17 +33,9 @@ namespace Revolution {
 		Application::setup();
 
 		set_handler(
-			get_header_space().get_get(),
+			get_header_space().get_key(),
 			std::bind(
-				&Database::handle_get,
-				this,
-				std::placeholders::_1
-			)
-		);
-		set_handler(
-			get_header_space().get_set(),
-			std::bind(
-				&Database::handle_set,
+				&Database::handle_key,
 				this,
 				std::placeholders::_1
 			)
@@ -53,16 +44,16 @@ namespace Revolution {
 		get_worker_pool().work(std::bind(&Database::sync, this));
 	}
 
-	const Database::Timeout Database::default_timeout{
+	const Database::Timeout Database::default_sync_timeout{
 		std::chrono::seconds(1)
 	};
 
-	const Database::Timeout& Database::get_default_timeout() {
-		return default_timeout;
+	const Database::Timeout& Database::get_default_sync_timeout() {
+		return default_sync_timeout;
 	}
 
-	const Database::Timeout& Database::get_timeout() const {
-		return timeout;
+	const Database::Timeout& Database::get_sync_timeout() const {
+		return sync_timeout;
 	}
 
 	const std::unordered_map<std::string, std::string>&
@@ -83,111 +74,110 @@ namespace Revolution {
 		return state_mutex;
 	}
 
-	std::vector<std::string> Database::get_state_data() {
+	std::vector<std::string> Database::get_data() {
 		std::scoped_lock lock{get_state_mutex()};
-		std::vector<std::string> state_data;
+		std::vector<std::string> data;
 
 		get_logger() << Logger::Severity::information
-			<< "Reading all key(s)..."
+			<< "Reading all "
+			<< get_states().size()
+			<< " key-value(s)..."
 			<< std::endl;
 
 		for (const auto& [key, value] : get_states()) {
-			state_data.push_back(key);
-			state_data.push_back(value);
+			data.push_back(key);
+			data.push_back(value);
 		}
 
-		return state_data;
+		return data;
 	}
 	
-	void Database::set_state_data(
-		const std::vector<std::string>& state_data
+	void Database::set_data(
+		const std::vector<std::string>& data
 	) {
-		assert(state_data.size() % 2 == 0);
+		std::scoped_lock lock{get_state_mutex()};
+
+		if (data.size() % 2 == 1) {
+			get_logger() << Logger::Severity::error
+				<< "Unpaired elements in the data. "
+				<< "This data will not be written."
+				<< std::endl;
+
+			return;
+		}
 
 		get_logger() << Logger::Severity::information
 			<< "Writing "
-			<< state_data.size() / 2
-			<< " key(s)..."
+			<< data.size() / 2
+			<< " key-value(s)..."
 			<< std::endl;
 
-		for (std::size_t i{}; i + 1 < state_data.size(); i += 2)
-			help_set_state(state_data[i], state_data[i + 1]);
-	}
-
-	std::optional<std::string> Database::help_get_state(const std::string& key) {
-		std::scoped_lock lock{get_state_mutex()};
-
-		if (!get_states().count(key))
-			return std::nullopt;
-
-		return get_states().at(key);
-	}
-
-	void Database::help_set_state(
-		const std::string& key,
-		const std::string& value
-	) {
-		{
-			std::scoped_lock lock{get_state_mutex()};
-
-			get_states()[key] = value;
-		}
-
-		for (const auto& peripheral : get_topology().get_peripherals())
-			send(
-				peripheral,
-				get_header_space().get_key(),
-				{key, value}
-			);
+		for (std::size_t i{}; i + 1 < data.size(); i += 2)
+			get_states().emplace(data[i], data[i + 1]);
 	}
 
 	std::vector<std::string>
-		Database::handle_get(const Messenger::Message& message) {
-		if (message.get_data().size() != 1) {
+		Database::handle_key(const Messenger::Message& message) {
+		std::scoped_lock lock{get_state_mutex()};
+
+		if (message.get_data().size() == 1) {
+			auto key = message.get_data().front();
+
 			get_logger() << Logger::Severity::error
-				<< "Get expects exactly one argument, but "
-				<< message.get_data().size()
-				<< " argument(s) were supplied. "
-				<< "This message will be ignored."
-				<< std::endl;
-
-			return {};
-		}
-
-		std::string key = message.get_data().front();
-		std::optional<std::string> value = help_get_state(key);
-
-		if (!value) {
-			get_logger() << Logger::Severity::information
-				<< "The key: "
+				<< "Getting value for key: "
 				<< key
-				<< " does not exist."
+				<< "..."
 				<< std::endl;
 
-			return {};
-		}
+			if (!get_states().count(key)) {
+				get_logger() << Logger::Severity::information
+					<< "The key: "
+					<< key
+					<< " does not exist."
+					<< std::endl;
 
-		return {value.value()};
-	}
+				return {};
+			}
 
-	std::vector<std::string> Database::handle_set(
-		const Messenger::Message& message
-	) {
-		if (message.get_data().size() != 2) {
+			auto value = get_states().at(key);
+
 			get_logger() << Logger::Severity::error
-				<< "Set expects exactly two arguments, but "
-				<< message.get_data().size()
-				<< " argument(s) were supplied. "
-				<< "This message will be ignored."
+				<< "Replying with corresponding value: "
+				<< value
+				<< "..."
 				<< std::endl;
+
+			return {value};
+		} else if (message.get_data().size() == 2) {
+			auto key = message.get_data().front();
+			auto value = message.get_data().back();
+
+			get_logger() << Logger::Severity::error
+				<< "Setting key-value pair: "
+				<< key
+				<< ", "
+				<< value
+				<< "..."
+				<< std::endl;
+
+			get_states()[key] = value;
+
+			for (const auto& peripheral : get_topology().get_peripherals())
+				send(
+					peripheral,
+					get_header_space().get_key(),
+					{key, value}
+				);
 
 			return {};
 		}
 
-		std::string key = message.get_data().front();
-		std::string value = message.get_data().back();
-
-		help_set_state(key, value);
+		get_logger() << Logger::Severity::error
+			<< "Key expects 1 or 2 arguments, but "
+			<< message.get_data().size()
+			<< " argument(s) were supplied. "
+			<< "This message will be ignored."
+			<< std::endl;
 
 		return {};
 	}
@@ -201,19 +191,22 @@ namespace Revolution {
 
 		auto message = communicate(
 			get_topology().get_replica(),
-			get_header_space().get_get()
+			get_header_space().get_data()
 		);
 
-		set_state_data(message.get_data());
+		set_data(message.get_data());
 
 		while (get_status()) {
-			send(
-				get_topology().get_replica(),
-				get_header_space().get_set(),
-				get_state_data()
-			);
+			auto data = get_data();
 
-			std::this_thread::sleep_for(get_timeout());
+			if (!data.empty())
+				send(
+					get_topology().get_replica(),
+					get_header_space().get_data(),
+					data
+				);
+
+			std::this_thread::sleep_for(get_sync_timeout());
 		}
 	}
 }

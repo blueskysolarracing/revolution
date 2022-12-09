@@ -22,80 +22,63 @@ namespace Revolution {
 		topology,
 		topology.get().get_replica()
 	    },
-	    state_data{} {}
+	    data{} {}
 
 	void Replica::setup() {
 		Application::setup();
 
 		set_handler(
-			get_header_space().get_get(),
+			get_header_space().get_data(),
 			std::bind(
-				&Replica::handle_get,
-				this,
-				std::placeholders::_1
-			)
-		);
-		set_handler(
-			get_header_space().get_set(),
-			std::bind(
-				&Replica::handle_set,
+				&Replica::handle_data,
 				this,
 				std::placeholders::_1
 			)
 		);
 	}
 
-	const std::vector<std::string>& Replica::get_state_data() const {
-		return state_data;
+	const std::vector<std::string>& Replica::get_data() const {
+		return data;
 	}
 
-	const std::mutex& Replica::get_state_data_mutex() const {
-		return state_data_mutex;
+	const std::mutex& Replica::get_data_mutex() const {
+		return data_mutex;
 	}
 
-	std::vector<std::string>& Replica::get_state_data() {
-		return state_data;
+	std::vector<std::string>& Replica::get_data() {
+		return data;
 	}
 
-	std::mutex& Replica::get_state_data_mutex() {
-		return state_data_mutex;
+	std::mutex& Replica::get_data_mutex() {
+		return data_mutex;
 	}
 
 	std::vector<std::string>
-		Replica::handle_get(const Messenger::Message& message) {
-		if (!message.get_data().empty()) {
-			get_logger() << Logger::Severity::error
-				<< "Get expects no argument, but "
-				<< message.get_data().size()
-				<< " argument(s) were supplied. "
-				<< "This message will be ignored."
+		Replica::handle_data(const Messenger::Message& message) {
+		std::scoped_lock lock{get_data_mutex()};
+
+		if (message.get_data().empty()) {
+			get_logger() << Logger::Severity::information
+				<< "Retrieving data..."
 				<< std::endl;
+
+			return get_data();
+		} else if (message.get_data().size() % 2 == 0) {
+			get_logger() << Logger::Severity::information
+				<< "Storing data..."
+				<< std::endl;
+
+			get_data() = message.get_data();
 
 			return {};
 		}
 
-		std::scoped_lock lock{get_state_data_mutex()};
-
-		return get_state_data();
-	}
-
-	std::vector<std::string> Replica::handle_set(
-		const Messenger::Message& message
-	) {
-		if (message.get_data().size() % 2 != 0) {
-			get_logger() << Logger::Severity::error
-				<< "Set expects 2 * n arguments, but "
-				<< message.get_data().size()
-				<< " argument(s) were supplied. "
-				<< "This message will be ignored."
-				<< std::endl;
-
-			return {};
-		}
-
-		std::scoped_lock lock{get_state_data_mutex()};
-
-		get_state_data() = message.get_data();
+		get_logger() << Logger::Severity::error
+			<< "Data expects 2 * n arguments (n >= 0), but "
+			<< message.get_data().size()
+			<< " argument(s) were supplied. "
+			<< "This message will be ignored."
+			<< std::endl;
 
 		return {};
 	}

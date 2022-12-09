@@ -1,6 +1,5 @@
 #include "peripheral.h"
 
-#include <cassert>
 #include <functional>
 #include <mutex>
 #include <optional>
@@ -24,14 +23,18 @@ namespace Revolution {
 		Peripheral::get_state(const std::string& key) {
 		auto message = communicate(
 			get_topology().get_database(),
-			get_header_space().get_get(),
+			get_header_space().get_key(),
 			{key}
 		);
 
-		if (message.get_data().empty())
-			return std::nullopt;
+		if (message.get_data().size() != 1) {
+			if (!message.get_data().empty())
+				get_logger() << Logger::Severity::error
+					<< "Unexpected elements in the reply."
+					<< std::endl;
 
-		assert(message.get_data().size() == 1);
+			return std::nullopt;
+		}
 
 		return message.get_data().front();
 	}
@@ -40,21 +43,60 @@ namespace Revolution {
 		const std::string& key,
 		const std::string& value
 	) {
-		communicate(
+		send(
 			get_topology().get_database(),
-			get_header_space().get_set(),
+			get_header_space().get_key(),
 			{key, value}
 		);
 	}
 
+	bool Peripheral::get_gpio(
+		const std::string& device,
+		const unsigned int& offset
+	) {
+		auto message = communicate(
+			get_topology().get_hardware(),
+			get_header_space().get_gpio(),
+			{device, std::to_string(offset)}
+		);
+
+		if (message.get_data().size() != 1) {
+			get_logger() << Logger::Severity::error
+				<< "Invalid number of elements in the reply."
+				<< std::endl;
+
+			return false;
+		}
+
+		auto raw_active_low = message.get_data().front();
+
+		return (bool) std::stoi(raw_active_low);
+	}
+
+	void Peripheral::set_gpio(
+		const std::string& device,
+		const unsigned int& offset,
+		const bool& active_low
+	) {
+		send(
+			get_topology().get_hardware(),
+			get_header_space().get_gpio(),
+			{
+				device,
+				std::to_string(offset),
+				std::to_string((int) active_low)
+			}
+		);
+	}
+
 	void Peripheral::set_gpio_watcher(
-		const std::string& bank,
-		const unsigned int& gpio,
+		const std::string& device,
+		const unsigned int& offset,
 		const Gpio_watcher& gpio_watcher
 	) {
 		std::scoped_lock lock{get_gpio_watcher_mutex()};
 
-		get_gpio_watchers()[bank][gpio] = gpio_watcher;
+		get_gpio_watchers()[device][offset] = gpio_watcher;
 	}
 
 	void Peripheral::set_key_watcher(
@@ -130,16 +172,16 @@ namespace Revolution {
 	std::optional<
 		const std::reference_wrapper<const Peripheral::Gpio_watcher>
 	> Peripheral::get_gpio_watcher(
-		const std::string& bank,
-		const unsigned int& gpio
+		const std::string& device,
+		const unsigned int& offset
 	) {
 		std::scoped_lock lock{get_gpio_watcher_mutex()};
 
-		if (!get_gpio_watchers().count(bank)
-				|| !get_gpio_watchers().at(bank).count(gpio))
+		if (!get_gpio_watchers().count(device)
+				|| !get_gpio_watchers().at(device).count(offset))
 			return std::nullopt;
 
-		return get_gpio_watchers().at(bank).at(gpio);
+		return get_gpio_watchers().at(device).at(offset);
 	}
 
 	std::optional<
@@ -166,15 +208,15 @@ namespace Revolution {
 			return {};
 		}
 
-		const auto& bank = message.get_data().front();
-		const auto& raw_gpio = message.get_data()[1];
-		const auto& raw_status = message.get_data().back();
-		unsigned int gpio = std::stoi(raw_gpio);
-		bool status = std::stoi(raw_status);
-		const auto gpio_watcher = get_gpio_watcher(bank, gpio);
+		const auto& device = message.get_data().front();
+		const auto& raw_offset = message.get_data()[1];
+		const auto& raw_active_low = message.get_data().back();
+		unsigned int offset = std::stoi(raw_offset);
+		bool active_low = std::stoi(raw_active_low);
+		const auto gpio_watcher = get_gpio_watcher(device, offset);
 
 		if (gpio_watcher)
-			gpio_watcher.value()(bank, gpio, status);
+			gpio_watcher.value()(device, offset, active_low);
 
 		return {};
 	}

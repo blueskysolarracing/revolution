@@ -23,19 +23,17 @@ namespace Revolution {
 	protected:
 		void setup() override;
 	private:
-		const std::vector<std::string>& get_state_data() const;
-		const std::mutex& get_state_data_mutex() const;
+		const std::vector<std::string>& get_data() const;
+		const std::mutex& get_data_mutex() const;
 
-		std::vector<std::string>& get_state_data();
-		std::mutex& get_state_data_mutex();
+		std::vector<std::string>& get_data();
+		std::mutex& get_data_mutex();
 
 		std::vector<std::string>
-			handle_get(const Messenger::Message& message);
-		std::vector<std::string>
-			handle_set(const Messenger::Message& message);
+			handle_data(const Messenger::Message& message);
 
-		std::vector<std::string> state_data;
-		std::mutex state_data_mutex;
+		std::vector<std::string> data;
+		std::mutex data_mutex;
 	};
 }
 
