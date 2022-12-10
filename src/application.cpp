@@ -267,15 +267,15 @@ namespace Revolution {
 		Application::get_response(const Messenger::Message& message) {
 		std::unique_lock lock{get_response_mutex()};
 
-		get_responses().emplace(message.get_identity(), std::nullopt);
+		get_responses().emplace(message.get_identifier(), std::nullopt);
 
-		while (!get_responses().at(message.get_identity()))
+		while (!get_responses().at(message.get_identifier()))
 			get_response_condition_variable().wait(lock);
 
 		auto response
-			= get_responses().at(message.get_identity()).value();
+			= get_responses().at(message.get_identifier()).value();
 
-		get_responses().erase(message.get_identity());
+		get_responses().erase(message.get_identifier());
 
 		return response;
 	}
@@ -283,10 +283,10 @@ namespace Revolution {
 	void Application::set_response(const Messenger::Message& message) {
 		std::unique_lock lock{get_response_mutex()};
 
-		if (get_responses().count(message.get_identity())) {
-			get_responses().erase(message.get_identity());
+		if (get_responses().count(message.get_identifier())) {
+			get_responses().erase(message.get_identifier());
 			get_responses().emplace(
-				message.get_identity(),
+				message.get_identifier(),
 				message
 			);
 		}
@@ -400,7 +400,7 @@ namespace Revolution {
 			get_header_space().get_response(),
 			data,
 			message.get_priority(),
-			message.get_identity()
+			message.get_identifier()
 		};
 
 		get_logger() << Logger::Severity::information

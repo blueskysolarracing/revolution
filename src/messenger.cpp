@@ -123,7 +123,7 @@ namespace Revolution {
 		std::size_t datum_count;
 		std::vector<std::string> data;
 		unsigned int priority;
-		unsigned int identity;
+		unsigned int identifier;
 
 		iss >> sender_name >> recipient_name >> header >> datum_count;
 
@@ -132,7 +132,7 @@ namespace Revolution {
 		for (std::size_t i{}; i < datum_count; ++i)
 			iss >> data[i];
 
-		iss >> priority >> identity;
+		iss >> priority >> identifier;
 
 		return Message{
 			sender_name,
@@ -140,7 +140,7 @@ namespace Revolution {
 			header,
 			data,
 			priority,
-			identity
+			identifier
 		};
 	}
 
@@ -150,13 +150,13 @@ namespace Revolution {
 		const std::string& header,
 		const std::vector<std::string>& data,
 		const unsigned int& priority,
-		const unsigned int& identity
+		const unsigned int& identifier
 	) : sender_name{sender_name},
 	    recipient_name{recipient_name},
 	    header{header},
 	    data{data},
 	    priority{priority},
-	    identity{identity} {}
+	    identifier{identifier} {}
 
 	const std::string& Messenger::Message::get_sender_name() const {
 		return sender_name;
@@ -178,8 +178,8 @@ namespace Revolution {
 		return priority;
 	}
 
-	const unsigned int& Messenger::Message::get_identity() const {
-		return identity;
+	const unsigned int& Messenger::Message::get_identifier() const {
+		return identifier;
 	}
 
 	std::string Messenger::Message::serialize() const {
@@ -199,7 +199,7 @@ namespace Revolution {
 
 		oss << get_priority()
 			<< ' '
-			<< get_identity()
+			<< get_identifier()
 			<< ' ';
 
 		return oss.str();

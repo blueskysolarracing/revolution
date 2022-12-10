@@ -24,7 +24,7 @@ namespace Revolution {
 				const std::string& header,
 				const std::vector<std::string>& data = {},
 				const unsigned int& priority = 0,
-				const unsigned int& identity = get_count()++
+				const unsigned int& identifier = get_count()++
  			);
 
 			const std::string& get_sender_name() const;
@@ -32,7 +32,7 @@ namespace Revolution {
 			const std::string& get_header() const;
 			const std::vector<std::string>& get_data() const;
 			const unsigned int& get_priority() const;
-			const unsigned int& get_identity() const;
+			const unsigned int& get_identifier() const;
 
 			std::string serialize() const;
 		private:
@@ -45,7 +45,7 @@ namespace Revolution {
 			const std::string header;
 			const std::vector<std::string> data;
 			const unsigned int priority;
-			const unsigned int identity;
+			const unsigned int identifier;
 		};
 
 		class Error : public std::system_error {
