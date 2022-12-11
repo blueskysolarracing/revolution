@@ -12,36 +12,24 @@ namespace Revolution {
 			const std::string& abort = "ABORT",
 			const std::string& data = "DATA",
 			const std::string& exit = "EXIT",
-			const std::string& gpio = "GPIO",
-			const std::string& pwm = "PWM",
 			const std::string& response = "RESPONSE",
-			const std::string& spi = "SPI",
 			const std::string& state = "STATE",
-			const std::string& status = "STATUS",
-			const std::string& uart = "UART"
+			const std::string& status = "STATUS"
 		);
 
 		const std::string& get_abort() const;
 		const std::string& get_data() const;
 		const std::string& get_exit() const;
-		const std::string& get_gpio() const;
-		const std::string& get_pwm() const;
 		const std::string& get_response() const;
-		const std::string& get_spi() const;
 		const std::string& get_state() const;
 		const std::string& get_status() const;
-		const std::string& get_uart() const;
 	private:
 		const std::string abort;
 		const std::string data;
 		const std::string exit;
-		const std::string gpio;
-		const std::string pwm;
 		const std::string response;
-		const std::string spi;
 		const std::string state;
 		const std::string status;
-		const std::string uart;
 	};
 
 	class State_space {};
@@ -51,13 +39,11 @@ namespace Revolution {
 		explicit Topology(
 			const std::string& database = "database",
 			const std::string& replica = "replica",
-			const std::string& controller = "controller",
 			const std::string& display = "display"
 		);
 
 		const std::string& get_database() const;
 		const std::string& get_replica() const;
-		const std::string& get_controller() const;
 		const std::string& get_display() const;
 
 		const std::vector<std::reference_wrapper<const std::string>>
@@ -65,7 +51,6 @@ namespace Revolution {
 	private:
 		const std::string database;
 		const std::string replica;
-		const std::string controller;
 		const std::string display;
 	};
 }

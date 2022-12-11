@@ -113,26 +113,46 @@ namespace Revolution {
 			throw Messenger::Error{"Cannot unlink message queue"};
 	}
 
+	static timespec convert_to_timespec(
+		const std::chrono::high_resolution_clock::duration& duration
+	) {
+		auto seconds = std::chrono::duration_cast<std::chrono::seconds>(
+			duration
+		);
+		auto nanoseconds
+			= std::chrono::duration_cast<std::chrono::nanoseconds>(
+				duration - seconds
+			);
+
+		return {seconds.count(), nanoseconds.count()};
+	}
+
 	Messenger::Message Messenger::Message::deserialize(
 		const std::string& raw_message
 	) {
-		std::istringstream iss{raw_message};
-		std::string sender_name;
-		std::string recipient_name;
-		std::string header;
-		std::size_t datum_count;
-		std::vector<std::string> data;
-		unsigned int priority;
-		unsigned int identifier;
+		std::vector<std::string> tokens;
+		std::size_t begin_index = 0, end_index = raw_message.find(',');
 
-		iss >> sender_name >> recipient_name >> header >> datum_count;
+		while (end_index != std::string::npos) {
+			tokens.push_back(
+				raw_message.substr(
+					begin_index,
+					end_index - begin_index
+				)
+			);
+			begin_index = end_index + 1;
+			end_index = raw_message.find('\0', begin_index);
+		}
 
-		data.resize(datum_count);
-
-		for (std::size_t i{}; i < datum_count; ++i)
-			iss >> data[i];
-
-		iss >> priority >> identifier;
+		std::string sender_name = tokens[0];
+		std::string recipient_name = tokens[1];
+		std::string header = tokens[2];
+		std::vector<std::string> data{
+			std::next(tokens.begin(), 3),
+			std::next(tokens.begin(), tokens.size() - 2)
+		};
+		unsigned int priority = std::stoul(tokens[tokens.size() - 2]);
+		unsigned int identifier = std::stoul(tokens[tokens.size() - 1]);
 
 		return Message{
 			sender_name,
@@ -186,21 +206,19 @@ namespace Revolution {
 		std::ostringstream oss;
 
 		oss << get_sender_name()
-			<< ' '
+			<< '\0'
 			<< get_recipient_name()
-			<< ' '
+			<< '\0'
 			<< get_header()
-			<< ' '
-			<< get_data().size()
-			<< ' ';
+			<< '\0';
 
 		for (const auto& datum : get_data())
-			oss << datum << ' ';
+			oss << datum << '\0';
 
 		oss << get_priority()
-			<< ' '
+			<< '\0'
 			<< get_identifier()
-			<< ' ';
+			<< '\0';
 
 		return oss.str();
 	}
@@ -218,10 +236,19 @@ namespace Revolution {
 		unlink_message_queue(name);
 	}
 
-	Messenger::Message Messenger::receive(
-		const std::string& recipient_name
-	) const {
-		return receive_from_message_queue(recipient_name, [] (
+	Messenger::Messenger(const std::string& sender_name)
+		: sender_name{sender_name} {}
+
+	Messenger::~Messenger() {
+		unlink(get_sender_name());
+	}
+
+	const std::string& Messenger::get_sender_name() const {
+		return sender_name;
+	}
+
+	Messenger::Message Messenger::receive() const {
+		return receive_from_message_queue(get_sender_name(), [] (
 			const auto& descriptor,
 			auto& raw_message,
 			auto& priority
@@ -236,37 +263,45 @@ namespace Revolution {
 	}
 
 	std::optional<Messenger::Message> Messenger::timed_receive(
-		const std::string& recipient_name,
-		const Timeout& timeout
+		const std::chrono::high_resolution_clock::duration& timeout
 	) const {
-		auto time_point = std::chrono::high_resolution_clock::now();
-		auto duration = time_point.time_since_epoch() + timeout;
-		auto seconds = std::chrono::duration_cast<std::chrono::seconds>(
-			duration
+		auto absolute_timeout = convert_to_timespec(
+			std::chrono::high_resolution_clock::now()
+				.time_since_epoch() + timeout
 		);
-		auto nanoseconds
-			= std::chrono::duration_cast<std::chrono::nanoseconds>(
-				duration - seconds
-			);
-		timespec abs_timeout{seconds.count(), nanoseconds.count()};
 
-		return receive_from_message_queue(recipient_name, [&abs_timeout] (
-			const auto& descriptor,
-			auto& raw_message,
-			auto& priority
-		) {
-			return mq_timedreceive(
-				descriptor,
-				raw_message.data(),
-				raw_message.size(),
-				&priority,
-				&abs_timeout
-			);
-		});
+		return receive_from_message_queue(
+			get_sender_name(),
+			[&absolute_timeout] (
+				const auto& descriptor,
+				auto& raw_message,
+				auto& priority
+			) {
+				return mq_timedreceive(
+					descriptor,
+					raw_message.data(),
+					raw_message.size(),
+					&priority,
+					&absolute_timeout
+				);
+			}
+		);
 	}
 
-	void Messenger::send(const Message& message) const {
-		send_to_message_queue(message, [] (
+	Messenger::Message Messenger::send(
+		const std::string& recipient_name,
+		const std::string& header,
+		const std::vector<std::string>& data,
+		const unsigned int& priority
+	) const {
+		Messenger::Message message{
+			get_sender_name(),
+			recipient_name,
+			header,
+			data,
+			priority
+		};
+		auto status = send_to_message_queue(message, [] (
 			const auto& descriptor,
 			const auto& raw_message,
 			const auto& priority
@@ -278,24 +313,36 @@ namespace Revolution {
 				priority
 			);
 		});
+
+		if (!status)
+			throw Error{
+				"Message send failed due to an unknown error."
+			};
+
+		return message;
 	}
 
-	bool Messenger::timed_send(
-		const Message& message,
-		const Timeout& timeout
+	std::optional<Messenger::Message> Messenger::timed_send(
+		const std::chrono::high_resolution_clock::duration& timeout,
+		const std::string& recipient_name,
+		const std::string& header,
+		const std::vector<std::string>& data,
+		const unsigned int& priority
 	) const {
-		auto time_point = std::chrono::high_resolution_clock::now();
-		auto duration = time_point.time_since_epoch() + timeout;
-		auto seconds = std::chrono::duration_cast<std::chrono::seconds>(
-			duration
+		Messenger::Message message{
+			get_sender_name(),
+			recipient_name,
+			header,
+			data,
+			priority
+		};
+		auto absolute_timeout = convert_to_timespec(
+			std::chrono::high_resolution_clock::now()
+				.time_since_epoch() + timeout
 		);
-		auto nanoseconds
-			= std::chrono::duration_cast<std::chrono::nanoseconds>(
-				duration - seconds
-			);
-		timespec abs_timeout{seconds.count(), nanoseconds.count()};
-
-		return send_to_message_queue(message, [&abs_timeout] (
+		auto status = send_to_message_queue(
+			message,
+			[&absolute_timeout] (
 			const auto& descriptor,
 			const auto& raw_message,
 			const auto& priority
@@ -305,16 +352,13 @@ namespace Revolution {
 				raw_message.data(),
 				raw_message.size(),
 				priority,
-				&abs_timeout
+				&absolute_timeout
 			);
 		});
-	}
 
-	const Messenger::Timeout Messenger::default_timeout{
-		std::chrono::milliseconds(100)
-	};
+		if (!status)
+			return std::nullopt;
 
-	const Messenger::Timeout& Messenger::get_default_timeout() {
-		return default_timeout;
+		return message;
 	}
 }

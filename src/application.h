@@ -27,7 +27,7 @@ namespace Revolution {
 			const std::reference_wrapper<const Topology>& topology,
 			const std::string& name
 		);
-		virtual ~Application();
+		virtual ~Application() = default;
 
 		void main();
 	protected:

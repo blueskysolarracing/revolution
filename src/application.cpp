@@ -28,7 +28,7 @@ namespace Revolution {
 	    topology{topology},
 	    name{name},
 	    logger{},
-	    messenger{},
+	    messenger{name},
 	    heart{},
 	    worker_pool{},
 	    status{},
@@ -37,10 +37,6 @@ namespace Revolution {
 	    responses{},
 	    response_mutex{},
 	    response_condition_variable{} {}
-
-	Application::~Application() {
-		Messenger::unlink(get_name());
-	}
 
 	void Application::main() {
 		get_logger() << Logger::Severity::information

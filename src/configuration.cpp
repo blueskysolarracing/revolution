@@ -9,23 +9,15 @@ namespace Revolution {
 		const std::string& abort,
 		const std::string& data,
 		const std::string& exit,
-		const std::string& gpio,
-		const std::string& pwm,
 		const std::string& response,
-		const std::string& spi,
 		const std::string& state,
-		const std::string& status,
-		const std::string& uart
+		const std::string& status
 	) : abort{abort},
 	    data{data},
 	    exit{exit},
-	    gpio{gpio},
-	    pwm{pwm},
 	    response{response},
-	    spi{spi},
 	    state{state},
-	    status{status},
-	    uart{uart} {}
+	    status{status} {}
 
 	const std::string& Header_space::get_abort() const {
 		return abort;
@@ -39,14 +31,6 @@ namespace Revolution {
 		return exit;
 	}
 
-	const std::string& Header_space::get_gpio() const {
-		return gpio;
-	}
-
-	const std::string& Header_space::get_pwm() const {
-		return pwm;
-	}
-
 	const std::string& Header_space::get_response() const {
 		return response;
 	}
@@ -55,26 +39,16 @@ namespace Revolution {
 		return state;
 	}
 
-	const std::string& Header_space::get_spi() const {
-		return spi;
-	}
-
 	const std::string& Header_space::get_status() const {
 		return status;
-	}
-
-	const std::string& Header_space::get_uart() const {
-		return uart;
 	}
 
 	Topology::Topology(
 		const std::string& database,
 		const std::string& replica,
-		const std::string& controller,
 		const std::string& display
 	) : database{database},
 	    replica{replica},
-	    controller{controller},
 	    display{display} {}
 
 	const std::string& Topology::get_database() const {
@@ -83,10 +57,6 @@ namespace Revolution {
 
 	const std::string& Topology::get_replica() const {
 		return replica;
-	}
-
-	const std::string& Topology::get_controller() const {
-		return controller;
 	}
 
 	const std::string& Topology::get_display() const {
