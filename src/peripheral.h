@@ -34,7 +34,7 @@ namespace Revolution {
 			const std::string& key,
 			const std::string& value
 		);
-		void watch_state(
+		void set_watcher(
 			const std::string& key,
 			const Watcher& watcher
 		);

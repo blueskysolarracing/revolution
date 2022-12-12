@@ -61,7 +61,7 @@ namespace Revolution {
 		);
 	}
 
-	void Peripheral::watch_state(
+	void Peripheral::set_watcher(
 		const std::string& key,
 		const Watcher& watcher
 	) {
