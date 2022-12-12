@@ -1,4 +1,5 @@
 #include <atomic>
+#include <chrono>
 #include <functional>
 #include <iostream>
 #include <iterator>
@@ -9,123 +10,83 @@
 
 #include "messenger.h"
 
-void receiver(
-	const std::string& recipient_name,
-	const Revolution::Messenger& messenger,
-	const std::atomic_bool& status
-) {
-	auto received = true;
-
-	while (status || received) {
-		auto optional_message = messenger.timed_receive(recipient_name);
-		received = optional_message.has_value();
-
-		if (received)
-			std::cout << optional_message.value().serialize()
-				<< std::endl;
-	}
-}
-
-void sender(
-	const std::string& sender_name,
-	const std::string& recipient_name,
-	const Revolution::Messenger& messenger,
-	std::atomic_bool& status
-) {
-	std::string header;
-	std::vector<std::string> data;
-
-	while (status.load()) {
-		std::string input;
-		std::getline(std::cin, input);
-
-		if (input.empty())
-			status = false;
-		else {
-			std::istringstream iss(input);
-			std::string datum;
-
-			iss >> header;
-
-			while (iss >> datum)
-				data.push_back(datum);
-
-			messenger.send(
-				Revolution::Messenger::Message{
-					sender_name,
-					recipient_name,
-					header,
-					data
-				}
-			);
-
-			header.clear();
-			data.clear();
-		}
-	}
-}
-
+const std::chrono::high_resolution_clock::duration timeout{
+	std::chrono::microseconds{100}
+};
 
 int main(int argc, char *argv[]) {
 	if (argc < 2) {
-		std::cout << "Usage: "
-			<< "./client "
-			<< "sender_name "
+		std::cout << "Usage: ./client sender_name "
 			<< "[recipient_name header data...]"
 			<< std::endl;
 
 		return -1;
 	}
-	
+
 	std::string sender_name{argv[1]};
-	Revolution::Messenger messenger;
-	std::atomic_bool status;
+	Revolution::Messenger messenger{sender_name};
+	std::atomic_bool status{true};
+	std::thread thread{
+		&Revolution::Messenger::watch,
+		&messenger,
+		timeout,
+		std::cref(status),
+		[] (const Revolution::Messenger::Message& message) {
+			std::cout << message.to_string() << std::endl;
+		}
+	};
 
-	if (argc == 2) {
-		receiver(sender_name, messenger, status);
-		Revolution::Messenger::unlink(sender_name);
+	if (argc == 2)
+		std::cin.get();
+	else {
+		std::string recipient_name{argv[2]};
 
-		return 0;
-	} else if (argc == 3)
-		status = true;
+		if (argc == 3) {
+			std::string header;
+			std::vector<std::string> data;
 
-	std::string recipient_name{argv[2]};
+			while (status) {
+				std::string input;
+				std::getline(std::cin, input);
 
-	if (argc > 3) {
-		std::string header{argv[3]};
-		std::vector<std::string> data{
-			std::next(argv, 4),
-			std::next(argv, argc)
-		};
+				if (input.empty())
+					status = false;
+				else {
+					std::istringstream iss(input);
+					std::string datum;
 
-		messenger.send(
-			Revolution::Messenger::Message{
-				sender_name,
+					iss >> header;
+
+					while (iss >> datum)
+						data.push_back(datum);
+
+					messenger.send(
+						recipient_name,
+						header,
+						data
+					);
+
+					header.clear();
+					data.clear();
+				}
+			}
+		} else {
+			std::string header{argv[3]};
+			std::vector<std::string> data{
+				std::next(argv, 4),
+				std::next(argv, argc)
+			};
+
+			messenger.send(
 				recipient_name,
 				header,
 				data
-			}
-		);
+			);
+		}
 	}
 
-	std::thread receiver_thread{
-		receiver,
-		sender_name,
-		messenger,
-		std::cref(status)
-	};
-	std::thread sender_thread{
-		sender,
-		sender_name,
-		recipient_name,
-		messenger,
-		std::ref(status)
-	};
-
-	receiver_thread.join();
-	sender_thread.join();
-
-	Revolution::Messenger::unlink(sender_name);
+	status = false;
+	thread.join();
 
 	return 0;
 }

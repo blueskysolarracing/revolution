@@ -1,7 +1,9 @@
 #ifndef REVOLUTION_MESSENGER_H
 #define REVOLUTION_MESSENGER_H
 
+#include <atomic>
 #include <chrono>
+#include <functional>
 #include <optional>
 #include <string>
 #include <system_error>
@@ -25,6 +27,8 @@ namespace Revolution {
 				const unsigned int& identifier = get_count()++
  			);
 
+			bool operator==(const Message& that) const;
+
 			const std::string& get_sender_name() const;
 			const std::string& get_recipient_name() const;
 			const std::string& get_header() const;
@@ -33,6 +37,7 @@ namespace Revolution {
 			const unsigned int& get_identifier() const;
 
 			std::string serialize() const;
+			std::string to_string() const;
 		private:
 			static unsigned int count;
 
@@ -77,6 +82,13 @@ namespace Revolution {
 			const std::string& header,
 			const std::vector<std::string>& data = {},
 			const unsigned int& priority = 0
+		) const;
+
+		void watch(
+			const std::chrono::high_resolution_clock::duration&
+				timeout,
+			const std::atomic_bool& status,
+			const std::function<void(const Message&)>& watcher
 		) const;
 	private:
 		std::string sender_name;

@@ -131,7 +131,8 @@ namespace Revolution {
 		const std::string& raw_message
 	) {
 		std::vector<std::string> tokens;
-		std::size_t begin_index = 0, end_index = raw_message.find(',');
+		std::size_t begin_index{};
+		auto end_index = raw_message.find('\0');
 
 		while (end_index != std::string::npos) {
 			tokens.push_back(
@@ -178,6 +179,15 @@ namespace Revolution {
 	    priority{priority},
 	    identifier{identifier} {}
 
+	bool Messenger::Message::operator==(const Message& that) const {
+		return get_sender_name() == that.get_sender_name()
+			&& get_recipient_name() == that.get_recipient_name()
+			&& get_header() == that.get_header()
+			&& get_data() == that.get_data()
+			&& get_priority() == that.get_priority()
+			&& get_identifier() == that.get_identifier();
+	}
+
 	const std::string& Messenger::Message::get_sender_name() const {
 		return sender_name;
 	}
@@ -219,6 +229,34 @@ namespace Revolution {
 			<< '\0'
 			<< get_identifier()
 			<< '\0';
+
+		return oss.str();
+	}
+
+	std::string Messenger::Message::to_string() const {
+		std::ostringstream oss;
+
+		oss << "{\"sender_name\": \""
+			<< get_sender_name()
+			<< "\", \"recipient_name\": \""
+			<< get_recipient_name()
+			<< "\", \"header\": \""
+			<< get_header()
+			<< "\", \"data\": [";
+
+		auto it = get_data().begin();
+
+		if (it != get_data().end())
+			oss << "\"" << *it++ << "\"";
+
+		while (it != get_data().end())
+			oss << ", \"" << *it++ << "\"";
+
+		oss << "], \"priority\": "
+			<< get_priority()
+			<< ", \"identifier\": "
+			<< get_identifier()
+			<< "}";
 
 		return oss.str();
 	}
@@ -360,5 +398,18 @@ namespace Revolution {
 			return std::nullopt;
 
 		return message;
+	}
+
+	void Messenger::watch(
+		const std::chrono::high_resolution_clock::duration& timeout,
+		const std::atomic_bool& status,
+		const std::function<void(const Message&)>& watcher
+	) const {
+		while (status) {
+			auto message = timed_receive(timeout);
+
+			if (message)
+				watcher(message.value());
+		}
 	}
 }
