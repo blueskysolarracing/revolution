@@ -3,8 +3,10 @@ project(
   'cpp',
   version: '0.0.0',
   default_options: [
-    'warning_level=3',
     'cpp_std=c++17',
+    'optimization=3',
+    'warning_level=3',
+    'werror=true',
   ],
 )
 
@@ -13,11 +15,12 @@ cpp_compiler = meson.get_compiler('cpp')
 project_source_files = files(
   'src/application.cpp',
   'src/configuration.cpp',
+  'src/controller.cpp',
   'src/heart.cpp',
   'src/logger.cpp',
   'src/messenger.cpp',
   'src/peripheral.cpp',
-  'src/worker_pool.cpp',
+  'src/thread_pool.cpp',
 )
 
 project_dependencies = [
@@ -36,13 +39,6 @@ database_target = executable(
 replica_target = executable(
   'replica',
   [project_source_files, 'src/replica.cpp'],
-  dependencies: project_dependencies,
-  install: true,
-)
-
-controller_target = executable(
-  'controller',
-  [project_source_files, './src/controller.cpp'],
   dependencies: project_dependencies,
   install: true,
 )
