@@ -74,8 +74,6 @@ sudo ninja -C build uninstall
 
 ## Todos
 
-- Message timestamps
-- Handle empty strings properly when serializing/deserializing messages
 - Unit tests
 - Performance tests
 - Documentation (probably using sphinx)
