@@ -29,7 +29,7 @@ namespace Revolution {
 		std::mutex& get_mutex();
 		std::condition_variable& get_condition_variable();
 
-		void worker();
+		void main();
 
 		std::atomic_bool status;
 		std::list<std::thread> threads;

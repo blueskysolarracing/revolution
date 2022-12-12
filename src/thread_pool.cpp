@@ -17,7 +17,7 @@ namespace Revolution {
 		  condition_variable{} {
 		for (unsigned int i = 0; i < thread_count; ++i)
 			threads.emplace_back(
-				std::bind(&Thread_pool::worker, this)
+				std::bind(&Thread_pool::main, this)
 			);
 	}
 
@@ -78,7 +78,7 @@ namespace Revolution {
 		return condition_variable;
 	}
 
-	void Thread_pool::worker() {
+	void Thread_pool::main() {
 		while (get_status()) {
 			std::function<void()> function{};
 

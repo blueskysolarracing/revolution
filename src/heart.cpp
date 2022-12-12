@@ -9,6 +9,10 @@
 namespace Revolution {
 	Heart::Heart() : count{} {}
 
+	const std::atomic_uint& Heart::get_count() const {
+		return count;
+	}
+
 	void Heart::beat() {
 		++get_count();
 	}
@@ -33,10 +37,6 @@ namespace Revolution {
 
 			std::this_thread::sleep_for(timeout);
 		}
-	}
-
-	const std::atomic_uint& Heart::get_count() const {
-		return count;
 	}
 
 	std::atomic_uint& Heart::get_count() {

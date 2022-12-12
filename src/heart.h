@@ -9,6 +9,8 @@ namespace Revolution {
 	public:
 		explicit Heart();
 
+		const std::atomic_uint& get_count() const;
+
 		void beat();
 		void monitor(
 			const std::chrono::high_resolution_clock::duration&
@@ -16,7 +18,6 @@ namespace Revolution {
 			const std::atomic_bool& status
 		);
 	private:
-		const std::atomic_uint& get_count() const;
 		std::atomic_uint& get_count();
 
 		std::atomic_uint count;
