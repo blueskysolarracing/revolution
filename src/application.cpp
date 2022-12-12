@@ -185,16 +185,6 @@ namespace Revolution {
 				std::placeholders::_1
 			)
 		);
-
-		// TODO: check for hanging.
-		// get_thread_pool().add(
-		// 	std::bind(
-		// 		&Heart::monitor,
-		// 		&get_heart(),
-		// 		get_timeout(),
-		// 		std::cref(get_status())
-		// 	)
-		// );
 	}
 
 	const std::unordered_map<std::string, Application::Handler>&
@@ -400,6 +390,15 @@ namespace Revolution {
 	}
 
 	void Application::run() {
+		// TODO: check for hanging.
+		// get_thread_pool().add(
+		// 	std::bind(
+		// 		&Heart::monitor,
+		// 		&get_heart(),
+		// 		get_timeout(),
+		// 		std::cref(get_status())
+		// 	)
+		// );
 		get_messenger().monitor(
 			get_timeout(),
 			get_status(),
