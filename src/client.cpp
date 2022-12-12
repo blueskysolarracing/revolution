@@ -41,36 +41,7 @@ int main(int argc, char *argv[]) {
 	else {
 		std::string recipient_name{argv[2]};
 
-		if (argc == 3) {
-			std::string header;
-			std::vector<std::string> data;
-
-			while (status) {
-				std::string input;
-				std::getline(std::cin, input);
-
-				if (input.empty())
-					status = false;
-				else {
-					std::istringstream iss(input);
-					std::string datum;
-
-					iss >> header;
-
-					while (iss >> datum)
-						data.push_back(datum);
-
-					messenger.send(
-						recipient_name,
-						header,
-						data
-					);
-
-					header.clear();
-					data.clear();
-				}
-			}
-		} else {
+		if (argc > 3) {
 			std::string header{argv[3]};
 			std::vector<std::string> data{
 				std::next(argv, 4),
@@ -82,6 +53,35 @@ int main(int argc, char *argv[]) {
 				header,
 				data
 			);
+		}
+
+		std::string header;
+		std::vector<std::string> data;
+
+		while (status) {
+			std::string input;
+			std::getline(std::cin, input);
+
+			if (input.empty())
+				status = false;
+			else {
+				std::istringstream iss(input);
+				std::string datum;
+
+				iss >> header;
+
+				while (iss >> datum)
+					data.push_back(datum);
+
+				messenger.send(
+					recipient_name,
+					header,
+					data
+				);
+
+				header.clear();
+				data.clear();
+			}
 		}
 	}
 
