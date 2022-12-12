@@ -15,20 +15,25 @@ namespace Revolution {
 	Replica::Replica(
 		const std::reference_wrapper<const Header_space>& header_space,
 		const std::reference_wrapper<const State_space>& state_space,
-		const std::reference_wrapper<const Topology>& topology
+		const std::reference_wrapper<const Topology>& topology,
+		const std::chrono::high_resolution_clock::duration& timeout,
+		const unsigned int& thread_count
 	) : Application{
 		header_space,
 		state_space,
 		topology,
-		topology.get().get_replica()
+		topology.get().get_replica_name(),
+		timeout,
+		thread_count
 	    },
-	    data{} {}
+	    data{},
+	    mutex{} {}
 
 	void Replica::setup() {
 		Application::setup();
 
 		set_handler(
-			get_header_space().get_data(),
+			get_header_space().get_data_header(),
 			std::bind(
 				&Replica::handle_data,
 				this,
@@ -37,25 +42,41 @@ namespace Revolution {
 		);
 	}
 
+	const std::chrono::high_resolution_clock::duration
+		Replica::default_timeout{
+		std::chrono::seconds(1)
+	};
+
+	const unsigned int Replica::default_thread_count{4};
+
+	const std::chrono::high_resolution_clock::duration&
+		Replica::get_default_timeout() {
+		return default_timeout;
+	}
+
+	const unsigned int& Replica::get_default_thread_count() {
+		return default_thread_count;
+	}
+
 	const std::vector<std::string>& Replica::get_data() const {
 		return data;
 	}
 
-	const std::mutex& Replica::get_data_mutex() const {
-		return data_mutex;
+	const std::mutex& Replica::get_mutex() const {
+		return mutex;
 	}
 
 	std::vector<std::string>& Replica::get_data() {
 		return data;
 	}
 
-	std::mutex& Replica::get_data_mutex() {
-		return data_mutex;
+	std::mutex& Replica::get_mutex() {
+		return mutex;
 	}
 
 	std::vector<std::string>
 		Replica::handle_data(const Messenger::Message& message) {
-		std::scoped_lock lock{get_data_mutex()};
+		std::scoped_lock lock{get_mutex()};
 
 		if (message.get_data().empty()) {
 			get_logger() << Logger::Severity::information

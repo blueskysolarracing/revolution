@@ -2,6 +2,7 @@
 
 #include <atomic>
 #include <functional>
+#include <limits>
 #include <mutex>
 #include <optional>
 #include <string>
@@ -18,22 +19,24 @@ namespace Revolution {
 		const std::reference_wrapper<const Header_space>& header_space,
 		const std::reference_wrapper<const State_space>& state_space,
 		const std::reference_wrapper<const Topology>& topology,
-		const Timeout& sync_timeout
+		const std::chrono::high_resolution_clock::duration& timeout,
+		const unsigned int& thread_count
 	) : Application{
 		header_space,
 		state_space,
 		topology,
-		topology.get().get_database()
+		topology.get().get_database_name(),
+		timeout,
+		thread_count
 	    },
-	    sync_timeout{sync_timeout},
 	    states{},
-	    state_mutex{} {}
+	    mutex{} {}
 
 	void Database::setup() {
 		Application::setup();
 
 		set_handler(
-			get_header_space().get_state(),
+			get_header_space().get_state_header(),
 			std::bind(
 				&Database::handle_state,
 				this,
@@ -41,19 +44,24 @@ namespace Revolution {
 			)
 		);
 
-		get_worker_pool().work(std::bind(&Database::sync, this));
+		get_thread_pool().add(std::bind(&Database::sync, this));
+		std::this_thread::sleep_for(get_timeout());
 	}
 
-	const Database::Timeout Database::default_sync_timeout{
+	const std::chrono::high_resolution_clock::duration
+		Database::default_timeout{
 		std::chrono::seconds(1)
 	};
 
-	const Database::Timeout& Database::get_default_sync_timeout() {
-		return default_sync_timeout;
+	const unsigned int Database::default_thread_count{2};
+
+	const std::chrono::high_resolution_clock::duration&
+		Database::get_default_timeout() {
+		return default_timeout;
 	}
 
-	const Database::Timeout& Database::get_sync_timeout() const {
-		return sync_timeout;
+	const unsigned int& Database::get_default_thread_count() {
+		return default_thread_count;
 	}
 
 	const std::unordered_map<std::string, std::string>&
@@ -61,8 +69,8 @@ namespace Revolution {
 		return states;
 	}
 
-	const std::mutex& Database::get_state_mutex() const {
-		return state_mutex;
+	const std::mutex& Database::get_mutex() const {
+		return mutex;
 	}
 
 	std::unordered_map<std::string, std::string>&
@@ -70,12 +78,12 @@ namespace Revolution {
 		return states;
 	}
 
-	std::mutex& Database::get_state_mutex() {
-		return state_mutex;
+	std::mutex& Database::get_mutex() {
+		return mutex;
 	}
 
 	std::vector<std::string> Database::get_data() {
-		std::scoped_lock lock{get_state_mutex()};
+		std::scoped_lock lock{get_mutex()};
 		std::vector<std::string> data;
 
 		get_logger() << Logger::Severity::information
@@ -95,7 +103,7 @@ namespace Revolution {
 	void Database::set_data(
 		const std::vector<std::string>& data
 	) {
-		std::scoped_lock lock{get_state_mutex()};
+		std::scoped_lock lock{get_mutex()};
 
 		if (data.size() % 2 == 1) {
 			get_logger() << Logger::Severity::error
@@ -118,7 +126,7 @@ namespace Revolution {
 
 	std::vector<std::string>
 		Database::handle_state(const Messenger::Message& message) {
-		std::scoped_lock lock{get_state_mutex()};
+		std::scoped_lock lock{get_mutex()};
 
 		if (message.get_data().size() == 1) {
 			auto key = message.get_data().front();
@@ -162,12 +170,15 @@ namespace Revolution {
 
 			get_states()[key] = value;
 
-			for (const auto& peripheral : get_topology().get_peripherals())
-				send(
-					peripheral,
-					get_header_space().get_state(),
-					{key, value}
-				);
+			for (const auto& peripheral_name
+					: get_topology().get_peripheral_names())
+				;
+				// TODO: trigger state events
+				//get_messenger().send(
+				//	peripheral_name,
+				//	get_header_space().get_state_header(),
+				//	{key, value}
+				//);
 
 			return {};
 		}
@@ -185,13 +196,15 @@ namespace Revolution {
 	void Database::sync() {
 		get_logger() << Logger::Severity::information
 			<< "Syncing with "
-			<< get_topology().get_replica()
+			<< get_topology().get_replica_name()
 			<< "..."
 			<< std::endl;
 
 		auto message = communicate(
-			get_topology().get_replica(),
-			get_header_space().get_data()
+			get_topology().get_replica_name(),
+			get_header_space().get_data_header(),
+			{},
+			1
 		);
 
 		set_data(message.get_data());
@@ -200,13 +213,13 @@ namespace Revolution {
 			auto data = get_data();
 
 			if (!data.empty())
-				send(
-					get_topology().get_replica(),
-					get_header_space().get_data(),
+				get_messenger().send(
+					get_topology().get_replica_name(),
+					get_header_space().get_data_header(),
 					data
 				);
 
-			std::this_thread::sleep_for(get_sync_timeout());
+			std::this_thread::sleep_for(get_timeout());
 		}
 	}
 }

@@ -16,30 +16,34 @@
 namespace Revolution {
 	class Database : public Application {
 	public:
-		using Timeout = std::chrono::high_resolution_clock::duration;
-
 		explicit Database(
 			const std::reference_wrapper<const Header_space>&
 				header_space,
 			const std::reference_wrapper<const State_space>&
 				state_space,
 			const std::reference_wrapper<const Topology>& topology,
-			const Timeout& sync_timeout = get_default_sync_timeout()
+			const std::chrono::high_resolution_clock::duration&
+				timeout = get_default_timeout(),
+			const unsigned int& thread_count
+				= get_default_thread_count()
 		);
 	protected:
 		void setup() override;
 	private:
-		static const Timeout default_sync_timeout;
+		static const std::chrono::high_resolution_clock::duration
+			default_timeout;
+		static const unsigned int default_thread_count;
 
-		static const Timeout& get_default_sync_timeout();
+		static const std::chrono::high_resolution_clock::duration&
+			get_default_timeout();
+		static const unsigned int& get_default_thread_count();
 
-		const Timeout& get_sync_timeout() const;
 		const std::unordered_map<std::string, std::string>&
 			get_states() const;
-		const std::mutex& get_state_mutex() const;
+		const std::mutex& get_mutex() const;
 
 		std::unordered_map<std::string, std::string>& get_states();
-		std::mutex& get_state_mutex();
+		std::mutex& get_mutex();
 
 		std::vector<std::string> get_data();
 		void set_data(const std::vector<std::string>& data);
@@ -49,9 +53,8 @@ namespace Revolution {
 
 		void sync();
 
-		const Timeout sync_timeout;
 		std::unordered_map<std::string, std::string> states;
-		std::mutex state_mutex;
+		std::mutex mutex;
 	};
 }
 

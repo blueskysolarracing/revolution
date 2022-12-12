@@ -11,7 +11,7 @@ namespace Revolution {
 		const std::string& exit_header,
 		const std::string& response_header,
 		const std::string& state_header,
-		const std::string& statu_headers
+		const std::string& status_header
 	) : abort_header{abort_header},
 	    data_header{data_header},
 	    exit_header{exit_header},
