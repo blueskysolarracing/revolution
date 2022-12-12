@@ -1,6 +1,7 @@
 #include "database.h"
 
 #include <atomic>
+#include <chrono>
 #include <functional>
 #include <limits>
 #include <mutex>
@@ -53,7 +54,7 @@ namespace Revolution {
 		std::chrono::seconds(1)
 	};
 
-	const unsigned int Database::default_thread_count{2};
+	const unsigned int Database::default_thread_count{4};
 
 	const std::chrono::high_resolution_clock::duration&
 		Database::get_default_timeout() {

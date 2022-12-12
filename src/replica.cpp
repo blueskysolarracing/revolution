@@ -1,5 +1,6 @@
 #include "replica.h"
 
+#include <chrono>
 #include <functional>
 #include <mutex>
 #include <ostream>
