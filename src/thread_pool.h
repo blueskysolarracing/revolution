@@ -12,7 +12,7 @@
 namespace Revolution {
 	class Thread_pool {
 	public:
-		Thread_pool(const unsigned int& thread_count);
+		explicit Thread_pool(const unsigned int& thread_count);
 		~Thread_pool();
 
 		void add(const std::function<void()>& function);

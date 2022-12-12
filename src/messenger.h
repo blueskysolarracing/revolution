@@ -58,7 +58,7 @@ namespace Revolution {
 
 		static void unlink(const std::string& name);
 
-		Messenger(const std::string& sender_name);
+		explicit Messenger(const std::string& sender_name);
 		~Messenger();
 
 		const std::string& get_sender_name() const;
