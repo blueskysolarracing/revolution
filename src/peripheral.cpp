@@ -129,6 +129,15 @@ namespace Revolution {
 		const auto& value = message.get_data().back();
 		const auto watcher = get_watcher(key);
 
+		get_logger() << Logger::Severity::information
+			<< "The (key, value): (\""
+			<< key
+			<< "\", \""
+			<< value
+			<< "\") has been updated. "
+			<< "If a relevant watcher exists, it will be invoked..."
+			<< std::endl;
+
 		if (watcher)
 			watcher.value()(key, value);
 
