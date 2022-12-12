@@ -24,7 +24,8 @@ namespace Revolution {
 				const std::string& header,
 				const std::vector<std::string>& data = {},
 				const unsigned int& priority = 0,
-				const unsigned int& identifier = get_count()++
+				const std::optional<unsigned int>& identifier
+					= std::nullopt
  			);
 
 			bool operator==(const Message& that) const;
@@ -73,7 +74,9 @@ namespace Revolution {
 			const std::string& recipient_name,
 			const std::string& header,
 			const std::vector<std::string>& data = {},
-			const unsigned int& priority = 0
+			const unsigned int& priority = 0,
+			const std::optional<unsigned int>& identifier
+				= std::nullopt
 		) const;
 		std::optional<Message> timed_send(
 			const std::chrono::high_resolution_clock::duration&
@@ -81,7 +84,9 @@ namespace Revolution {
 			const std::string& recipient_name,
 			const std::string& header,
 			const std::vector<std::string>& data = {},
-			const unsigned int& priority = 0
+			const unsigned int& priority = 0,
+			const std::optional<unsigned int>& identifier
+				= std::nullopt
 		) const;
 
 		void monitor(

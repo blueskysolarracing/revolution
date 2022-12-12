@@ -9,27 +9,27 @@ namespace Revolution {
 	class Header_space {
 	public:
 		explicit Header_space(
-			const std::string& abort = "ABORT",
-			const std::string& data = "DATA",
-			const std::string& exit = "EXIT",
-			const std::string& response = "RESPONSE",
-			const std::string& state = "STATE",
-			const std::string& status = "STATUS"
+			const std::string& abort_header = "ABORT",
+			const std::string& data_header = "DATA",
+			const std::string& exit_header = "EXIT",
+			const std::string& response_header = "RESPONSE",
+			const std::string& state_header = "STATE",
+			const std::string& status_header = "STATUS"
 		);
 
-		const std::string& get_abort() const;
-		const std::string& get_data() const;
-		const std::string& get_exit() const;
-		const std::string& get_response() const;
-		const std::string& get_state() const;
-		const std::string& get_status() const;
+		const std::string& get_abort_header() const;
+		const std::string& get_data_header() const;
+		const std::string& get_exit_header() const;
+		const std::string& get_response_header() const;
+		const std::string& get_state_header() const;
+		const std::string& get_status_header() const;
 	private:
-		const std::string abort;
-		const std::string data;
-		const std::string exit;
-		const std::string response;
-		const std::string state;
-		const std::string status;
+		const std::string abort_header;
+		const std::string data_header;
+		const std::string exit_header;
+		const std::string response_header;
+		const std::string state_header;
+		const std::string status_header;
 	};
 
 	class State_space {};
@@ -37,21 +37,21 @@ namespace Revolution {
 	class Topology {
 	public:
 		explicit Topology(
-			const std::string& database = "database",
-			const std::string& replica = "replica",
-			const std::string& display = "display"
+			const std::string& database_name = "database",
+			const std::string& replica_name = "replica",
+			const std::string& display_name = "display"
 		);
 
-		const std::string& get_database() const;
-		const std::string& get_replica() const;
-		const std::string& get_display() const;
+		const std::string& get_database_name() const;
+		const std::string& get_replica_name() const;
+		const std::string& get_display_name() const;
 
 		const std::vector<std::reference_wrapper<const std::string>>
-			get_peripherals() const;
+			get_peripheral_names() const;
 	private:
-		const std::string database;
-		const std::string replica;
-		const std::string display;
+		const std::string database_name;
+		const std::string replica_name;
+		const std::string display_name;
 	};
 }
 

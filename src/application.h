@@ -2,6 +2,7 @@
 #define REVOLUTION_APPLICATION_H
 
 #include <atomic>
+#include <chrono>
 #include <condition_variable>
 #include <functional>
 #include <mutex>
@@ -14,7 +15,7 @@
 #include "heart.h"
 #include "logger.h"
 #include "messenger.h"
-#include "worker_pool.h"
+#include "thread_pool.h"
 
 namespace Revolution {
 	class Application {
@@ -25,7 +26,10 @@ namespace Revolution {
 			const std::reference_wrapper<const State_space>&
 				state_space,
 			const std::reference_wrapper<const Topology>& topology,
-			const std::string& name
+			const std::string& name,
+			const std::chrono::high_resolution_clock::duration&
+				timeout,
+			const unsigned int& thread_count
 		);
 		virtual ~Application() = default;
 
@@ -39,11 +43,16 @@ namespace Revolution {
 		const State_space& get_state_space() const;
 		const Topology& get_topology() const;
 		const std::string& get_name() const;
+		const std::chrono::high_resolution_clock::duration&
+			get_timeout() const;
 		const Logger& get_logger() const;
-		const Worker_pool& get_worker_pool() const;
+		const Messenger& get_messenger() const;
+		const Heart& get_heart() const;
+		const Thread_pool& get_thread_pool() const;
 		const std::atomic_bool& get_status() const;
 
-		Worker_pool& get_worker_pool();
+		Heart& get_heart();
+		Thread_pool& get_thread_pool();
 		std::atomic_bool& get_status();
 
 		void set_handler(
@@ -51,12 +60,6 @@ namespace Revolution {
 			const Handler& handler
 		);
 
-		Messenger::Message send(
-			const std::string& recipient_name,
-			const std::string& header,
-			const std::vector<std::string>& data = {},
-			const unsigned int& priority = 0
-		) const;
 		Messenger::Message communicate(
 			const std::string& recipient_name,
 			const std::string& header,
@@ -66,8 +69,6 @@ namespace Revolution {
 
 		virtual void setup();
 	private:
-		const Messenger& get_messenger() const;
-		const Heart& get_heart() const;
 		const std::unordered_map<std::string, Handler>&
 			get_handlers() const;
 		const std::mutex& get_handler_mutex() const;
@@ -79,7 +80,6 @@ namespace Revolution {
 		const std::condition_variable&
 			get_response_condition_variable() const;
 
-		Heart& get_heart();
 		std::unordered_map<std::string, Handler>& get_handlers();
 		std::mutex& get_handler_mutex();
 		std::unordered_map<
@@ -106,16 +106,18 @@ namespace Revolution {
 
 		void handle(const Messenger::Message& message);
 		void help_handle(const Messenger::Message& message);
+
 		void run();
 
 		const std::reference_wrapper<const Header_space> header_space;
 		const std::reference_wrapper<const State_space> state_space;
 		const std::reference_wrapper<const Topology> topology;
 		const std::string name;
+		const std::chrono::high_resolution_clock::duration timeout;
 		const Logger logger;
 		const Messenger messenger;
 		Heart heart;
-		Worker_pool worker_pool;
+		Thread_pool thread_pool;
 		std::atomic_bool status;
 		std::unordered_map<std::string, Handler> handlers;
 		std::mutex handler_mutex;

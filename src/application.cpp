@@ -1,6 +1,7 @@
 #include "application.h"
 
 #include <atomic>
+#include <chrono>
 #include <condition_variable>
 #include <cstdlib>
 #include <functional>
@@ -15,22 +16,25 @@
 #include "heart.h"
 #include "logger.h"
 #include "messenger.h"
-#include "worker_pool.h"
+#include "thread_pool.h"
 
 namespace Revolution {
 	Application::Application(
 		const std::reference_wrapper<const Header_space>& header_space,
 		const std::reference_wrapper<const State_space>& state_space,
 		const std::reference_wrapper<const Topology>& topology,
-		const std::string& name
+		const std::string& name,
+		const std::chrono::high_resolution_clock::duration& timeout,
+		const unsigned int& thread_count
 	) : header_space{header_space},
 	    state_space{state_space},
 	    topology{topology},
 	    name{name},
+	    timeout{timeout},
 	    logger{},
 	    messenger{name},
 	    heart{},
-	    worker_pool{},
+	    thread_pool{thread_count},
 	    status{},
 	    handlers{},
 	    handler_mutex{},
@@ -71,20 +75,33 @@ namespace Revolution {
 		return name;
 	}
 
+	const std::chrono::high_resolution_clock::duration&
+		Application::get_timeout() const {
+		return timeout;
+	}
+
 	const Logger& Application::get_logger() const {
 		return logger;
 	}
 
-	const Worker_pool& Application::get_worker_pool() const {
-		return worker_pool;
+	const Messenger& Application::get_messenger() const {
+		return messenger;
+	}
+
+	const Thread_pool& Application::get_thread_pool() const {
+		return thread_pool;
 	}
 
 	const std::atomic_bool& Application::get_status() const {
 		return status;
 	}
 
-	Worker_pool& Application::get_worker_pool() {
-		return worker_pool;
+	Heart& Application::get_heart() {
+		return heart;
+	}
+
+	Thread_pool& Application::get_thread_pool() {
+		return thread_pool;
 	}
 
 	std::atomic_bool& Application::get_status() {
@@ -113,38 +130,18 @@ namespace Revolution {
 		get_handlers()[header] = handler;
 	}
 
-	Messenger::Message Application::send(
-		const std::string& recipient_name,
-		const std::string& header,
-		const std::vector<std::string>& data,
-		const unsigned int& priority
-	) const {
-		Messenger::Message message{
-			get_name(),
-			recipient_name,
-			header,
-			data,
-			priority
-		};
-
-		get_logger() << Logger::Severity::information
-			<< "Sending message: \""
-			<< message.serialize()
-			<< "\"..."
-			<< std::endl;
-
-		get_messenger().send(message);
-
-		return message;
-	}
-
 	Messenger::Message Application::communicate(
 		const std::string& recipient_name,
 		const std::string& header,
 		const std::vector<std::string>& data,
 		const unsigned int& priority
 	) {
-		auto message = send(recipient_name, header, data, priority);
+		auto message = get_messenger().send(
+			recipient_name,
+			header,
+			data,
+			priority
+		);
 
 		return get_response(message);
 	}
@@ -157,7 +154,7 @@ namespace Revolution {
 			<< std::endl;
 
 		set_handler(
-			get_header_space().get_abort(),
+			get_header_space().get_abort_header(),
 			std::bind(
 				&Application::handle_abort,
 				this,
@@ -165,7 +162,7 @@ namespace Revolution {
 			)
 		);
 		set_handler(
-			get_header_space().get_exit(),
+			get_header_space().get_exit_header(),
 			std::bind(
 				&Application::handle_exit,
 				this,
@@ -173,7 +170,7 @@ namespace Revolution {
 			)
 		);
 		set_handler(
-			get_header_space().get_response(),
+			get_header_space().get_response_header(),
 			std::bind(
 				&Application::handle_response,
 				this,
@@ -181,21 +178,23 @@ namespace Revolution {
 			)
 		);
 		set_handler(
-			get_header_space().get_status(),
+			get_header_space().get_status_header(),
 			std::bind(
 				&Application::handle_status,
 				this,
 				std::placeholders::_1
 			)
 		);
-	}
 
-	const Messenger& Application::get_messenger() const {
-		return messenger;
-	}
-
-	const Heart& Application::get_heart() const {
-		return heart;
+		// TODO: check for hanging.
+		// get_thread_pool().add(
+		// 	std::bind(
+		// 		&Heart::monitor,
+		// 		&get_heart(),
+		// 		get_timeout(),
+		// 		std::cref(get_status())
+		// 	)
+		// );
 	}
 
 	const std::unordered_map<std::string, Application::Handler>&
@@ -223,10 +222,6 @@ namespace Revolution {
 		return response_condition_variable;
 	}
 
-	Heart& Application::get_heart() {
-		return heart;
-	}
-
 	std::unordered_map<std::string, Application::Handler>&
 		Application::get_handlers() {
 		return handlers;
@@ -245,7 +240,8 @@ namespace Revolution {
 		return response_mutex;
 	}
 
-	std::condition_variable& Application::get_response_condition_variable() {
+	std::condition_variable&
+		Application::get_response_condition_variable() {
 		return response_condition_variable;
 	}
 
@@ -285,9 +281,9 @@ namespace Revolution {
 				message.get_identifier(),
 				message
 			);
-		}
 
-		get_response_condition_variable().notify_all();
+			get_response_condition_variable().notify_all();
+		}
 	}
 
 	std::vector<std::string>
@@ -308,8 +304,6 @@ namespace Revolution {
 			<< std::endl;
 
 		std::abort();
-
-		return {};
 	}
 
 	std::vector<std::string>
@@ -346,8 +340,9 @@ namespace Revolution {
 		return {};
 	}
 
-	std::vector<std::string>
-		Application::handle_status(const Messenger::Message& message) const {
+	std::vector<std::string> Application::handle_status(
+		const Messenger::Message& message
+	) const {
 		if (!message.get_data().empty())
 			get_logger() << Logger::Severity::warning
 				<< "Status expects no arguments, but "
@@ -364,13 +359,14 @@ namespace Revolution {
 	}
 
 	void Application::handle(const Messenger::Message& message) {
-		if (message.get_header() == get_header_space().get_response()) {
+		if (message.get_header()
+				== get_header_space().get_response_header()) {
 			handle_response(message);
 
 			return;
 		}
 
-		get_worker_pool().work(
+		get_thread_pool().add(
 			std::bind(&Application::help_handle, this, message)
 		);
 	}
@@ -380,9 +376,9 @@ namespace Revolution {
 
 		if (!handler) {
 			get_logger() << Logger::Severity::warning
-				<< "Skipping handling of message: \""
-				<< message.serialize()
-				<< "\"..."
+				<< "Handler for message : "
+				<< message.to_string()
+				<< " is unknown. Skipping handling..."
 				<< std::endl;
 
 			return;
@@ -390,40 +386,28 @@ namespace Revolution {
 
 		auto data = handler.value()(message);
 
-		Messenger::Message response{
-			get_name(),
+		get_logger() << Logger::Severity::information
+			<< "Sending response..."
+			<< std::endl;
+
+		get_messenger().send(
 			message.get_sender_name(),
-			get_header_space().get_response(),
+			get_header_space().get_response_header(),
 			data,
 			message.get_priority(),
 			message.get_identifier()
-		};
-
-		get_logger() << Logger::Severity::information
-			<< "Sending response: \""
-			<< response.serialize()
-			<< "\"..."
-			<< std::endl;
-
-		get_messenger().send(response);
+		);
 	}
 
 	void Application::run() {
-		while (get_status()) {
-			auto message
-				= get_messenger().timed_receive(get_name());
-
-			if (message) {
-				get_logger() << Logger::Severity::information
-					<< "Received message: \""
-					<< message.value().serialize()
-					<< "\"."
-					<< std::endl;
-
-				handle(message.value());
-			}
-
-			get_heart().beat();
-		}
+		get_messenger().monitor(
+			get_timeout(),
+			get_status(),
+			std::bind(
+				&Application::handle,
+				this,
+				std::placeholders::_1
+			)
+		);
 	}
 }

@@ -171,13 +171,13 @@ namespace Revolution {
 		const std::string& header,
 		const std::vector<std::string>& data,
 		const unsigned int& priority,
-		const unsigned int& identifier
+		const std::optional<unsigned int>& identifier
 	) : sender_name{sender_name},
 	    recipient_name{recipient_name},
 	    header{header},
 	    data{data},
 	    priority{priority},
-	    identifier{identifier} {}
+	    identifier{identifier ? identifier.value() : get_count()++} {}
 
 	bool Messenger::Message::operator==(const Message& that) const {
 		return get_sender_name() == that.get_sender_name()
@@ -330,14 +330,16 @@ namespace Revolution {
 		const std::string& recipient_name,
 		const std::string& header,
 		const std::vector<std::string>& data,
-		const unsigned int& priority
+		const unsigned int& priority,
+		const std::optional<unsigned int>& identifier
 	) const {
 		Messenger::Message message{
 			get_sender_name(),
 			recipient_name,
 			header,
 			data,
-			priority
+			priority,
+			identifier
 		};
 		auto status = send_to_message_queue(message, [] (
 			const auto& descriptor,
@@ -365,14 +367,16 @@ namespace Revolution {
 		const std::string& recipient_name,
 		const std::string& header,
 		const std::vector<std::string>& data,
-		const unsigned int& priority
+		const unsigned int& priority,
+		const std::optional<unsigned int>& identifier
 	) const {
 		Messenger::Message message{
 			get_sender_name(),
 			recipient_name,
 			header,
 			data,
-			priority
+			priority,
+			identifier
 		};
 		auto absolute_timeout = convert_to_timespec(
 			std::chrono::high_resolution_clock::now()
