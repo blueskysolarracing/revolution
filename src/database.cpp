@@ -172,13 +172,11 @@ namespace Revolution {
 
 			for (const auto& peripheral_name
 					: get_topology().get_peripheral_names())
-				;
-				// TODO: trigger state events
-				//get_messenger().send(
-				//	peripheral_name,
-				//	get_header_space().get_state_header(),
-				//	{key, value}
-				//);
+				get_messenger().send(
+					peripheral_name,
+					get_header_space().get_state_header(),
+					{key, value}
+				);
 
 			return {};
 		}
