@@ -48,11 +48,7 @@ int main(int argc, char *argv[]) {
 				std::next(argv, argc)
 			};
 
-			messenger.send(
-				recipient_name,
-				header,
-				data
-			);
+			messenger.send(recipient_name, header, data);
 		}
 
 		std::string header;
@@ -73,11 +69,7 @@ int main(int argc, char *argv[]) {
 				while (iss >> datum)
 					data.push_back(datum);
 
-				messenger.send(
-					recipient_name,
-					header,
-					data
-				);
+				messenger.send(recipient_name, header, data);
 
 				header.clear();
 				data.clear();
