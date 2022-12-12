@@ -27,7 +27,7 @@ int main(int argc, char *argv[]) {
 	Revolution::Messenger messenger{sender_name};
 	std::atomic_bool status{true};
 	std::thread thread{
-		&Revolution::Messenger::watch,
+		&Revolution::Messenger::monitor,
 		&messenger,
 		timeout,
 		std::cref(status),

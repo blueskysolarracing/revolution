@@ -400,16 +400,16 @@ namespace Revolution {
 		return message;
 	}
 
-	void Messenger::watch(
+	void Messenger::monitor(
 		const std::chrono::high_resolution_clock::duration& timeout,
 		const std::atomic_bool& status,
-		const std::function<void(const Message&)>& watcher
+		const std::function<void(const Message&)>& handler
 	) const {
 		while (status) {
 			auto message = timed_receive(timeout);
 
 			if (message)
-				watcher(message.value());
+				handler(message.value());
 		}
 	}
 }

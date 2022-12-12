@@ -84,11 +84,11 @@ namespace Revolution {
 			const unsigned int& priority = 0
 		) const;
 
-		void watch(
+		void monitor(
 			const std::chrono::high_resolution_clock::duration&
 				timeout,
 			const std::atomic_bool& status,
-			const std::function<void(const Message&)>& watcher
+			const std::function<void(const Message&)>& handler
 		) const;
 	private:
 		std::string sender_name;
