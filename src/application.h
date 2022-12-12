@@ -35,10 +35,6 @@ namespace Revolution {
 
 		void main();
 	protected:
-		using Handler = std::function<
-			std::vector<std::string>(const Messenger::Message&)
-		>;
-
 		const Header_space& get_header_space() const;
 		const State_space& get_state_space() const;
 		const Topology& get_topology() const;
@@ -57,7 +53,11 @@ namespace Revolution {
 
 		void set_handler(
 			const std::string& header,
-			const Handler& handler
+			const std::function<
+				std::vector<std::string>(
+					const Messenger::Message&
+				)
+			>& handler
 		);
 
 		Messenger::Message communicate(
@@ -69,8 +69,14 @@ namespace Revolution {
 
 		virtual void setup();
 	private:
-		const std::unordered_map<std::string, Handler>&
-			get_handlers() const;
+		const std::unordered_map<
+			std::string,
+			std::function<
+				std::vector<std::string>(
+					const Messenger::Message&
+				)
+			>
+		>& get_handlers() const;
 		const std::mutex& get_handler_mutex() const;
 		const std::unordered_map<
 			unsigned int,
@@ -80,7 +86,14 @@ namespace Revolution {
 		const std::condition_variable&
 			get_response_condition_variable() const;
 
-		std::unordered_map<std::string, Handler>& get_handlers();
+		std::unordered_map<
+			std::string,
+			std::function<
+				std::vector<std::string>(
+					const Messenger::Message&
+				)
+			>
+		>& get_handlers();
 		std::mutex& get_handler_mutex();
 		std::unordered_map<
 			unsigned int,
@@ -89,8 +102,15 @@ namespace Revolution {
 		std::mutex& get_response_mutex();
 		std::condition_variable& get_response_condition_variable();
 
-		std::optional<const std::reference_wrapper<const Handler>>
-			get_handler(const std::string& header);
+		std::optional<
+			const std::reference_wrapper<
+				const std::function<
+					std::vector<std::string>(
+						const Messenger::Message&
+					)
+				>
+			>
+		> get_handler(const std::string& header);
 		Messenger::Message
 			get_response(const Messenger::Message& message);
 		void set_response(const Messenger::Message& message);
@@ -119,7 +139,14 @@ namespace Revolution {
 		Heart heart;
 		Thread_pool thread_pool;
 		std::atomic_bool status;
-		std::unordered_map<std::string, Handler> handlers;
+		std::unordered_map<
+			std::string,
+			std::function<
+				std::vector<std::string>(
+					const Messenger::Message&
+				)
+			>
+		> handlers;
 		std::mutex handler_mutex;
 		std::unordered_map<
 			unsigned int,

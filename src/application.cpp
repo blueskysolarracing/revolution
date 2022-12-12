@@ -88,6 +88,10 @@ namespace Revolution {
 		return messenger;
 	}
 
+	const Heart& Application::get_heart() const {
+		return heart;
+	}
+
 	const Thread_pool& Application::get_thread_pool() const {
 		return thread_pool;
 	}
@@ -110,7 +114,9 @@ namespace Revolution {
 
 	void Application::set_handler(
 		const std::string& header,
-		const Handler& handler
+		const std::function<
+			std::vector<std::string>(const Messenger::Message&)
+		>& handler
 	) {
 		std::scoped_lock lock{get_handler_mutex()};
 
@@ -187,8 +193,12 @@ namespace Revolution {
 		);
 	}
 
-	const std::unordered_map<std::string, Application::Handler>&
-		Application::get_handlers() const {
+	const std::unordered_map<
+		std::string,
+		std::function<
+			std::vector<std::string>(const Messenger::Message&)
+		>
+	>& Application::get_handlers() const {
 		return handlers;
 	}
 
@@ -212,8 +222,12 @@ namespace Revolution {
 		return response_condition_variable;
 	}
 
-	std::unordered_map<std::string, Application::Handler>&
-		Application::get_handlers() {
+	std::unordered_map<
+		std::string,
+		std::function<
+			std::vector<std::string>(const Messenger::Message&)
+		>
+	>& Application::get_handlers() {
 		return handlers;
 	}
 
@@ -235,8 +249,15 @@ namespace Revolution {
 		return response_condition_variable;
 	}
 
-	std::optional<const std::reference_wrapper<const Application::Handler>>
-		Application::get_handler(const std::string& header) {
+	std::optional<
+		const std::reference_wrapper<
+			const std::function<
+				std::vector<std::string>(
+					const Messenger::Message&
+				)
+			>
+		>
+	> Application::get_handler(const std::string& header) {
 		std::scoped_lock lock{get_handler_mutex()};
 
 		if (!get_handlers().count(header))

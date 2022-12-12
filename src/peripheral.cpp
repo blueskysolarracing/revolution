@@ -63,7 +63,9 @@ namespace Revolution {
 
 	void Peripheral::set_watcher(
 		const std::string& key,
-		const Watcher& watcher
+		const std::function<
+			void(const std::string&, const std::string&)
+		>& watcher
 	) {
 		std::scoped_lock lock{get_mutex()};
 
@@ -83,8 +85,10 @@ namespace Revolution {
 		);
 	}
 
-	const std::unordered_map<std::string, Peripheral::Watcher>&
-		Peripheral::get_watchers() const {
+	const std::unordered_map<
+		std::string,
+		std::function<void(const std::string&, const std::string&)>
+	>& Peripheral::get_watchers() const {
 		return watchers;
 	}
 
@@ -92,8 +96,10 @@ namespace Revolution {
 		return mutex;
 	}
 
-	std::unordered_map<std::string, Peripheral::Watcher>&
-		Peripheral::get_watchers() {
+	std::unordered_map<
+		std::string,
+		std::function<void(const std::string&, const std::string&)>
+	>& Peripheral::get_watchers() {
 		return watchers;
 	}
 
@@ -102,7 +108,11 @@ namespace Revolution {
 	}
 
 	std::optional<
-		const std::reference_wrapper<const Peripheral::Watcher>
+		const std::reference_wrapper<
+			const std::function<
+				void(const std::string&, const std::string&)
+			>
+		>
 	> Peripheral::get_watcher(const std::string& key) {
 		std::scoped_lock lock{get_mutex()};
 

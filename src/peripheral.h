@@ -25,10 +25,6 @@ namespace Revolution {
 			const unsigned int& thread_count
 		);
 	protected:
-		using Watcher = std::function<
-			void(const std::string&, const std::string&)
-		>;
-
 		std::optional<std::string> get_state(const std::string& key);
 		void set_state(
 			const std::string& key,
@@ -36,25 +32,49 @@ namespace Revolution {
 		);
 		void set_watcher(
 			const std::string& key,
-			const Watcher& watcher
+			const std::function<
+				void(const std::string&, const std::string&)
+			>& watcher
 		);
 
 		virtual void setup() override;
 	private:
-		const std::unordered_map<std::string, Watcher>&
-			get_watchers() const;
+		const std::unordered_map<
+			std::string,
+			std::function<
+				void(const std::string&, const std::string&)
+			>
+		>& get_watchers() const;
 		const std::mutex& get_mutex() const;
 
-		std::unordered_map<std::string, Watcher>& get_watchers();
+		std::unordered_map<
+			std::string,
+			std::function<
+				void(const std::string&, const std::string&)
+			>
+		>& get_watchers();
 		std::mutex& get_mutex();
 
-		std::optional<const std::reference_wrapper<const Watcher>>
-			get_watcher(const std::string& key);
+		std::optional<
+			const std::reference_wrapper<
+				const std::function<
+					void(
+						const std::string&,
+						const std::string&
+					)
+				>
+			>
+		> get_watcher(const std::string& key);
 
 		std::vector<std::string>
 			handle_state(const Messenger::Message& message);
 
-		std::unordered_map<std::string, Watcher> watchers;
+		std::unordered_map<
+			std::string,
+			std::function<
+				void(const std::string&, const std::string&)
+			>
+		> watchers;
 		std::mutex mutex;
 	};
 }
