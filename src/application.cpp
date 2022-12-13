@@ -137,13 +137,13 @@ namespace Revolution {
 	}
 
 	Messenger::Message Application::communicate(
-		const std::string& recipient_name,
+		const std::string& receiver_name,
 		const std::string& header,
 		const std::vector<std::string>& data,
 		const unsigned int& priority
 	) {
 		auto message = get_messenger().send(
-			recipient_name,
+			receiver_name,
 			header,
 			data,
 			priority

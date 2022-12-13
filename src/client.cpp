@@ -16,8 +16,8 @@ const std::chrono::high_resolution_clock::duration timeout{
 
 int main(int argc, char *argv[]) {
 	if (argc < 2) {
-		std::cout << "Usage: ./client sender_name "
-			<< "[recipient_name header data...]"
+		std::cout << "Usage: "
+			<< "./client sender_name [receiver_name header data...]"
 			<< std::endl;
 
 		return -1;
@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
 	if (argc == 2)
 		std::cin.get();
 	else {
-		std::string recipient_name{argv[2]};
+		std::string receiver_name{argv[2]};
 
 		if (argc > 3) {
 			std::string header{argv[3]};
@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
 				std::next(argv, argc)
 			};
 
-			messenger.send(recipient_name, header, data);
+			messenger.send(receiver_name, header, data);
 		}
 
 		std::string header;
@@ -69,7 +69,7 @@ int main(int argc, char *argv[]) {
 				while (iss >> datum)
 					data.push_back(datum);
 
-				messenger.send(recipient_name, header, data);
+				messenger.send(receiver_name, header, data);
 
 				header.clear();
 				data.clear();

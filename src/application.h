@@ -61,7 +61,7 @@ namespace Revolution {
 		);
 
 		Messenger::Message communicate(
-			const std::string& recipient_name,
+			const std::string& receiver_name,
 			const std::string& header,
 			const std::vector<std::string>& data = {},
 			const unsigned int& priority = 0

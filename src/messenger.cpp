@@ -53,16 +53,16 @@ namespace Revolution {
 	}
 
 	static std::optional<Messenger::Message> receive_from_message_queue(
-		const std::string& recipient_name,
+		const std::string& receiver_name,
 		const std::function<
 			ssize_t(const mqd_t&, std::string&, unsigned int&)
 		>& receiver
 	) {
-		auto attributes = get_message_queue_attributes(recipient_name);
+		auto attributes = get_message_queue_attributes(receiver_name);
 		std::string raw_message(attributes.mq_msgsize, '\0');
 		unsigned int priority;
 
-		auto descriptor = open_message_queue_descriptor(recipient_name);
+		auto descriptor = open_message_queue_descriptor(receiver_name);
 		auto received_size
 			= receiver(descriptor, raw_message, priority);
 		close_message_queue_descriptor(descriptor);
@@ -95,7 +95,7 @@ namespace Revolution {
 		unsigned int priority{message.get_priority()};
 
 		auto descriptor = open_message_queue_descriptor(
-			message.get_recipient_name()
+			message.get_receiver_name()
 		);
 		auto status = sender(descriptor, raw_message, priority);
 		close_message_queue_descriptor(descriptor);
@@ -146,7 +146,7 @@ namespace Revolution {
 		}
 
 		std::string sender_name = tokens[0];
-		std::string recipient_name = tokens[1];
+		std::string receiver_name = tokens[1];
 		std::string header = tokens[2];
 		std::vector<std::string> data{
 			std::next(tokens.begin(), 3),
@@ -157,7 +157,7 @@ namespace Revolution {
 
 		return Message{
 			sender_name,
-			recipient_name,
+			receiver_name,
 			header,
 			data,
 			priority,
@@ -167,13 +167,13 @@ namespace Revolution {
 
 	Messenger::Message::Message(
 		const std::string& sender_name,
-		const std::string& recipient_name,
+		const std::string& receiver_name,
 		const std::string& header,
 		const std::vector<std::string>& data,
 		const unsigned int& priority,
 		const std::optional<unsigned int>& identifier
 	) : sender_name{sender_name},
-	    recipient_name{recipient_name},
+	    receiver_name{receiver_name},
 	    header{header},
 	    data{data},
 	    priority{priority},
@@ -181,7 +181,7 @@ namespace Revolution {
 
 	bool Messenger::Message::operator==(const Message& that) const {
 		return get_sender_name() == that.get_sender_name()
-			&& get_recipient_name() == that.get_recipient_name()
+			&& get_receiver_name() == that.get_receiver_name()
 			&& get_header() == that.get_header()
 			&& get_data() == that.get_data()
 			&& get_priority() == that.get_priority()
@@ -192,8 +192,8 @@ namespace Revolution {
 		return sender_name;
 	}
 
-	const std::string& Messenger::Message::get_recipient_name() const {
-		return recipient_name;
+	const std::string& Messenger::Message::get_receiver_name() const {
+		return receiver_name;
 	}
 
 	const std::string& Messenger::Message::get_header() const {
@@ -217,7 +217,7 @@ namespace Revolution {
 
 		oss << get_sender_name()
 			<< '\0'
-			<< get_recipient_name()
+			<< get_receiver_name()
 			<< '\0'
 			<< get_header()
 			<< '\0';
@@ -238,8 +238,8 @@ namespace Revolution {
 
 		oss << "{\"sender_name\": \""
 			<< get_sender_name()
-			<< "\", \"recipient_name\": \""
-			<< get_recipient_name()
+			<< "\", \"receiver_name\": \""
+			<< get_receiver_name()
 			<< "\", \"header\": \""
 			<< get_header()
 			<< "\", \"data\": [";
@@ -285,6 +285,84 @@ namespace Revolution {
 		return sender_name;
 	}
 
+	Messenger::Message Messenger::send(
+		const std::string& receiver_name,
+		const std::string& header,
+		const std::vector<std::string>& data,
+		const unsigned int& priority,
+		const std::optional<unsigned int>& identifier
+	) const {
+		Messenger::Message message{
+			get_sender_name(),
+			receiver_name,
+			header,
+			data,
+			priority,
+			identifier
+		};
+		auto status = send_to_message_queue(message, [] (
+			const auto& descriptor,
+			const auto& raw_message,
+			const auto& priority
+		) {
+			return mq_send(
+				descriptor,
+				raw_message.data(),
+				raw_message.size(),
+				priority
+			);
+		});
+
+		if (!status)
+			throw Error{
+				"Message send failed due to an unknown error."
+			};
+
+		return message;
+	}
+
+	std::optional<Messenger::Message> Messenger::timed_send(
+		const std::chrono::high_resolution_clock::duration& timeout,
+		const std::string& receiver_name,
+		const std::string& header,
+		const std::vector<std::string>& data,
+		const unsigned int& priority,
+		const std::optional<unsigned int>& identifier
+	) const {
+		Messenger::Message message{
+			get_sender_name(),
+			receiver_name,
+			header,
+			data,
+			priority,
+			identifier
+		};
+		auto absolute_timeout = convert_to_timespec(
+			std::chrono::high_resolution_clock::now()
+				.time_since_epoch() + timeout
+		);
+		auto status = send_to_message_queue(
+			message,
+			[&absolute_timeout] (
+			const auto& descriptor,
+			const auto& raw_message,
+			const auto& priority
+		) {
+			return mq_timedsend(
+				descriptor,
+				raw_message.data(),
+				raw_message.size(),
+				priority,
+				&absolute_timeout
+			);
+		});
+
+		if (!status)
+			return std::nullopt;
+
+		return message;
+	}
+
 	Messenger::Message Messenger::receive() const {
 		return receive_from_message_queue(get_sender_name(), [] (
 			const auto& descriptor,
@@ -324,84 +402,6 @@ namespace Revolution {
 				);
 			}
 		);
-	}
-
-	Messenger::Message Messenger::send(
-		const std::string& recipient_name,
-		const std::string& header,
-		const std::vector<std::string>& data,
-		const unsigned int& priority,
-		const std::optional<unsigned int>& identifier
-	) const {
-		Messenger::Message message{
-			get_sender_name(),
-			recipient_name,
-			header,
-			data,
-			priority,
-			identifier
-		};
-		auto status = send_to_message_queue(message, [] (
-			const auto& descriptor,
-			const auto& raw_message,
-			const auto& priority
-		) {
-			return mq_send(
-				descriptor,
-				raw_message.data(),
-				raw_message.size(),
-				priority
-			);
-		});
-
-		if (!status)
-			throw Error{
-				"Message send failed due to an unknown error."
-			};
-
-		return message;
-	}
-
-	std::optional<Messenger::Message> Messenger::timed_send(
-		const std::chrono::high_resolution_clock::duration& timeout,
-		const std::string& recipient_name,
-		const std::string& header,
-		const std::vector<std::string>& data,
-		const unsigned int& priority,
-		const std::optional<unsigned int>& identifier
-	) const {
-		Messenger::Message message{
-			get_sender_name(),
-			recipient_name,
-			header,
-			data,
-			priority,
-			identifier
-		};
-		auto absolute_timeout = convert_to_timespec(
-			std::chrono::high_resolution_clock::now()
-				.time_since_epoch() + timeout
-		);
-		auto status = send_to_message_queue(
-			message,
-			[&absolute_timeout] (
-			const auto& descriptor,
-			const auto& raw_message,
-			const auto& priority
-		) {
-			return mq_timedsend(
-				descriptor,
-				raw_message.data(),
-				raw_message.size(),
-				priority,
-				&absolute_timeout
-			);
-		});
-
-		if (!status)
-			return std::nullopt;
-
-		return message;
 	}
 
 	void Messenger::monitor(

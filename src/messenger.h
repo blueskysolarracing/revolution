@@ -20,7 +20,7 @@ namespace Revolution {
 
 			explicit Message(
 				const std::string& sender_name,
-				const std::string& recipient_name,
+				const std::string& receiver_name,
 				const std::string& header,
 				const std::vector<std::string>& data = {},
 				const unsigned int& priority = 0,
@@ -31,7 +31,7 @@ namespace Revolution {
 			bool operator==(const Message& that) const;
 
 			const std::string& get_sender_name() const;
-			const std::string& get_recipient_name() const;
+			const std::string& get_receiver_name() const;
 			const std::string& get_header() const;
 			const std::vector<std::string>& get_data() const;
 			const unsigned int& get_priority() const;
@@ -45,7 +45,7 @@ namespace Revolution {
 			static unsigned int& get_count();
 
 			const std::string sender_name;
-			const std::string recipient_name;
+			const std::string receiver_name;
 			const std::string header;
 			const std::vector<std::string> data;
 			const unsigned int priority;
@@ -64,14 +64,8 @@ namespace Revolution {
 
 		const std::string& get_sender_name() const;
 
-		Message receive() const;
-		std::optional<Message> timed_receive(
-			const std::chrono::high_resolution_clock::duration&
-				timeout
-		) const;
-
 		Message send(
-			const std::string& recipient_name,
+			const std::string& receiver_name,
 			const std::string& header,
 			const std::vector<std::string>& data = {},
 			const unsigned int& priority = 0,
@@ -81,12 +75,18 @@ namespace Revolution {
 		std::optional<Message> timed_send(
 			const std::chrono::high_resolution_clock::duration&
 				timeout,
-			const std::string& recipient_name,
+			const std::string& receiver_name,
 			const std::string& header,
 			const std::vector<std::string>& data = {},
 			const unsigned int& priority = 0,
 			const std::optional<unsigned int>& identifier
 				= std::nullopt
+		) const;
+
+		Message receive() const;
+		std::optional<Message> timed_receive(
+			const std::chrono::high_resolution_clock::duration&
+				timeout
 		) const;
 
 		void monitor(
