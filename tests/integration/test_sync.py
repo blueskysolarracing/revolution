@@ -75,8 +75,12 @@ class SyncTestCase(TestCase):
         states = {}
 
         for key in keys:
-            states[key] \
-                = self.get_state(key, priority, identifier, timeout=timeout)
+            states[key] = self.get_state(
+                key,
+                priority,
+                identifier,
+                timeout=timeout,
+            )
 
         return states
 
@@ -128,6 +132,18 @@ class SyncTestCase(TestCase):
 
         sleep(self.TIMEOUT)
         Topology.REPLICA.send(HeaderSpace.ABORT)
+        sleep(self.TIMEOUT)
+        self.assertDictEqual(self.get_states(states.keys()), states)
+
+        states = {
+            'Takina': None,
+            'Chisato': None,
+            'Kurumi': None,
+        }
+
+        sleep(self.TIMEOUT)
+        Topology.REPLICA.send(HeaderSpace.ABORT)
+        Topology.DATABASE.send(HeaderSpace.ABORT)
         sleep(self.TIMEOUT)
         self.assertDictEqual(self.get_states(states.keys()), states)
 

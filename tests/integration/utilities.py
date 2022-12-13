@@ -120,12 +120,12 @@ class Message:
         assert not tokens[-1]
 
         (
-                sender_name,
-                receiver_name,
-                header,
-                *data,
-                raw_priority,
-                raw_identifier
+            sender_name,
+            receiver_name,
+            header,
+            *data,
+            raw_priority,
+            raw_identifier,
         ) = tokens[:-1]
         priority = int(raw_priority)
         identifier = int(raw_identifier)
