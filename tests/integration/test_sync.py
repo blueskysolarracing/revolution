@@ -2,233 +2,134 @@ from random import choice
 from time import sleep
 from unittest import TestCase, main
 
-from tests.integration.utilities import (
-    Client,
-    Topology,
-    install,
-    start,
-    stop,
-    uninstall,
-)
+from utilities import HeaderSpace, Topology, start, stop
 
 
 class SyncTestCase(TestCase):
-    TIMEOUT = 1
-
-    @classmethod
-    def setUpClass(cls):
-        install()
-
-    @classmethod
-    def tearDownClass(cls):
-        uninstall()
+    TIMEOUT = 3
 
     def setUp(self):
         start()
         sleep(self.TIMEOUT)
-        self.client = Client('client')
 
     def tearDown(self):
         stop()
         sleep(self.TIMEOUT)
-        del self.client
 
-    def test_marshal_write(self):
-        state = {'Uno': 'One'}
+    def get_state(self, key, priority=0, identifier=None, *, timeout=None):
+        response = Topology.DATABASE.communicate(
+            HeaderSpace.STATE,
+            (key,),
+            priority,
+            identifier,
+            timeout=timeout,
+        )
+        value = response.data[0] if response.data else None
 
-        Topology.MARSHAL.set_state(self.client, state)
+        self.assertEqual(response.sender_name, Topology.DATABASE.name)
+        self.assertEqual(response.header, HeaderSpace.RESPONSE)
+        self.assertSequenceEqual(
+            response.data,
+            () if value is None else (value,),
+        )
+        self.assertEqual(response.priority, priority)
 
-        for endpoint in Topology.get_endpoints():
-            self.assertDictEqual(endpoint.get_state(self.client), state)
+        if identifier is not None:
+            self.assertEqual(response.identifier, identifier)
 
-        state |= {
-            'Zero': '0',
-            'One': '1',
-            'Two': '2',
-            'Three': '3',
-            'Four': '4',
-            'Five': '5',
-            'Six': '6',
-            'Seven': '7',
-            'Eight': '8',
-            'Nine': '9',
-        }
+        return value
 
-        Topology.MARSHAL.set_state(self.client, state)
+    def set_state(
+            self,
+            key,
+            value,
+            priority=0,
+            identifier=None,
+            *,
+            timeout=None,
+    ):
+        response = Topology.DATABASE.communicate(
+            HeaderSpace.STATE,
+            (key, value),
+            priority,
+            identifier,
+            timeout=timeout,
+        )
 
-        for endpoint in Topology.get_endpoints():
-            self.assertDictEqual(endpoint.get_state(self.client), state)
+        self.assertEqual(response.sender_name, Topology.DATABASE.name)
+        self.assertEqual(response.header, HeaderSpace.RESPONSE)
+        self.assertSequenceEqual(response.data, ())
+        self.assertEqual(response.priority, priority)
 
-        extra_state = {
-            'One': 'Ichi',
-            'Two': 'Ni',
-        }
-        state |= extra_state
+        if identifier is not None:
+            self.assertEqual(response.identifier, identifier)
 
-        Topology.MARSHAL.set_state(self.client, extra_state)
+    def get_states(
+            self,
+            keys,
+            priority=0,
+            identifier=None,
+            *,
+            timeout=None,
+    ):
+        states = {}
 
-        for endpoint in Topology.get_endpoints():
-            self.assertDictEqual(endpoint.get_state(self.client), state)
+        for key in keys:
+            states[key] \
+                = self.get_state(key, priority, identifier, timeout=timeout)
 
-        Topology.MARSHAL.set_state(self.client, {})
+        return states
 
-        for endpoint in Topology.get_endpoints():
-            self.assertDictEqual(endpoint.get_state(self.client), state)
+    def set_states(
+            self,
+            states,
+            priority=0,
+            identifier=None,
+            *,
+            timeout=None,
+    ):
+        for key, value in states.items():
+            self.set_state(key, value, priority, identifier, timeout=timeout)
 
-    def test_soldier_write(self):
-        state = {
-            'A': 'a',
-            'B': 'b',
-            'C': 'c',
-            'D': 'd',
-            'E': 'e',
-            'F': 'f',
-        }
-
-        Topology.REPLICA.set_state(self.client, state)
-
-        for endpoint in Topology.get_endpoints():
-            self.assertDictEqual(endpoint.get_state(self.client), state)
-
-        extra_state = {
-            'A': 'alpha',
-            'B': 'beta',
-            'C': 'theta',
-            'D': 'gamma',
-        }
-        state |= extra_state
-
-        Topology.REPLICA.set_state(self.client, extra_state)
-
-        for endpoint in Topology.get_endpoints():
-            self.assertDictEqual(endpoint.get_state(self.client), state)
-
-        extra_state = {
-            'O': 'Omega',
-            'Z': 'zeta',
-        }
-        state |= extra_state
-
-        Topology.TELEMETER.set_state(self.client, extra_state)
-
-        for endpoint in Topology.get_endpoints():
-            self.assertDictEqual(endpoint.get_state(self.client), state)
-
-        state |= {
-            'A': 'A',
-            'B': 'B',
-            'C': 'C',
-        }
-
-        Topology.MISCELLANEOUS_CONTROLLER.set_state(self.client, state)
-
-        for endpoint in Topology.get_endpoints():
-            self.assertDictEqual(endpoint.get_state(self.client), state)
-
-        extra_state = {
-            'Y': 'Y',
-            'Z': 'Z',
-        }
-        state |= extra_state
-
-        Topology.VOLTAGE_CONTROLLER.set_state(self.client, extra_state)
-
-        for endpoint in Topology.get_endpoints():
-            self.assertDictEqual(endpoint.get_state(self.client), state)
-
-    def test_mixed_write(self):
-        state = {
-            'Alexander': 'Scriabin',
+    def test_read_write(self):
+        states = {
             'Sergei': 'Rachmaninoff',
+            'Alexander': 'Scriabin',
+            'Ludwig Van': 'Beethoven',
+            'Frederich': 'Chopin',
         }
 
-        Topology.MARSHAL.set_state(self.client, state)
+        self.set_states(states)
+        self.assertDictEqual(self.get_states(states.keys()), states)
 
-        for endpoint in Topology.get_endpoints():
-            self.assertDictEqual(endpoint.get_state(self.client), state)
-
-        extra_state = {
-            'Alexander': 'Borodin',
+        sub_states = {
+            'Wolfgang Amadeus': 'Mozart',
+            'Johann Sebastian': 'Bach',
         }
-        state |= extra_state
+        states |= sub_states
 
-        Topology.POWER_SENSOR.set_state(self.client, extra_state)
+        self.set_states(sub_states)
+        self.assertDictEqual(self.get_states(states.keys()), states)
 
-        for endpoint in Topology.get_endpoints():
-            self.assertDictEqual(endpoint.get_state(self.client), state)
-
-        extra_state = {
-            'Anton': 'Webern',
-        }
-        state |= extra_state
-
-        Topology.DISPLAY_DRIVER.set_state(self.client, extra_state)
-        for endpoint in Topology.get_endpoints():
-            self.assertDictEqual(endpoint.get_state(self.client), state)
-
-        state |= {
-            'Franz': 'Liszt',
-            'Charles-Valentin': 'Alkan',
-            'Frederic': 'Chopin',
+    def test_failures(self):
+        states = {
+            'Takina': 'Inoue',
+            'Chisato': 'Nishikigi',
+            'Kurumi': '',
         }
 
-        Topology.REPLICA.set_state(self.client, state)
+        self.set_states(states)
+        self.assertDictEqual(self.get_states(states.keys()), states)
 
-        for endpoint in Topology.get_endpoints():
-            self.assertDictEqual(endpoint.get_state(self.client), state)
+        sleep(self.TIMEOUT)
+        Topology.DATABASE.send(HeaderSpace.ABORT)
+        sleep(self.TIMEOUT)
+        self.assertDictEqual(self.get_states(states.keys()), states)
 
-        extra_state = {
-            'Dmitri': 'Shostakovich',
-            'Sergei': 'Prokofiev',
-            'Nikolai': 'Medtner',
-        }
-        state |= extra_state
-
-        Topology.MARSHAL.set_state(self.client, extra_state)
-
-        for endpoint in Topology.get_endpoints():
-            self.assertDictEqual(endpoint.get_state(self.client), state)
-
-        extra_state |= {
-            'Maurice': 'Ravel',
-            'Claude': 'Debussy',
-            'Felix': 'Mendelssohn',
-            'Camille': 'Saint-Saens',
-            'Kaikhorsru': 'Sorabji',
-        }
-        state |= extra_state
-
-        Topology.MOTOR_CONTROLLER.set_state(self.client, extra_state)
-
-        for endpoint in Topology.get_endpoints():
-            self.assertDictEqual(endpoint.get_state(self.client), state)
-
-    def test_random_update(self):
-        count = 100
-        key = 'voice'
-        values = 'dub', 'sub'
-        state = None
-
-        for _ in range(count):
-            endpoint = choice(Topology.get_endpoints())
-            value = choice(values)
-            state = {key: value}
-            endpoint.set_state(self.client, state)
-
-        for endpoint in Topology.get_endpoints():
-            self.assertEqual(endpoint.get_state(self.client), state)
-
-    def test_write(self):
-        count = 100
-
-        for i in range(count):
-            endpoint = choice(Topology.get_endpoints())
-            endpoint.set_state(self.client, {str(i): str(i)})
-
-        state = dict(zip(map(str, range(count)), map(str, range(count))))
-
-        for endpoint in Topology.get_endpoints():
-            self.assertEqual(endpoint.get_state(self.client), state)
+        sleep(self.TIMEOUT)
+        Topology.REPLICA.send(HeaderSpace.ABORT)
+        sleep(self.TIMEOUT)
+        self.assertDictEqual(self.get_states(states.keys()), states)
 
 
 if __name__ == '__main__':

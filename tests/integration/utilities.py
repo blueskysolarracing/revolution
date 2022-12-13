@@ -1,16 +1,23 @@
-from collections import deque
-from os import geteuid
+from os import getuid
 from pathlib import Path
-from subprocess import Popen, PIPE
+from subprocess import PIPE, Popen
+
+from posix_ipc import MessageQueue, O_CREAT, O_EXCL
 
 PROJECT_PATH = Path(__file__).parent.parent.parent
+TESTER_NAME = 'tester'
+
+
+class ShellError(Exception):
+    pass
 
 
 def shell(*arguments):
     if not all(arguments):
-        raise ShellError('empty string argument passed')
+        raise cls.ShellError('empty string argument passed')
 
     process = Popen(arguments, stdout=PIPE, stderr=PIPE)
+    process.wait()
     stdout, stderr = process.communicate()
 
     if stderr:
@@ -19,8 +26,12 @@ def shell(*arguments):
     return stdout.decode('utf-8')
 
 
-def install():
-    shell('sudo', str(PROJECT_PATH / 'install.sh'))
+def is_root():
+    return getuid() == 0
+
+
+def elevate():
+    shell('sudo', 'echo', 'Elevating privileges...')
 
 
 def start():
@@ -31,15 +42,129 @@ def stop():
     shell('sudo', str(PROJECT_PATH / 'stop.sh'))
 
 
-def uninstall():
-    shell('sudo', str(PROJECT_PATH / 'uninstall.sh'))
+class Message:
+    __count = 0
+
+    def __init__(
+            self,
+            sender_name,
+            receiver_name,
+            header,
+            data=(),
+            priority=0,
+            identifier=None,
+    ):
+        self.__sender_name = sender_name
+        self.__receiver_name = receiver_name
+        self.__header = header
+        self.__data = tuple(data)
+        self.__priority = priority
+
+        if identifier is None:
+            self.__identifier = self.__count
+            self.__count += 1
+        else:
+            self.__identifier = identifier
+
+    def __eq__(self, other):
+        if not isinstance(other, Message):
+            raise NotImplemented
+
+        return self.sender_name == other.sender_name \
+            and self.receiver_name == other.receiver_name \
+            and self.header == other.header \
+            and self.data == other.data \
+            and self.priority == other.priority \
+            and self.identifier == other.identifier
+
+    def __str__(self):
+        return str(
+            {
+                'sender_name': self.sender_name,
+                'receiver_name': self.receiver_name,
+                'header': self.header,
+                'data': self.data,
+                'priority': self.priority,
+                'identifier': self.identifier,
+            },
+        )
+
+    @property
+    def sender_name(self):
+        return self.__sender_name
+
+    @property
+    def receiver_name(self):
+        return self.__receiver_name
+
+    @property
+    def header(self):
+        return self.__header
+
+    @property
+    def data(self):
+        return self.__data
+
+    @property
+    def priority(self):
+        return self.__priority
+
+    @property
+    def identifier(self):
+        return self.__identifier
+
+    @classmethod
+    def deserialize(cls, raw_message):
+        tokens = raw_message.split('\0')
+
+        assert not tokens[-1]
+
+        (
+                sender_name,
+                receiver_name,
+                header,
+                *data,
+                raw_priority,
+                raw_identifier
+        ) = tokens[:-1]
+        priority = int(raw_priority)
+        identifier = int(raw_identifier)
+
+        return cls(
+            sender_name,
+            receiver_name,
+            header,
+            data,
+            priority,
+            identifier,
+        )
+
+    def serialize(self):
+        serialized_components = (
+            self.__serialize(self.sender_name),
+            self.__serialize(self.receiver_name),
+            self.__serialize(self.header),
+            *map(self.__serialize, self.data),
+            self.__serialize(self.priority),
+            self.__serialize(self.identifier),
+        )
+
+        return ''.join(serialized_components)
+
+    def __serialize(self, component):
+        return f'{component}\0'
 
 
-def unlink(*names):
-    shell('sudo', str(PROJECT_PATH / 'src' / 'unlinker'), *names)
+class HeaderSpace:
+    ABORT = "ABORT"
+    DATA = "DATA"
+    EXIT = "EXIT"
+    RESPONSE = "RESPONSE"
+    STATE = "STATE"
+    STATUS = "STATUS"
 
 
-class ShellError(Exception):
+class StateSpace:
     pass
 
 
@@ -52,88 +177,70 @@ class Topology:
         def name(self):
             return self.__name
 
-        def abort(self, client):
-            client.send(self.name, 'ABORT')
+        def send(
+                self,
+                header,
+                data=(),
+                priority=0,
+                identifier=None,
+                *,
+                timeout=None,
+                tester_name=TESTER_NAME,
+        ):
+            if not is_root():
+                elevate()
 
-        def exit(self, client):
-            client.send(self.name, 'EXIT')
+            sender = MessageQueue(f'/{self.name}')
+            message = Message(
+                tester_name,
+                self.name,
+                header,
+                data,
+                priority,
+                identifier,
+            )
 
-        def set_state(self, client, state):
-            client.send(self.name, 'SET', *self.__flatten(state))
+            sender.send(message.serialize(), timeout, priority)
+            sender.close()
 
-        def reset_state(self, client, state):
-            client.send(self.name, 'RESET', *self.__flatten(state))
+            return message
 
-        def get_state(self, client):
-            raw_data = client.send(self.name, 'GET')
+        def communicate(
+                self,
+                header,
+                data=(),
+                priority=0,
+                identifier=None,
+                *,
+                timeout=None,
+                tester_name=None,
+        ):
+            if not is_root():
+                elevate()
 
-            if raw_data is None:
-                return None
+            receiver = MessageQueue(
+                None if tester_name is None else f'/{tester_name}',
+                O_CREAT | O_EXCL,
+            )
+            tester_name = receiver.name.lstrip('/')
+            message = self.send(
+                header,
+                data,
+                priority,
+                identifier,
+                timeout=timeout,
+                tester_name=tester_name,
+            )
+            raw_message, _priority = receiver.receive(timeout)
+            receiver.close()
+            receiver.unlink()
 
-            data = raw_data.split()[4:-2]
+            response = Message.deserialize(raw_message.decode('ascii'))
 
-            return dict(zip(data[::2], data[1::2]))
+            assert message.identifier == response.identifier
 
-        @classmethod
-        def __flatten(cls, state):
-            arguments = []
+            return response
 
-            for key, value in zip(state.keys(), state.values()):
-                arguments.append(key)
-                arguments.append(value)
-
-            return arguments
-
-    MARSHAL = Endpoint('marshal')
-    DISPLAY_DRIVER = Endpoint('display_driver')
-    MISCELLANEOUS_CONTROLLER = Endpoint('miscellaneous_controller')
-    MOTOR_CONTROLLER = Endpoint('motor_controller')
-    POWER_SENSOR = Endpoint('power_sensor')
+    DATABASE = Endpoint('database')
     REPLICA = Endpoint('replica')
-    TELEMETER = Endpoint('telemeter')
-    VOLTAGE_CONTROLLER = Endpoint('voltage_controller')
-
-    @classmethod
-    def get_endpoints(cls):
-        return (
-            cls.MARSHAL,
-            cls.DISPLAY_DRIVER,
-            cls.MISCELLANEOUS_CONTROLLER,
-            cls.MOTOR_CONTROLLER,
-            cls.POWER_SENSOR,
-            cls.REPLICA,
-            cls.TELEMETER,
-            cls.VOLTAGE_CONTROLLER,
-        )
-
-
-class Client:
-    PATH = PROJECT_PATH / 'src' / 'client'
-
-    def __init__(self, name):
-        if not name:
-            raise ValueError('name is an empty string')
-
-        self.__name = name
-        self.__raw_messages = deque()
-
-    def __del__(self):
-        unlink(self.name)
-
-    @property
-    def name(self):
-        return self.__name
-
-    def receive(self):
-        return self.__process(shell(str(self.PATH), self.name))
-
-    def send(self, recipient_name, header, *data):
-        return self.__process(
-            shell(str(self.PATH), self.name, recipient_name, header, *data),
-        )
-
-    def __process(self, stdout):
-        for raw_message in filter(None, map(str.strip, stdout.split('\n'))):
-            self.__raw_messages.append(raw_message)
-
-        return self.__raw_messages.popleft() if self.__raw_messages else None
+    DISPLAY = Endpoint('display')

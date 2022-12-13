@@ -5,7 +5,7 @@ Description=Blue Sky Solar Racing Revolution %I
 Type=simple
 User=@username@
 ExecStart=@bindir@/%I
-ExecStop=@bindir@/client client %I EXIT
+ExecStopPost=rm /dev/mqueue/%I
 Restart=on-failure
 
 [Install]
