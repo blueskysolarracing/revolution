@@ -9,74 +9,56 @@
 
 #include "application.h"
 #include "configuration.h"
+#include "message.h"
 
 namespace Revolution {
-	class Peripheral : public Application {
-	public:
-		explicit Peripheral(
-			const std::reference_wrapper<const Header_space>&
-				header_space,
-			const std::reference_wrapper<const State_space>&
-				state_space,
-			const std::reference_wrapper<const Topology>& topology,
-			const std::string& name,
-			const std::chrono::high_resolution_clock::duration&
-				timeout,
-			const unsigned int& thread_count
-		);
-	protected:
-		std::optional<std::string> get_state(const std::string& key);
-		void set_state(
-			const std::string& key,
-			const std::string& value
-		);
-		void set_watcher(
-			const std::string& key,
-			const std::function<
-				void(const std::string&, const std::string&)
-			>& watcher
-		);
+    class Peripheral : public Application {
+    public:
+        explicit Peripheral(
+            const std::reference_wrapper<const Header_space>& header_space,
+            const std::reference_wrapper<const State_space>& state_space,
+            const std::reference_wrapper<const Topology>& topology,
+            const unsigned int& thread_count
+        );
+    protected:
+        std::optional<std::string> get_state(const std::string& key);
+        void set_state(const std::string& key, const std::string& value);
+        void set_watcher(
+            const std::string& key,
+            const std::function<void(const std::string&, const std::string&)>&
+                watcher
+        );
 
-		virtual void setup() override;
-	private:
-		const std::unordered_map<
-			std::string,
-			std::function<
-				void(const std::string&, const std::string&)
-			>
-		>& get_watchers() const;
-		const std::mutex& get_mutex() const;
+        virtual void setup() override;
+    private:
+        const std::unordered_map<
+            std::string,
+            std::function<void(const std::string&, const std::string&)>
+        >& get_watchers() const;
+        const std::mutex& get_mutex() const;
 
-		std::unordered_map<
-			std::string,
-			std::function<
-				void(const std::string&, const std::string&)
-			>
-		>& get_watchers();
-		std::mutex& get_mutex();
+        std::unordered_map<
+            std::string,
+            std::function<void(const std::string&, const std::string&)>
+        >& get_watchers();
+        std::mutex& get_mutex();
 
-		std::optional<
-			const std::reference_wrapper<
-				const std::function<
-					void(
-						const std::string&,
-						const std::string&
-					)
-				>
-			>
-		> get_watcher(const std::string& key);
+        std::optional<
+            const std::reference_wrapper<
+                const std::function<
+                    void(const std::string&, const std::string&)
+                >
+            >
+        > get_watcher(const std::string& key);
 
-		std::vector<std::string>
-			handle_state(const Messenger::Message& message);
+        std::vector<std::string> handle_state(const Message& message);
 
-		std::unordered_map<
-			std::string,
-			std::function<
-				void(const std::string&, const std::string&)
-			>
-		> watchers;
-		std::mutex mutex;
-	};
+        std::unordered_map<
+            std::string,
+            std::function<void(const std::string&, const std::string&)>
+        > watchers;
+        std::mutex mutex;
+    };
 }
 
-#endif	// REVOLUTION_PERIPHERAL_H
+#endif  // REVOLUTION_PERIPHERAL_H

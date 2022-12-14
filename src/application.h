@@ -12,149 +12,122 @@
 #include <vector>
 
 #include "configuration.h"
+#include "device.h"
 #include "heart.h"
 #include "logger.h"
-#include "messenger.h"
+#include "message.h"
 #include "thread_pool.h"
 
 namespace Revolution {
-	class Application {
-	public:
-		explicit Application(
-			const std::reference_wrapper<const Header_space>&
-				header_space,
-			const std::reference_wrapper<const State_space>&
-				state_space,
-			const std::reference_wrapper<const Topology>& topology,
-			const std::string& name,
-			const std::chrono::high_resolution_clock::duration&
-				timeout,
-			const unsigned int& thread_count
-		);
-		virtual ~Application() = default;
+    class Application {
+    public:
+        explicit Application(
+            const std::reference_wrapper<const Header_space>& header_space,
+            const std::reference_wrapper<const State_space>& state_space,
+            const std::reference_wrapper<const Topology>& topology,
+            const unsigned int& thread_count
+        );
+        virtual ~Application() = default;
 
-		void main();
-	protected:
-		const Header_space& get_header_space() const;
-		const State_space& get_state_space() const;
-		const Topology& get_topology() const;
-		const std::string& get_name() const;
-		const std::chrono::high_resolution_clock::duration&
-			get_timeout() const;
-		const Logger& get_logger() const;
-		const Messenger& get_messenger() const;
-		const Heart& get_heart() const;
-		const Thread_pool& get_thread_pool() const;
-		const std::atomic_bool& get_status() const;
+        void main();
+    protected:
+        const Header_space& get_header_space() const;
+        const State_space& get_state_space() const;
+        const Topology& get_topology() const;
+        const Logger& get_logger() const;
+        const Heart& get_heart() const;
+        const Thread_pool& get_thread_pool() const;
+        const std::atomic_bool& get_status() const;
+        virtual const std::string& get_name() const = 0;
+        virtual const std::chrono::high_resolution_clock::duration&
+            get_message_queue_timeout() const = 0;
 
-		Heart& get_heart();
-		Thread_pool& get_thread_pool();
-		std::atomic_bool& get_status();
+        Heart& get_heart();
+        Thread_pool& get_thread_pool();
+        std::atomic_bool& get_status();
 
-		void set_handler(
-			const std::string& header,
-			const std::function<
-				std::vector<std::string>(
-					const Messenger::Message&
-				)
-			>& handler
-		);
+        void set_handler(
+            const std::string& header,
+            const std::function<
+                std::vector<std::string>(const Message&)
+            >& handler
+        );
 
-		Messenger::Message communicate(
-			const std::string& receiver_name,
-			const std::string& header,
-			const std::vector<std::string>& data = {},
-			const unsigned int& priority = 0
-		);
+        Message send(
+            const std::string& receiver_name,
+            const std::string& header,
+            const std::vector<std::string>& data = {},
+            const unsigned int& priority = 0,
+            const std::optional<unsigned int>& identifier = std::nullopt
+        );
+        Message communicate(
+            const std::string& receiver_name,
+            const std::string& header,
+            const std::vector<std::string>& data = {},
+            const unsigned int& priority = 0,
+            const std::optional<unsigned int>& identifier = std::nullopt
+        );
 
-		virtual void setup();
-	private:
-		const std::unordered_map<
-			std::string,
-			std::function<
-				std::vector<std::string>(
-					const Messenger::Message&
-				)
-			>
-		>& get_handlers() const;
-		const std::mutex& get_handler_mutex() const;
-		const std::unordered_map<
-			unsigned int,
-			std::optional<Messenger::Message>
-		>& get_responses() const;
-		const std::mutex& get_response_mutex() const;
-		const std::condition_variable&
-			get_response_condition_variable() const;
+        virtual void setup();
+    private:
+        const std::unordered_map<
+            std::string,
+            std::function<std::vector<std::string>(const Message&)>
+        >& get_handlers() const;
+        const std::mutex& get_handler_mutex() const;
+        const std::unordered_map<unsigned int, std::optional<Message>>&
+            get_responses() const;
+        const std::mutex& get_response_mutex() const;
+        const std::condition_variable&
+            get_response_condition_variable() const;
 
-		std::unordered_map<
-			std::string,
-			std::function<
-				std::vector<std::string>(
-					const Messenger::Message&
-				)
-			>
-		>& get_handlers();
-		std::mutex& get_handler_mutex();
-		std::unordered_map<
-			unsigned int,
-			std::optional<Messenger::Message>
-		>& get_responses();
-		std::mutex& get_response_mutex();
-		std::condition_variable& get_response_condition_variable();
+        std::unordered_map<
+            std::string,
+            std::function<std::vector<std::string>(const Message&)>
+        >& get_handlers();
+        std::mutex& get_handler_mutex();
+        std::unordered_map<unsigned int, std::optional<Message>>&
+            get_responses();
+        std::mutex& get_response_mutex();
+        std::condition_variable& get_response_condition_variable();
 
-		std::optional<
-			const std::reference_wrapper<
-				const std::function<
-					std::vector<std::string>(
-						const Messenger::Message&
-					)
-				>
-			>
-		> get_handler(const std::string& header);
-		Messenger::Message
-			get_response(const Messenger::Message& message);
-		void set_response(const Messenger::Message& message);
+        std::optional<
+            const std::reference_wrapper<
+                const std::function<std::vector<std::string>(const Message&)>
+            >
+        > get_handler(const std::string& header);
+        Message get_response(const Message& message);
+        void set_response(const Message& message);
 
-		std::vector<std::string>
-			handle_abort(const Messenger::Message& message);
-		std::vector<std::string>
-			handle_exit(const Messenger::Message& message);
-		std::vector<std::string>
-			handle_response(const Messenger::Message& message);
-		std::vector<std::string>
-			handle_status(const Messenger::Message& message) const;
+        std::vector<std::string> handle_abort(const Message& message) const;
+        std::vector<std::string> handle_exit(const Message& message);
+        std::vector<std::string> handle_response(const Message& message);
+        std::vector<std::string> handle_status(const Message& message) const;
 
-		void handle(const Messenger::Message& message);
-		void help_handle(const Messenger::Message& message);
+        void handle(const Message& message);
+        void help_handle(const Message& message);
 
-		void run();
+        void run();
 
-		const std::reference_wrapper<const Header_space> header_space;
-		const std::reference_wrapper<const State_space> state_space;
-		const std::reference_wrapper<const Topology> topology;
-		const std::string name;
-		const std::chrono::high_resolution_clock::duration timeout;
-		const Logger logger;
-		const Messenger messenger;
-		Heart heart;
-		Thread_pool thread_pool;
-		std::atomic_bool status;
-		std::unordered_map<
-			std::string,
-			std::function<
-				std::vector<std::string>(
-					const Messenger::Message&
-				)
-			>
-		> handlers;
-		std::mutex handler_mutex;
-		std::unordered_map<
-			unsigned int,
-			std::optional<Messenger::Message>
-		> responses;
-		std::mutex response_mutex;
-		std::condition_variable response_condition_variable;
-	};
+        const std::reference_wrapper<const Header_space> header_space;
+        const std::reference_wrapper<const State_space> state_space;
+        const std::reference_wrapper<const Topology> topology;
+        const Logger logger;
+        Heart heart;
+        Thread_pool thread_pool;
+        std::atomic_bool status;
+        std::unordered_map<
+            std::string,
+            std::function<std::vector<std::string>(const Message&)>
+        > handlers;
+        std::mutex handler_mutex;
+        std::unordered_map<
+            unsigned int,
+            std::optional<Message>
+        > responses;
+        std::mutex response_mutex;
+        std::condition_variable response_condition_variable;
+    };
 }
 
-#endif	// REVOLUTION_APPLICATION_H
+#endif  // REVOLUTION_APPLICATION_H

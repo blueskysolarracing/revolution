@@ -15,10 +15,10 @@ cpp_compiler = meson.get_compiler('cpp')
 project_source_files = files(
   'src/application.cpp',
   'src/configuration.cpp',
-  'src/controller.cpp',
+  'src/device.cpp',
   'src/heart.cpp',
   'src/logger.cpp',
-  'src/messenger.cpp',
+  'src/message.cpp',
   'src/peripheral.cpp',
   'src/thread_pool.cpp',
 )

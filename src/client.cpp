@@ -8,77 +8,100 @@
 #include <thread>
 #include <vector>
 
-#include "messenger.h"
+#include "device.h"
+#include "message.h"
 
 const std::chrono::high_resolution_clock::duration timeout{
-	std::chrono::microseconds{100}
+    std::chrono::microseconds{100}
 };
 
 int main(int argc, char *argv[]) {
-	if (argc < 2) {
-		std::cout << "Usage: "
-			<< "./client sender_name [receiver_name header data...]"
-			<< std::endl;
+    if (argc < 2) {
+        std::cout << "Usage: "
+            << "./client client_name [target_name header data...]"
+            << std::endl;
 
-		return -1;
-	}
+        return -1;
+    }
 
-	std::string sender_name{argv[1]};
-	Revolution::Messenger messenger{sender_name};
-	std::atomic_bool status{true};
-	std::thread thread{
-		&Revolution::Messenger::monitor,
-		&messenger,
-		timeout,
-		std::cref(status),
-		[] (const Revolution::Messenger::Message& message) {
-			std::cout << message.to_string() << std::endl;
-		}
-	};
+    std::string client_name{argv[1]};
+    Revolution::MessageQueue client_message_queue{'/' + client_name};
+    std::atomic_bool status{true};
+    std::thread thread{
+        &Revolution::MessageQueue::monitor,
+        &client_message_queue,
+        std::cref(status),
+        [] (const std::string& raw_message) {
+            auto message = Revolution::Message::deserialize(raw_message);
 
-	if (argc == 2)
-		std::cin.get();
-	else {
-		std::string receiver_name{argv[2]};
+            std::cout << message.to_string() << std::endl;
+        },
+        timeout,
+    };
 
-		if (argc > 3) {
-			std::string header{argv[3]};
-			std::vector<std::string> data{
-				std::next(argv, 4),
-				std::next(argv, argc)
-			};
+    if (argc == 2)
+        std::cin.get();
+    else {
+        std::string target_name{argv[2]};
+        Revolution::MessageQueue target_message_queue{'/' + target_name};
 
-			messenger.send(receiver_name, header, data);
-		}
+        if (argc > 3) {
+            std::string header{argv[3]};
+            std::vector<std::string> data{
+                std::next(argv, 4),
+                std::next(argv, argc)
+            };
+            Revolution::Message message{
+                client_name,
+                target_name,
+                header,
+                data
+            };
 
-		std::string header;
-		std::vector<std::string> data;
+            target_message_queue.send(
+                message.serialize(),
+                message.get_priority()
+            );
+        }
 
-		while (status) {
-			std::string input;
-			std::getline(std::cin, input);
+        while (status) {
+            std::string input;
+            std::string header;
+            std::vector<std::string> data;
 
-			if (input.empty())
-				status = false;
-			else {
-				std::istringstream iss(input);
-				std::string datum;
+            std::getline(std::cin, input);
 
-				iss >> header;
+            if (input.empty())
+                status = false;
+            else {
+                std::istringstream iss(input);
+                std::string datum;
 
-				while (iss >> datum)
-					data.push_back(datum);
+                iss >> header;
 
-				messenger.send(receiver_name, header, data);
+                while (iss >> datum)
+                    data.push_back(datum);
 
-				header.clear();
-				data.clear();
-			}
-		}
-	}
+                Revolution::Message message{
+                    client_name,
+                    target_name,
+                    header,
+                    data
+                };
 
-	status = false;
-	thread.join();
+                target_message_queue.send(
+                    message.serialize(),
+                    message.get_priority()
+                );
+                header.clear();
+                data.clear();
+            }
+        }
+    }
 
-	return 0;
+    status = false;
+    thread.join();
+    client_message_queue.unlink();
+
+    return 0;
 }

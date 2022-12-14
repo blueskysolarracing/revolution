@@ -10,109 +10,101 @@
 #include "application.h"
 #include "configuration.h"
 #include "logger.h"
-#include "messenger.h"
+#include "message.h"
 
 namespace Revolution {
-	Replica::Replica(
-		const std::reference_wrapper<const Header_space>& header_space,
-		const std::reference_wrapper<const State_space>& state_space,
-		const std::reference_wrapper<const Topology>& topology,
-		const std::chrono::high_resolution_clock::duration& timeout,
-		const unsigned int& thread_count
-	) : Application{
-		header_space,
-		state_space,
-		topology,
-		topology.get().get_replica_name(),
-		timeout,
-		thread_count
-	    },
-	    data{},
-	    mutex{} {}
+    Replica::Replica(
+            const std::reference_wrapper<const Header_space>& header_space,
+            const std::reference_wrapper<const State_space>& state_space,
+            const std::reference_wrapper<const Topology>& topology,
+            const unsigned int& thread_count
+    ) :
+            Application{header_space, state_space, topology, thread_count},
+            data{},
+            mutex{} {}
 
-	void Replica::setup() {
-		Application::setup();
+    void Replica::setup() {
+        Application::setup();
 
-		set_handler(
-			get_header_space().get_data_header(),
-			std::bind(
-				&Replica::handle_data,
-				this,
-				std::placeholders::_1
-			)
-		);
-	}
+        set_handler(
+            get_header_space().get_data_header(),
+            std::bind(&Replica::handle_data, this, std::placeholders::_1)
+        );
+    }
 
-	const std::chrono::high_resolution_clock::duration
-		Replica::default_timeout{
-		std::chrono::seconds(1)
-	};
+    const unsigned int Replica::default_thread_count{4};
 
-	const unsigned int Replica::default_thread_count{4};
+    const std::chrono::high_resolution_clock::duration
+            Replica::message_queue_timeout{
+        std::chrono::seconds(1)
+    };
 
-	const std::chrono::high_resolution_clock::duration&
-		Replica::get_default_timeout() {
-		return default_timeout;
-	}
+    const unsigned int& Replica::get_default_thread_count() {
+        return default_thread_count;
+    }
 
-	const unsigned int& Replica::get_default_thread_count() {
-		return default_thread_count;
-	}
+    const std::string& Replica::get_name() const {
+        return get_topology().get_replica_name();
+    }
 
-	const std::vector<std::string>& Replica::get_data() const {
-		return data;
-	}
+    const std::chrono::high_resolution_clock::duration&
+            Replica::get_message_queue_timeout() const {
+        return message_queue_timeout;
+    }
 
-	const std::mutex& Replica::get_mutex() const {
-		return mutex;
-	}
+    const std::vector<std::string>& Replica::get_data() const {
+        return data;
+    }
 
-	std::vector<std::string>& Replica::get_data() {
-		return data;
-	}
+    const std::mutex& Replica::get_mutex() const {
+        return mutex;
+    }
 
-	std::mutex& Replica::get_mutex() {
-		return mutex;
-	}
+    std::vector<std::string>& Replica::get_data() {
+        return data;
+    }
 
-	std::vector<std::string>
-		Replica::handle_data(const Messenger::Message& message) {
-		std::scoped_lock lock{get_mutex()};
+    std::mutex& Replica::get_mutex() {
+        return mutex;
+    }
 
-		if (message.get_data().empty()) {
-			get_logger() << Logger::Severity::information
-				<< "Retrieving data..."
-				<< std::endl;
+    std::vector<std::string> Replica::handle_data(const Message& message) {
+        std::scoped_lock lock{get_mutex()};
 
-			return get_data();
-		} else if (message.get_data().size() % 2 == 0) {
-			get_logger() << Logger::Severity::information
-				<< "Storing data..."
-				<< std::endl;
+        if (message.get_data().empty()) {
+            get_logger() << Logger::Severity::information
+                << "Retrieving data..."
+                << std::endl;
 
-			get_data() = message.get_data();
+            return get_data();
+        } else if (message.get_data().size() % 2 == 0) {
+            get_logger() << Logger::Severity::information
+                << "Storing data..."
+                << std::endl;
 
-			return {};
-		}
+            get_data() = message.get_data();
 
-		get_logger() << Logger::Severity::error
-			<< "Data expects 2 * n arguments (n >= 0), but "
-			<< message.get_data().size()
-			<< " argument(s) were supplied. "
-			<< "This message will be ignored."
-			<< std::endl;
+            return {};
+        }
 
-		return {};
-	}
+        get_logger() << Logger::Severity::error
+            << "Data expects 2 * n arguments (n >= 0), but "
+            << message.get_data().size()
+            << " argument(s) were supplied. "
+            << "This message will be ignored."
+            << std::endl;
+
+        return {};
+    }
 }
 
 int main() {
-	Revolution::Header_space header_space;
-	Revolution::State_space state_space;
-	Revolution::Topology topology;
-	Revolution::Replica replica{header_space, state_space, topology};
+    Revolution::Header_space header_space;
+    Revolution::State_space state_space;
+    Revolution::Topology topology;
+    Revolution::Replica replica{header_space, state_space, topology};
 
-	replica.main();
+    replica.main();
 
-	return 0;
+    return 0;
 }

@@ -45,6 +45,32 @@ def stop():
 class Message:
     __count = 0
 
+    @classmethod
+    def deserialize(cls, raw_message):
+        tokens = raw_message.split('\0')
+
+        assert not tokens[-1]
+
+        (
+            sender_name,
+            receiver_name,
+            header,
+            *data,
+            raw_priority,
+            raw_identifier,
+        ) = tokens[:-1]
+        priority = int(raw_priority)
+        identifier = int(raw_identifier)
+
+        return cls(
+            sender_name,
+            receiver_name,
+            header,
+            data,
+            priority,
+            identifier,
+        )
+
     def __init__(
             self,
             sender_name,
@@ -68,7 +94,7 @@ class Message:
 
     def __eq__(self, other):
         if not isinstance(other, Message):
-            raise NotImplemented
+            return NotImplemented
 
         return self.sender_name == other.sender_name \
             and self.receiver_name == other.receiver_name \
@@ -112,32 +138,6 @@ class Message:
     @property
     def identifier(self):
         return self.__identifier
-
-    @classmethod
-    def deserialize(cls, raw_message):
-        tokens = raw_message.split('\0')
-
-        assert not tokens[-1]
-
-        (
-            sender_name,
-            receiver_name,
-            header,
-            *data,
-            raw_priority,
-            raw_identifier,
-        ) = tokens[:-1]
-        priority = int(raw_priority)
-        identifier = int(raw_identifier)
-
-        return cls(
-            sender_name,
-            receiver_name,
-            header,
-            data,
-            priority,
-            identifier,
-        )
 
     def serialize(self):
         serialized_components = (
@@ -213,7 +213,7 @@ class Topology:
                 identifier=None,
                 *,
                 timeout=None,
-                tester_name=None,
+                tester_name=TESTER_NAME,
         ):
             if not is_root():
                 elevate()
@@ -232,12 +232,17 @@ class Topology:
                 tester_name=tester_name,
             )
             raw_message, _priority = receiver.receive(timeout)
+
             receiver.close()
             receiver.unlink()
 
             response = Message.deserialize(raw_message.decode('ascii'))
 
-            assert message.identifier == response.identifier
+            assert response.sender_name == message.receiver_name
+            assert response.receiver_name == message.sender_name
+            assert response.header == HeaderSpace.RESPONSE
+            assert response.priority == message.priority
+            assert response.identifier == message.identifier
 
             return response
 

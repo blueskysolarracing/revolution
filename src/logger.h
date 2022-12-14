@@ -4,31 +4,31 @@
 #include <sstream>
 
 namespace Revolution {
-	class Logger {
-	public:
-		enum class Severity {
-			emergency,
-			alert,
-			critical,
-			error,
-			warning,
-			notice,
-			information,
-			debug
-		};
+    class Logger {
+    public:
+        enum class Severity {
+            emergency,
+            alert,
+            critical,
+            error,
+            warning,
+            notice,
+            information,
+            debug
+        };
 
-		class Log_stream : public std::ostringstream {
-		public:
-			explicit Log_stream(const Severity& severity);
-			~Log_stream();
+        class Log_stream : public std::ostringstream {
+        public:
+            explicit Log_stream(const Severity& severity);
+            ~Log_stream();
 
-			const Severity& get_severity() const;
-		private:
-			const Severity severity;
-		};
+            const Severity& get_severity() const;
+        private:
+            const Severity severity;
+        };
 
-		Log_stream operator<<(const Severity& severity) const;
-	};
+        Log_stream operator<<(const Severity& severity) const;
+    };
 }
 
 #endif  // REVOLUTION_LOGGER_H
