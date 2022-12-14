@@ -26,14 +26,6 @@ def shell(*arguments):
     return stdout.decode('utf-8')
 
 
-def is_root():
-    return getuid() == 0
-
-
-def elevate():
-    shell('sudo', 'echo', 'Elevating privileges...')
-
-
 def start():
     shell('sudo', str(PROJECT_PATH / 'start.sh'))
 
@@ -187,9 +179,6 @@ class Topology:
                 timeout=None,
                 tester_name=TESTER_NAME,
         ):
-            if not is_root():
-                elevate()
-
             sender = MessageQueue(f'/{self.name}')
             message = Message(
                 tester_name,
@@ -215,9 +204,6 @@ class Topology:
                 timeout=None,
                 tester_name=TESTER_NAME,
         ):
-            if not is_root():
-                elevate()
-
             receiver = MessageQueue(
                 None if tester_name is None else f'/{tester_name}',
                 O_CREAT | O_EXCL,
