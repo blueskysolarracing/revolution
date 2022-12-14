@@ -14,12 +14,7 @@
 namespace Revolution {
     class Peripheral : public Application {
     public:
-        explicit Peripheral(
-            const std::reference_wrapper<const Header_space>& header_space,
-            const std::reference_wrapper<const State_space>& state_space,
-            const std::reference_wrapper<const Topology>& topology,
-            const unsigned int& thread_count
-        );
+        using Application::Application;
     protected:
         std::optional<std::string> get_state(const std::string& key);
         void set_state(const std::string& key, const std::string& value);

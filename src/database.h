@@ -1,7 +1,6 @@
 #ifndef REVOLUTION_DATABASE_H
 #define REVOLUTION_DATABASE_H
 
-#include <atomic>
 #include <chrono>
 #include <functional>
 #include <mutex>

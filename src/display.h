@@ -3,6 +3,7 @@
 
 #include <chrono>
 #include <functional>
+#include <string>
 
 #include "configuration.h"
 #include "peripheral.h"

@@ -1,6 +1,5 @@
 #include "database.h"
 
-#include <atomic>
 #include <chrono>
 #include <functional>
 #include <limits>
@@ -21,10 +20,7 @@ namespace Revolution {
             const std::reference_wrapper<const State_space>& state_space,
             const std::reference_wrapper<const Topology>& topology,
             const unsigned int& thread_count
-    ) :
-            Application{header_space, state_space, topology, thread_count},
-            states{},
-            mutex{} {}
+    ) : Application{header_space, state_space, topology, thread_count} {}
 
     void Database::setup() {
         Application::setup();

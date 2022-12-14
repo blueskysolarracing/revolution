@@ -18,10 +18,7 @@ namespace Revolution {
             const std::reference_wrapper<const State_space>& state_space,
             const std::reference_wrapper<const Topology>& topology,
             const unsigned int& thread_count
-    ) :
-            Application{header_space, state_space, topology, thread_count},
-            data{},
-            mutex{} {}
+    ) : Application{header_space, state_space, topology, thread_count} {}
 
     void Replica::setup() {
         Application::setup();

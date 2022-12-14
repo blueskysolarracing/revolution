@@ -7,8 +7,6 @@
 namespace Revolution {
     class Heart {
     public:
-        explicit Heart();
-
         const std::atomic_uint& get_count() const;
 
         void beat();

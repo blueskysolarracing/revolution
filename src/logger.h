@@ -27,6 +27,8 @@ namespace Revolution {
             const Severity severity;
         };
 
+        explicit Logger() = default;
+
         Log_stream operator<<(const Severity& severity) const;
     };
 }

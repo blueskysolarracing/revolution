@@ -32,14 +32,6 @@ ninja -C build
 
 The executables will be located under the `build/` folder.
 
-### Integration Testing
-
-At project root,
-
-```
-python -m unittest discover
-```
-
 ### Installing
 
 At project root,
@@ -53,7 +45,7 @@ sudo ninja -C build install
 At project root,
 
 ```
-sudo ninja -C build start
+sudo ./start
 ```
 
 ### Stopping
@@ -61,7 +53,7 @@ sudo ninja -C build start
 At project root,
 
 ```
-sudo ninja -C build stop
+sudo ./stop
 ```
 
 ### Uninstalling
@@ -77,4 +69,3 @@ sudo ninja -C build uninstall
 - Unit tests
 - Performance tests
 - Documentation (probably using sphinx)
-- Improve python integration test utilities to directly use c++ stuff and mqueue

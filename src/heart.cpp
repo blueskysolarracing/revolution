@@ -7,8 +7,6 @@
 #include <thread>
 
 namespace Revolution {
-    Heart::Heart() : count{} {}
-
     const std::atomic_uint& Heart::get_count() const {
         return count;
     }

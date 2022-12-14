@@ -29,15 +29,7 @@ namespace Revolution {
             header_space{header_space},
             state_space{state_space},
             topology{topology},
-            logger{},
-            heart{},
-            thread_pool{thread_count},
-            status{},
-            handlers{},
-            handler_mutex{},
-            responses{},
-            response_mutex{},
-            response_condition_variable{} {}
+            thread_pool{thread_count} {}
 
     void Application::main() {
         get_logger() << Logger::Severity::information

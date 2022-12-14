@@ -6,7 +6,7 @@
 
 namespace Revolution {
     Logger::Log_stream::Log_stream(const Severity& severity)
-            : std::ostringstream{}, severity{severity} {}
+            : severity{severity} {}
 
     Logger::Log_stream::~Log_stream() {
         sd_journal_print(static_cast<int>(get_severity()), str().data());

@@ -9,17 +9,9 @@
 #include <thread>
 
 namespace Revolution {
-    Thread_pool::Thread_pool(const unsigned int& thread_count)
-            :
-            status{true},
-            threads{},
-            functions{},
-            mutex{},
-            condition_variable{} {
+    Thread_pool::Thread_pool(const unsigned int& thread_count) : status{true} {
         for (unsigned int i = 0; i < thread_count; ++i)
-            threads.emplace_back(
-                std::bind(&Thread_pool::main, this)
-            );
+            threads.emplace_back(std::bind(&Thread_pool::main, this));
     }
 
     Thread_pool::~Thread_pool() {

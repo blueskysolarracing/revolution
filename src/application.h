@@ -12,7 +12,6 @@
 #include <vector>
 
 #include "configuration.h"
-#include "device.h"
 #include "heart.h"
 #include "logger.h"
 #include "message.h"
@@ -48,9 +47,8 @@ namespace Revolution {
 
         void set_handler(
             const std::string& header,
-            const std::function<
-                std::vector<std::string>(const Message&)
-            >& handler
+            const std::function<std::vector<std::string>(const Message&)>&
+                handler
         );
 
         Message send(
@@ -121,10 +119,7 @@ namespace Revolution {
             std::function<std::vector<std::string>(const Message&)>
         > handlers;
         std::mutex handler_mutex;
-        std::unordered_map<
-            unsigned int,
-            std::optional<Message>
-        > responses;
+        std::unordered_map<unsigned int, std::optional<Message>> responses;
         std::mutex response_mutex;
         std::condition_variable response_condition_variable;
     };

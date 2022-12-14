@@ -12,16 +12,6 @@
 #include "logger.h"
 
 namespace Revolution {
-    Peripheral::Peripheral(
-            const std::reference_wrapper<const Header_space>& header_space,
-            const std::reference_wrapper<const State_space>& state_space,
-            const std::reference_wrapper<const Topology>& topology,
-            const unsigned int& thread_count
-    ) :
-        Application{header_space, state_space, topology, thread_count},
-        watchers{},
-        mutex{} {}
-
     std::optional<std::string> Peripheral::get_state(const std::string& key) {
         auto message = communicate(
             get_topology().get_database_name(),

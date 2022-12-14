@@ -8,11 +8,9 @@
 #include <optional>
 #include <string>
 #include <system_error>
-#include <vector>
 
 #include <fcntl.h>
 #include <mqueue.h>
-#include <signal.h>
 #include <sys/stat.h>
 
 namespace Revolution {
