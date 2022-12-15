@@ -45,23 +45,28 @@ namespace Revolution {
             both_edges
         };
 
+        enum class Active {
+            low,
+            high
+        };
+
         using Device::Device;
 
         std::vector<bool> get(
             const std::vector<unsigned int>& offsets,
-            const bool& active_low,
+            const Active& active,
             const std::string& consumer_name
         ) const;
         void set(
             const std::vector<unsigned int>& offsets,
             const std::vector<bool>& values,
-            const bool& active_low,
+            const Active& active,
             const std::string& consumer_name
         ) const;
         void monitor(
             const Event& event,
             const std::vector<unsigned int>& offsets,
-            const bool& active_low,
+            const Active& active,
             const std::string& consumer_name,
             const std::atomic_bool& status,
             const std::chrono::high_resolution_clock::duration& timeout,

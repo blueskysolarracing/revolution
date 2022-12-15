@@ -202,10 +202,23 @@ namespace Revolution {
 
     std::vector<bool> GPIO::get(
             const std::vector<unsigned int>& offsets,
-            const bool& active_low,
+            const Active& active,
             const std::string& consumer_name
     ) const {
         std::vector<int> raw_values(offsets.size(), 0);
+
+        bool active_low;
+
+        switch (active) {
+            case Active::low:
+                active_low = true;
+                break;
+            case Active::high:
+                active_low = false;
+                break;
+            default:
+                throw std::domain_error{"Unknown gpio active encountered."};
+        }
 
         auto return_value = gpiod_ctxless_get_value_multiple(
             get_name().data(),
@@ -229,12 +242,25 @@ namespace Revolution {
     void GPIO::set(
             const std::vector<unsigned int>& offsets,
             const std::vector<bool>& values,
-            const bool& active_low,
+            const Active& active,
             const std::string& consumer_name
     ) const {
         assert(offsets.size() == values.size());
 
         std::vector<int> raw_values{values.begin(), values.end()};
+        bool active_low;
+
+        switch (active) {
+            case Active::low:
+                active_low = true;
+                break;
+            case Active::high:
+                active_low = false;
+                break;
+            default:
+                throw std::domain_error{"Unknown gpio active encountered."};
+        }
+
         auto return_value = gpiod_ctxless_set_value_multiple(
             get_name().data(),
             offsets.data(),
@@ -288,7 +314,7 @@ namespace Revolution {
     void GPIO::monitor(
             const Event& event,
             const std::vector<unsigned int>& offsets,
-            const bool& active_low,
+            const Active& active,
             const std::string& consumer_name,
             const std::atomic_bool& status,
             const std::chrono::high_resolution_clock::duration& timeout,
@@ -309,6 +335,19 @@ namespace Revolution {
                 break;
             default:
                 throw std::domain_error{"Unknown gpio event encountered."};
+        }
+
+        bool active_low;
+
+        switch (active) {
+            case Active::low:
+                active_low = true;
+                break;
+            case Active::high:
+                active_low = false;
+                break;
+            default:
+                throw std::domain_error{"Unknown gpio active encountered."};
         }
 
         auto time_specification = convert_to_time_specification(timeout);
