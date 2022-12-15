@@ -17,10 +17,10 @@ namespace Revolution {
             debug
         };
 
-        class Log_stream : public std::ostringstream {
+        class LogStream : public std::ostringstream {
         public:
-            explicit Log_stream(const Severity& severity);
-            ~Log_stream();
+            explicit LogStream(const Severity& severity);
+            ~LogStream();
 
             const Severity& get_severity() const;
         private:
@@ -29,7 +29,7 @@ namespace Revolution {
 
         explicit Logger() = default;
 
-        Log_stream operator<<(const Severity& severity) const;
+        LogStream operator<<(const Severity& severity) const;
     };
 }
 

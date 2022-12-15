@@ -5,7 +5,7 @@
 #include "configuration.h"
 
 namespace Revolution {
-    Header_space::Header_space(
+    HeaderSpace::HeaderSpace(
             const std::string& abort_header,
             const std::string& data_header,
             const std::string& exit_header,
@@ -20,27 +20,27 @@ namespace Revolution {
             state_header{state_header},
             status_header{status_header} {}
 
-    const std::string& Header_space::get_abort_header() const {
+    const std::string& HeaderSpace::get_abort_header() const {
         return abort_header;
     }
 
-    const std::string& Header_space::get_data_header() const {
+    const std::string& HeaderSpace::get_data_header() const {
         return data_header;
     }
 
-    const std::string& Header_space::get_exit_header() const {
+    const std::string& HeaderSpace::get_exit_header() const {
         return exit_header;
     }
 
-    const std::string& Header_space::get_response_header() const {
+    const std::string& HeaderSpace::get_response_header() const {
         return response_header;
     }
 
-    const std::string& Header_space::get_state_header() const {
+    const std::string& HeaderSpace::get_state_header() const {
         return state_header;
     }
 
-    const std::string& Header_space::get_status_header() const {
+    const std::string& HeaderSpace::get_status_header() const {
         return status_header;
     }
 

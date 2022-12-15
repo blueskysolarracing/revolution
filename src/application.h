@@ -21,17 +21,17 @@ namespace Revolution {
     class Application {
     public:
         explicit Application(
-            const std::reference_wrapper<const Header_space>& header_space,
-            const std::reference_wrapper<const State_space>& state_space,
-            const std::reference_wrapper<const Topology>& topology,
+            const HeaderSpace& header_space,
+            const StateSpace& state_space,
+            const Topology& topology,
             const unsigned int& thread_count
         );
         virtual ~Application() = default;
 
         void main();
     protected:
-        const Header_space& get_header_space() const;
-        const State_space& get_state_space() const;
+        const HeaderSpace& get_header_space() const;
+        const StateSpace& get_state_space() const;
         const Topology& get_topology() const;
         const Logger& get_logger() const;
         const Heart& get_heart() const;
@@ -107,9 +107,9 @@ namespace Revolution {
 
         void run();
 
-        const std::reference_wrapper<const Header_space> header_space;
-        const std::reference_wrapper<const State_space> state_space;
-        const std::reference_wrapper<const Topology> topology;
+        const HeaderSpace& header_space;
+        const StateSpace& state_space;
+        const Topology& topology;
         const Logger logger;
         Heart heart;
         Thread_pool thread_pool;

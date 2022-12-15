@@ -41,51 +41,31 @@ namespace Revolution {
     public:
         enum class Event {
             rising_edge,
-            falling_edge
+            falling_edge,
+            both_edges
         };
 
         using Device::Device;
 
-        const unsigned int& get_offset() const;
-
-        bool get_value(
-            const unsigned int& offset,
-            const bool& active_low,
-            const std::string& consumer_name
-        ) const;
-        std::vector<bool> get_values(
+        std::vector<bool> get(
             const std::vector<unsigned int>& offsets,
             const bool& active_low,
             const std::string& consumer_name
         ) const;
-        void set_value(
-            const unsigned int& offset,
-            const bool& value,
-            const bool& active_low,
-            const std::string& consumer_name
-        ) const;
-        void set_values(
+        void set(
             const std::vector<unsigned int>& offsets,
             const std::vector<bool>& values,
             const bool& active_low,
             const std::string& consumer_name
         ) const;
-        void monitor_value(
-            const Event& event,
-            const unsigned int& offset,
-            const bool& active_low,
-            const std::string& consumer_name,
-            const std::chrono::high_resolution_clock::duration& timeout,
-            const std::function<bool(const Event& event, const unsigned int&)>&
-                callback
-        ) const;
-        void monitor_values(
+        void monitor(
             const Event& event,
             const std::vector<unsigned int>& offsets,
             const bool& active_low,
             const std::string& consumer_name,
+            const std::atomic_bool& status,
             const std::chrono::high_resolution_clock::duration& timeout,
-            const std::function<bool(const Event& event, const unsigned int&)>&
+            const std::function<void(const Event&, const unsigned int&)>&
                 callback
         ) const;
     };
@@ -94,10 +74,9 @@ namespace Revolution {
     public:
         using Device::Device;
 
-        class Polarity {
-        public:
-            static const std::string normal;
-            static const std::string inversed;
+        enum class Polarity {
+            normal,
+            inversed
         };
 
         void enable(

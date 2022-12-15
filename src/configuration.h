@@ -6,9 +6,9 @@
 #include <vector>
 
 namespace Revolution {
-    class Header_space {
+    class HeaderSpace {
     public:
-        explicit Header_space(
+        explicit HeaderSpace(
             const std::string& abort_header = "ABORT",
             const std::string& data_header = "DATA",
             const std::string& exit_header = "EXIT",
@@ -32,7 +32,7 @@ namespace Revolution {
         const std::string status_header;
     };
 
-    class State_space {};
+    class StateSpace {};
 
     class Topology {
     public:

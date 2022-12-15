@@ -23,9 +23,9 @@ namespace Revolution {
     }
 
     static void close_message_queue(const mqd_t& descriptor) {
-        auto status = mq_close(descriptor);
+        auto return_value = mq_close(descriptor);
 
-        if (status < 0)
+        if (return_value < 0)
             throw std::system_error{
                 errno,
                 std::system_category(),
@@ -35,9 +35,9 @@ namespace Revolution {
 
     static mq_attr get_message_queue_attributes(const mqd_t& descriptor) {
         mq_attr attributes;
-        auto status = mq_getattr(descriptor, &attributes);
+        auto return_value = mq_getattr(descriptor, &attributes);
 
-        if (status < 0)
+        if (return_value < 0)
             throw std::system_error{
                 errno,
                 std::system_category(),
@@ -168,9 +168,9 @@ namespace Revolution {
     }
 
     void MessageQueue::unlink() const {
-        auto status = mq_unlink(get_name().data());
+        auto return_value = mq_unlink(get_name().data());
 
-        if (status < 0)
+        if (return_value < 0)
             throw std::system_error{
                 errno,
                 std::system_category(),
@@ -200,28 +200,14 @@ namespace Revolution {
         }
     }
 
-    bool GPIO::get_value(
-            const unsigned int& offset,
-            const bool& active_low,
-            const std::string& consumer_name
-    ) const {
-        auto values = get_values({offset}, active_low, consumer_name);
-
-        assert(values.size() == 1);
-
-        return values.front();
-    }
-
-    std::vector<bool> GPIO::get_values(
+    std::vector<bool> GPIO::get(
             const std::vector<unsigned int>& offsets,
             const bool& active_low,
             const std::string& consumer_name
     ) const {
         std::vector<int> raw_values(offsets.size(), 0);
 
-        assert(offsets.size());
-
-        auto status = gpiod_ctxless_get_value_multiple(
+        auto return_value = gpiod_ctxless_get_value_multiple(
             get_name().data(),
             offsets.data(),
             raw_values.data(),
@@ -230,7 +216,7 @@ namespace Revolution {
             consumer_name.data()
         );
 
-        if (status < 0)
+        if (return_value < 0)
             throw std::system_error{
                 errno,
                 std::system_category(),
@@ -240,16 +226,7 @@ namespace Revolution {
         return {raw_values.begin(), raw_values.end()};
     }
 
-    void GPIO::set_value(
-            const unsigned int& offset,
-            const bool& value,
-            const bool& active_low,
-            const std::string& consumer_name
-    ) const {
-        set_values({offset}, {value}, active_low, consumer_name);
-    }
-
-    void GPIO::set_values(
+    void GPIO::set(
             const std::vector<unsigned int>& offsets,
             const std::vector<bool>& values,
             const bool& active_low,
@@ -258,7 +235,7 @@ namespace Revolution {
         assert(offsets.size() == values.size());
 
         std::vector<int> raw_values{values.begin(), values.end()};
-        auto status = gpiod_ctxless_set_value_multiple(
+        auto return_value = gpiod_ctxless_set_value_multiple(
             get_name().data(),
             offsets.data(),
             raw_values.data(),
@@ -269,7 +246,7 @@ namespace Revolution {
             nullptr
         );
 
-        if (status < 0)
+        if (return_value < 0)
             throw std::system_error{
                 errno,
                 std::system_category(),
@@ -277,82 +254,66 @@ namespace Revolution {
             };
     }
 
-    void GPIO::monitor_value(
-            const Event& event,
-            const unsigned int& offset,
-            const bool& active_low,
-            const std::string& consumer_name,
-            const std::chrono::high_resolution_clock::duration& timeout,
-            const std::function<bool(const Event& event, const unsigned int&)>&
-                callback
-    ) const {
-        monitor_values(
-            event,
-            {offset},
-            active_low,
-            consumer_name,
-            timeout,
-            callback
-        );
-    }
+    struct GPIOEventData {
+        const std::atomic_bool& status;
+        const std::function<void(const GPIO::Event&, const unsigned int&)>& callback;
+    };
 
     static int handle_gpio_event(
             int event_type,
             unsigned int offset,
-            [[maybe_unused]] const struct std::timespec *timestamp,
+            [[maybe_unused]] const std::timespec *timestamp,
             void *data
     ) {
-        const auto& callback = *(
-            const std::function<
-                bool(const GPIO::Event& event, const unsigned int&)
-            >*
-        ) data;
-
-        GPIO::Event event;
+        const auto& gpio_event_data = *(GPIOEventData*) data;
 
         switch (event_type) {
-            case GPIOD_LINE_EVENT_RISING_EDGE:
-                event = GPIO::Event::rising_edge;
+            case GPIOD_CTXLESS_EVENT_CB_TIMEOUT:
                 break;
-            case GPIOD_LINE_EVENT_FALLING_EDGE:
-                event = GPIO::Event::falling_edge;
+            case GPIOD_CTXLESS_EVENT_CB_RISING_EDGE:
+                gpio_event_data.callback(GPIO::Event::rising_edge, offset);
+                break;
+            case GPIOD_CTXLESS_EVENT_CB_FALLING_EDGE:
+                gpio_event_data.callback(GPIO::Event::falling_edge, offset);
                 break;
             default:
                 return GPIOD_CTXLESS_EVENT_CB_RET_ERR;
         }
 
-        auto status = callback(event, offset);
-
-        return status
+        return gpio_event_data.status
             ? GPIOD_CTXLESS_EVENT_CB_RET_OK
             : GPIOD_CTXLESS_EVENT_CB_RET_STOP;
     }
 
-    void GPIO::monitor_values(
+    void GPIO::monitor(
             const Event& event,
             const std::vector<unsigned int>& offsets,
             const bool& active_low,
             const std::string& consumer_name,
+            const std::atomic_bool& status,
             const std::chrono::high_resolution_clock::duration& timeout,
-            const std::function<bool(const Event& event, const unsigned int&)>&
+            const std::function<void(const Event&, const unsigned int&)>&
                 callback
     ) const {
         int event_type;
 
         switch (event) {
             case Event::rising_edge:
-                event_type = GPIOD_LINE_EVENT_RISING_EDGE;
+                event_type = GPIOD_CTXLESS_EVENT_RISING_EDGE;
                 break;
             case Event::falling_edge:
-                event_type = GPIOD_LINE_EVENT_FALLING_EDGE;
+                event_type = GPIOD_CTXLESS_EVENT_FALLING_EDGE;
+                break;
+            case Event::both_edges:
+                event_type = GPIOD_CTXLESS_EVENT_BOTH_EDGES;
                 break;
             default:
                 throw std::domain_error{"Unknown gpio event encountered."};
         }
 
         auto time_specification = convert_to_time_specification(timeout);
-
-        auto status = gpiod_ctxless_event_monitor_multiple(
+        GPIOEventData gpio_event_data{status, callback};
+        auto return_value = gpiod_ctxless_event_monitor_multiple(
             get_name().data(),
             event_type,
             offsets.data(),
@@ -362,19 +323,16 @@ namespace Revolution {
             &time_specification,
             nullptr,
             &handle_gpio_event,
-            (void *) &callback
+            &gpio_event_data
         );
 
-        if (status < 0)
+        if (return_value < 0)
             throw std::system_error{
                 errno,
                 std::system_category(),
                 "Error occurred while monitoring gpio"
             };
     }
-
-    const std::string PWM::Polarity::normal{"normal"};
-    const std::string PWM::Polarity::inversed{"inversed"};
 
     void PWM::enable(
             const unsigned int& period,

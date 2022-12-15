@@ -5,18 +5,18 @@
 #include <systemd/sd-journal.h>
 
 namespace Revolution {
-    Logger::Log_stream::Log_stream(const Severity& severity)
+    Logger::LogStream::LogStream(const Severity& severity)
             : severity{severity} {}
 
-    Logger::Log_stream::~Log_stream() {
+    Logger::LogStream::~LogStream() {
         sd_journal_print(static_cast<int>(get_severity()), str().data());
     }
 
-    const Logger::Severity& Logger::Log_stream::get_severity() const {
+    const Logger::Severity& Logger::LogStream::get_severity() const {
         return severity;
     }
 
-    Logger::Log_stream Logger::operator<<(const Severity& severity) const {
-        return Log_stream{severity};
+    Logger::LogStream Logger::operator<<(const Severity& severity) const {
+        return LogStream{severity};
     }
 }

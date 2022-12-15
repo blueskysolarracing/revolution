@@ -2,7 +2,6 @@
 #define REVOLUTION_DISPLAY_H
 
 #include <chrono>
-#include <functional>
 #include <string>
 
 #include "configuration.h"
@@ -12,9 +11,9 @@ namespace Revolution {
     class Display : public Peripheral {
     public:
         explicit Display(
-            const std::reference_wrapper<const Header_space>& header_space,
-            const std::reference_wrapper<const State_space>& state_space,
-            const std::reference_wrapper<const Topology>& topology,
+            const HeaderSpace& header_space,
+            const StateSpace& state_space,
+            const Topology& topology,
             const unsigned int& thread_count = get_default_thread_count()
         );
     private:

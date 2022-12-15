@@ -2,7 +2,6 @@
 #define REVOLUTION_REPLICA_H
 
 #include <chrono>
-#include <functional>
 #include <mutex>
 #include <string>
 #include <vector>
@@ -15,9 +14,9 @@ namespace Revolution {
     class Replica : public Application {
     public:
         explicit Replica(
-            const std::reference_wrapper<const Header_space>& header_space,
-            const std::reference_wrapper<const State_space>& state_space,
-            const std::reference_wrapper<const Topology>& topology,
+            const HeaderSpace& header_space,
+            const StateSpace& state_space,
+            const Topology& topology,
             const unsigned int& thread_count = get_default_thread_count()
         );
     protected:

@@ -14,9 +14,9 @@
 
 namespace Revolution {
     Replica::Replica(
-            const std::reference_wrapper<const Header_space>& header_space,
-            const std::reference_wrapper<const State_space>& state_space,
-            const std::reference_wrapper<const Topology>& topology,
+            const HeaderSpace& header_space,
+            const StateSpace& state_space,
+            const Topology& topology,
             const unsigned int& thread_count
     ) : Application{header_space, state_space, topology, thread_count} {}
 
@@ -96,8 +96,8 @@ namespace Revolution {
 }
 
 int main() {
-    Revolution::Header_space header_space;
-    Revolution::State_space state_space;
+    Revolution::HeaderSpace header_space;
+    Revolution::StateSpace state_space;
     Revolution::Topology topology;
     Revolution::Replica replica{header_space, state_space, topology};
 
