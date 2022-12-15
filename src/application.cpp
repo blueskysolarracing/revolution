@@ -280,7 +280,7 @@ namespace Revolution {
             return {};
         }
 
-        get_logger() << Logger::Severity::information
+        get_logger() << Logger::Severity::critical
             << "Aborting..."
             << std::endl;
 
@@ -353,7 +353,7 @@ namespace Revolution {
         auto handler = get_handler(message.get_header());
 
         if (!handler) {
-            get_logger() << Logger::Severity::warning
+            get_logger() << Logger::Severity::error
                 << "Handler for message : "
                 << message.to_string()
                 << " is unknown. Skipping handling..."

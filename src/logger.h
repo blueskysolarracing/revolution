@@ -1,6 +1,7 @@
 #ifndef REVOLUTION_LOGGER_H
 #define REVOLUTION_LOGGER_H
 
+#include <mutex>
 #include <sstream>
 
 namespace Revolution {
@@ -24,6 +25,10 @@ namespace Revolution {
 
             const Severity& get_severity() const;
         private:
+            static std::mutex mutex;
+
+            static std::mutex& get_mutex();
+
             const Severity severity;
         };
 

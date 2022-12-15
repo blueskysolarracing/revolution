@@ -124,17 +124,17 @@ namespace Revolution {
         if (message.get_data().size() == 1) {
             auto key = message.get_data().front();
 
-            get_logger() << Logger::Severity::error
-                << "Getting value for key: "
+            get_logger() << Logger::Severity::information
+                << "Getting value for key: \""
                 << key
-                << "..."
+                << "\"..."
                 << std::endl;
 
             if (!get_states().count(key)) {
-                get_logger() << Logger::Severity::information
-                    << "The key: "
+                get_logger() << Logger::Severity::error
+                    << "The key: \""
                     << key
-                    << " does not exist."
+                    << "\" does not exist."
                     << std::endl;
 
                 return {};
@@ -142,10 +142,10 @@ namespace Revolution {
 
             auto value = get_states().at(key);
 
-            get_logger() << Logger::Severity::error
-                << "Replying with corresponding value: "
+            get_logger() << Logger::Severity::information
+                << "Replying with corresponding value: \""
                 << value
-                << "..."
+                << "\"..."
                 << std::endl;
 
             return {value};
@@ -153,12 +153,12 @@ namespace Revolution {
             auto key = message.get_data().front();
             auto value = message.get_data().back();
 
-            get_logger() << Logger::Severity::error
-                << "Setting key-value pair: "
+            get_logger() << Logger::Severity::information
+                << "Setting (key, value): (\""
                 << key
-                << ", "
+                << "\", \""
                 << value
-                << "..."
+                << "\")..."
                 << std::endl;
 
             get_states()[key] = value;
@@ -186,9 +186,9 @@ namespace Revolution {
 
     void Database::sync() {
         get_logger() << Logger::Severity::information
-            << "Syncing with "
+            << "Syncing with \""
             << get_topology().get_replica_name()
-            << "..."
+            << "\"..."
             << std::endl;
 
         auto message = communicate(

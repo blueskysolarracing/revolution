@@ -26,7 +26,6 @@ project_source_files = files(
 project_dependencies = [
   cpp_compiler.find_library('rt'),
   dependency('libgpiod'),
-  dependency('libsystemd'),
   dependency('threads'),
 ]
 

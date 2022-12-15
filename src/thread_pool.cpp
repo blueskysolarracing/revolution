@@ -74,7 +74,7 @@ namespace Revolution {
 
     void Thread_pool::main() {
         while (get_status()) {
-            std::function<void()> function{};
+            std::function<void()> function;
 
             {
                 std::unique_lock lock{get_mutex()};
