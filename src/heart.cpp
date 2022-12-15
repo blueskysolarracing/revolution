@@ -16,8 +16,8 @@ namespace Revolution {
     }
 
     void Heart::monitor(
-            const std::chrono::high_resolution_clock::duration& timeout,
-            const std::atomic_bool& status
+            const std::atomic_bool& status,
+            const std::chrono::high_resolution_clock::duration& timeout
     ) {
         get_count() = 1;
 

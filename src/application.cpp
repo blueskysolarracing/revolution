@@ -383,20 +383,20 @@ namespace Revolution {
         //     std::bind(
         //         &Heart::monitor,
         //         &get_heart(),
-        //         get_timeout(),
-        //         std::cref(get_status())
+        //         std::cref(get_status()),
+        //         get_timeout()
         //     )
         // );
         MessageQueue message_queue{'/' + get_name()};
 
         message_queue.monitor(
             get_status(),
+            get_message_queue_timeout(),
             [this] (const std::string& raw_message) {
                 auto message = Message::deserialize(raw_message);
 
                 handle(message);
-            },
-            get_message_queue_timeout()
+            }
         );
     }
 }

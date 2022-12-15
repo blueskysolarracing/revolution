@@ -32,29 +32,62 @@ namespace Revolution {
         void unlink() const;
         void monitor(
             const std::atomic_bool& status,
-            const std::function<void(const std::string&)>& handler,
-            const std::chrono::high_resolution_clock::duration& timeout
+            const std::chrono::high_resolution_clock::duration& timeout,
+            const std::function<void(const std::string&)>& callback
         ) const;
     };
 
     class GPIO : public Device {
     public:
-        explicit GPIO(
-            const std::string& name,
-            const unsigned int& offset
-        );
+        enum class Event {
+            rising_edge,
+            falling_edge
+        };
+
+        using Device::Device;
 
         const unsigned int& get_offset() const;
 
-        bool get_active_low() const;
-        void set_active_low(const bool& active_low) const;
-        void monitor(
-            const std::function<
-                void(const std::string&, const unsigned int&, const bool&)
-            >& handler
+        bool get_value(
+            const unsigned int& offset,
+            const bool& active_low,
+            const std::string& consumer_name
         ) const;
-    private:
-        const unsigned int offset;
+        std::vector<bool> get_values(
+            const std::vector<unsigned int>& offsets,
+            const bool& active_low,
+            const std::string& consumer_name
+        ) const;
+        void set_value(
+            const unsigned int& offset,
+            const bool& value,
+            const bool& active_low,
+            const std::string& consumer_name
+        ) const;
+        void set_values(
+            const std::vector<unsigned int>& offsets,
+            const std::vector<bool>& values,
+            const bool& active_low,
+            const std::string& consumer_name
+        ) const;
+        void monitor_value(
+            const Event& event,
+            const unsigned int& offset,
+            const bool& active_low,
+            const std::string& consumer_name,
+            const std::chrono::high_resolution_clock::duration& timeout,
+            const std::function<bool(const Event& event, const unsigned int&)>&
+                callback
+        ) const;
+        void monitor_values(
+            const Event& event,
+            const std::vector<unsigned int>& offsets,
+            const bool& active_low,
+            const std::string& consumer_name,
+            const std::chrono::high_resolution_clock::duration& timeout,
+            const std::function<bool(const Event& event, const unsigned int&)>&
+                callback
+        ) const;
     };
 
     class PWM : public Device {

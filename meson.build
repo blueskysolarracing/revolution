@@ -24,9 +24,10 @@ project_source_files = files(
 )
 
 project_dependencies = [
-  dependency('threads'),
-  dependency('libsystemd'),
   cpp_compiler.find_library('rt'),
+  dependency('libgpiod'),
+  dependency('libsystemd'),
+  dependency('threads'),
 ]
 
 database_target = executable(

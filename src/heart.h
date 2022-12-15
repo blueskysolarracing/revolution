@@ -11,8 +11,8 @@ namespace Revolution {
 
         void beat();
         void monitor(
-            const std::chrono::high_resolution_clock::duration& timeout,
-            const std::atomic_bool& status
+            const std::atomic_bool& status,
+            const std::chrono::high_resolution_clock::duration& timeout
         );
     private:
         std::atomic_uint& get_count();

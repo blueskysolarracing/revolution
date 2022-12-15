@@ -1,6 +1,7 @@
 #include "device.h"
 
 #include <atomic>
+#include <cassert>
 #include <cerrno>
 #include <chrono>
 #include <ctime>
@@ -10,11 +11,11 @@
 #include <system_error>
 
 #include <fcntl.h>
+#include <gpiod.h>
 #include <mqueue.h>
 #include <sys/stat.h>
 
 namespace Revolution {
-    // TODO: https://developer.toradex.com/linux-bsp/application-development/peripheral-access/gpio-linux
     Device::Device(const std::string& name) : name{name} {}
 
     const std::string& Device::get_name() const {
@@ -117,18 +118,28 @@ namespace Revolution {
             };
     }
 
+    static std::timespec convert_to_time_specification(
+            const std::chrono::high_resolution_clock::duration& timeout
+    ) {
+        auto second = std::chrono::duration_cast<std::chrono::seconds>(
+            timeout
+        );
+        auto nanosecond = std::chrono::duration_cast<std::chrono::nanoseconds>(
+            timeout - second
+        );
+        std::timespec time_specification{second.count(), nanosecond.count()};
+
+        return time_specification;
+    }
+
     std::string MessageQueue::timed_receive(
             const std::chrono::high_resolution_clock::duration& timeout
     ) const {
         auto absolute_timeout = timeout
             + std::chrono::high_resolution_clock::now().time_since_epoch();
-        auto second = std::chrono::duration_cast<std::chrono::seconds>(
+        auto time_specification = convert_to_time_specification(
             absolute_timeout
         );
-        auto nanosecond = std::chrono::duration_cast<std::chrono::nanoseconds>(
-            absolute_timeout - second
-        );
-        std::timespec time_specification{second.count(), nanosecond.count()};
 
         auto descriptor = open_message_queue(get_name(), O_RDONLY | O_CREAT);
         auto attributes = get_message_queue_attributes(descriptor);
@@ -169,14 +180,14 @@ namespace Revolution {
 
     void MessageQueue::monitor(
             const std::atomic_bool& status,
-            const std::function<void(const std::string&)>& handler,
-            const std::chrono::high_resolution_clock::duration& timeout
+            const std::chrono::high_resolution_clock::duration& timeout,
+            const std::function<void(const std::string&)>& callback
     ) const {
         while (status) {
             try {
                 auto message = timed_receive(timeout);
 
-                handler(message);
+                callback(message);
             } catch (const std::system_error& system_error) {
                 auto equivalent = std::system_category().equivalent(
                     system_error.code(),
@@ -189,33 +200,177 @@ namespace Revolution {
         }
     }
 
-    GPIO::GPIO(const std::string& name, const unsigned int& offset)
-            : Device{name}, offset{offset} {}
-
-    const unsigned int& GPIO::get_offset() const {
-        return offset;
-    }
-
-    bool GPIO::get_active_low() const {
-        // TODO: https://github.com/toradex/torizon-samples/blob/bullseye/gpio/c/gpio-toggle.c
-
-        return false;
-    }
-
-    void GPIO::set_active_low(const bool& active_low) const {
-        // TODO: https://github.com/toradex/torizon-samples/blob/bullseye/gpio/c/gpio-toggle.c
-
-        (void) active_low;
-    }
-
-    void GPIO::monitor(
-            const std::function<
-                void(const std::string&, const unsigned int&, const bool&)
-            >& handler
+    bool GPIO::get_value(
+            const unsigned int& offset,
+            const bool& active_low,
+            const std::string& consumer_name
     ) const {
-        // TODO: https://github.com/toradex/torizon-samples/blob/bullseye/gpio/c/gpio-event.c
+        auto values = get_values({offset}, active_low, consumer_name);
 
-        (void) handler;
+        assert(values.size() == 1);
+
+        return values.front();
+    }
+
+    std::vector<bool> GPIO::get_values(
+            const std::vector<unsigned int>& offsets,
+            const bool& active_low,
+            const std::string& consumer_name
+    ) const {
+        std::vector<int> raw_values(offsets.size(), 0);
+
+        assert(offsets.size());
+
+        auto status = gpiod_ctxless_get_value_multiple(
+            get_name().data(),
+            offsets.data(),
+            raw_values.data(),
+            offsets.size(),
+            active_low,
+            consumer_name.data()
+        );
+
+        if (status < 0)
+            throw std::system_error{
+                errno,
+                std::system_category(),
+                "Unable to get gpio value"
+            };
+
+        return {raw_values.begin(), raw_values.end()};
+    }
+
+    void GPIO::set_value(
+            const unsigned int& offset,
+            const bool& value,
+            const bool& active_low,
+            const std::string& consumer_name
+    ) const {
+        set_values({offset}, {value}, active_low, consumer_name);
+    }
+
+    void GPIO::set_values(
+            const std::vector<unsigned int>& offsets,
+            const std::vector<bool>& values,
+            const bool& active_low,
+            const std::string& consumer_name
+    ) const {
+        assert(offsets.size() == values.size());
+
+        std::vector<int> raw_values{values.begin(), values.end()};
+        auto status = gpiod_ctxless_set_value_multiple(
+            get_name().data(),
+            offsets.data(),
+            raw_values.data(),
+            offsets.size(),
+            active_low,
+            consumer_name.data(),
+            nullptr,
+            nullptr
+        );
+
+        if (status < 0)
+            throw std::system_error{
+                errno,
+                std::system_category(),
+                "Unable to set gpio value"
+            };
+    }
+
+    void GPIO::monitor_value(
+            const Event& event,
+            const unsigned int& offset,
+            const bool& active_low,
+            const std::string& consumer_name,
+            const std::chrono::high_resolution_clock::duration& timeout,
+            const std::function<bool(const Event& event, const unsigned int&)>&
+                callback
+    ) const {
+        monitor_values(
+            event,
+            {offset},
+            active_low,
+            consumer_name,
+            timeout,
+            callback
+        );
+    }
+
+    static int handle_gpio_event(
+            int event_type,
+            unsigned int offset,
+            [[maybe_unused]] const struct std::timespec *timestamp,
+            void *data
+    ) {
+        const auto& callback = *(
+            const std::function<
+                bool(const GPIO::Event& event, const unsigned int&)
+            >*
+        ) data;
+
+        GPIO::Event event;
+
+        switch (event_type) {
+            case GPIOD_LINE_EVENT_RISING_EDGE:
+                event = GPIO::Event::rising_edge;
+                break;
+            case GPIOD_LINE_EVENT_FALLING_EDGE:
+                event = GPIO::Event::falling_edge;
+                break;
+            default:
+                return GPIOD_CTXLESS_EVENT_CB_RET_ERR;
+        }
+
+        auto status = callback(event, offset);
+
+        return status
+            ? GPIOD_CTXLESS_EVENT_CB_RET_OK
+            : GPIOD_CTXLESS_EVENT_CB_RET_STOP;
+    }
+
+    void GPIO::monitor_values(
+            const Event& event,
+            const std::vector<unsigned int>& offsets,
+            const bool& active_low,
+            const std::string& consumer_name,
+            const std::chrono::high_resolution_clock::duration& timeout,
+            const std::function<bool(const Event& event, const unsigned int&)>&
+                callback
+    ) const {
+        int event_type;
+
+        switch (event) {
+            case Event::rising_edge:
+                event_type = GPIOD_LINE_EVENT_RISING_EDGE;
+                break;
+            case Event::falling_edge:
+                event_type = GPIOD_LINE_EVENT_FALLING_EDGE;
+                break;
+            default:
+                throw std::domain_error{"Unknown gpio event encountered."};
+        }
+
+        auto time_specification = convert_to_time_specification(timeout);
+
+        auto status = gpiod_ctxless_event_monitor_multiple(
+            get_name().data(),
+            event_type,
+            offsets.data(),
+            offsets.size(),
+            active_low,
+            consumer_name.data(),
+            &time_specification,
+            nullptr,
+            &handle_gpio_event,
+            (void *) &callback
+        );
+
+        if (status < 0)
+            throw std::system_error{
+                errno,
+                std::system_category(),
+                "Error occurred while monitoring gpio"
+            };
     }
 
     const std::string PWM::Polarity::normal{"normal"};

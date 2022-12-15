@@ -31,12 +31,12 @@ int main(int argc, char *argv[]) {
         &Revolution::MessageQueue::monitor,
         &client_message_queue,
         std::cref(status),
+        timeout,
         [] (const std::string& raw_message) {
             auto message = Revolution::Message::deserialize(raw_message);
 
             std::cout << message.to_string() << std::endl;
-        },
-        timeout,
+        }
     };
 
     if (argc == 2)
