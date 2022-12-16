@@ -7,6 +7,9 @@
 #include <optional>
 #include <string>
 
+#include <gpiod.h>
+#include <linux/spi/spi.h>
+
 namespace Revolution {
     class Device {
     public:
@@ -40,14 +43,14 @@ namespace Revolution {
     class GPIO : public Device {
     public:
         enum class Event {
-            rising_edge,
-            falling_edge,
-            both_edges
+            rising_edge = GPIOD_CTXLESS_EVENT_RISING_EDGE,
+            falling_edge = GPIOD_CTXLESS_EVENT_FALLING_EDGE,
+            both_edges = GPIOD_CTXLESS_EVENT_BOTH_EDGES
         };
 
-        enum class Active {
-            low,
-            high
+        enum class Active : bool {
+            low = true,
+            high = false
         };
 
         using Device::Device;
@@ -94,12 +97,49 @@ namespace Revolution {
 
     class SPI : public Device {
     public:
+        enum class Mode {
+             clock_phase = SPI_CPHA,
+             clock_polarity = SPI_CPOL,
+             chipselect_active_high = SPI_CS_HIGH,
+             least_significant_bit_first = SPI_LSB_FIRST,
+             share_slave_in_and_slave_out = SPI_3WIRE,
+             loopback = SPI_LOOP,
+             no_chip_select = SPI_NO_CS,
+             ready = SPI_READY,
+             transmit_dual = SPI_TX_DUAL,
+             transmit_quad = SPI_TX_QUAD,
+             receive_dual = SPI_RX_DUAL,
+             receive_quad = SPI_RX_QUAD,
+             toggle_chipselect_after_word = SPI_CS_WORD,
+             transmit_octal = SPI_TX_OCTAL,
+             receive_octal = SPI_RX_OCTAL,
+             high_impedance_turnaround = SPI_3WIRE_HIZ,
+        };
+
         using Device::Device;
 
-        void transmit(const std::string& data) const;
-        std::string receive() const;
-        std::string transmit_and_receive(const std::string& data) const;
+        void transmit(
+            const std::string& data,
+            const SPI::Mode& mode,
+            const unsigned int& speed,
+            const unsigned char& word_bit_count
+        ) const;
+        std::string receive(
+            const std::size_t& data_size,
+            const SPI::Mode& mode,
+            const unsigned int& speed,
+            const unsigned char& word_bit_count
+        ) const;
+        std::string transmit_and_receive(
+            const std::string& data,
+            const SPI::Mode& mode,
+            const unsigned int& speed,
+            const unsigned char& word_bit_count
+        ) const;
     };
+
+    SPI::Mode operator|(const SPI::Mode& lhs, const SPI::Mode& rhs);
+    SPI::Mode operator&(const SPI::Mode& lhs, const SPI::Mode& rhs);
 
     class UART : public Device {
     public:

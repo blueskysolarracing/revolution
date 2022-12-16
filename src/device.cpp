@@ -1,6 +1,7 @@
 #include "device.h"
 
 #include <atomic>
+#include <bit>
 #include <cassert>
 #include <cerrno>
 #include <chrono>
@@ -12,14 +13,41 @@
 
 #include <fcntl.h>
 #include <gpiod.h>
+#include <linux/spi/spidev.h>
+#include <linux/spi/spi.h>
 #include <mqueue.h>
+#include <sys/ioctl.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 namespace Revolution {
     Device::Device(const std::string& name) : name{name} {}
 
     const std::string& Device::get_name() const {
         return name;
+    }
+
+    static mqd_t open_message_queue(
+            const std::string& name,
+            const int& open_flag,
+            const mode_t& mode = 0600,
+            const std::optional<mq_attr> attributes = std::nullopt
+    ) {
+        auto descriptor = mq_open(
+            name.data(),
+            open_flag,
+            mode,
+            attributes ? &attributes.value() : nullptr
+        );
+
+        if (descriptor == (mqd_t) - 1)
+            throw std::system_error{
+                errno,
+                std::system_category(),
+                "Unable to open the message queue"
+            };
+
+        return descriptor;
     }
 
     static void close_message_queue(const mqd_t& descriptor) {
@@ -45,29 +73,6 @@ namespace Revolution {
             };
 
         return attributes;
-    }
-
-    static mqd_t open_message_queue(
-            const std::string& name,
-            const int& open_flag,
-            const mode_t& mode = 0600,
-            const std::optional<mq_attr> attributes = std::nullopt
-    ) {
-        auto descriptor = mq_open(
-            name.data(),
-            open_flag,
-            mode,
-            attributes ? &attributes.value() : nullptr
-        );
-
-        if (descriptor == (mqd_t) - 1)
-            throw std::system_error{
-                errno,
-                std::system_category(),
-                "Unable to open the message queue"
-            };
-
-        return descriptor;
     }
 
     std::string MessageQueue::receive() const {
@@ -140,7 +145,6 @@ namespace Revolution {
         auto time_specification = convert_to_time_specification(
             absolute_timeout
         );
-
         auto descriptor = open_message_queue(get_name(), O_RDONLY | O_CREAT);
         auto attributes = get_message_queue_attributes(descriptor);
         std::string raw_message(attributes.mq_msgsize, '\0');
@@ -206,20 +210,7 @@ namespace Revolution {
             const std::string& consumer_name
     ) const {
         std::vector<int> raw_values(offsets.size(), 0);
-
-        bool active_low;
-
-        switch (active) {
-            case Active::low:
-                active_low = true;
-                break;
-            case Active::high:
-                active_low = false;
-                break;
-            default:
-                throw std::domain_error{"Unknown gpio active encountered."};
-        }
-
+        bool active_low = static_cast<bool>(active);
         auto return_value = gpiod_ctxless_get_value_multiple(
             get_name().data(),
             offsets.data(),
@@ -248,19 +239,7 @@ namespace Revolution {
         assert(offsets.size() == values.size());
 
         std::vector<int> raw_values{values.begin(), values.end()};
-        bool active_low;
-
-        switch (active) {
-            case Active::low:
-                active_low = true;
-                break;
-            case Active::high:
-                active_low = false;
-                break;
-            default:
-                throw std::domain_error{"Unknown gpio active encountered."};
-        }
-
+        bool active_low = static_cast<bool>(active);
         auto return_value = gpiod_ctxless_set_value_multiple(
             get_name().data(),
             offsets.data(),
@@ -321,35 +300,8 @@ namespace Revolution {
             const std::function<void(const Event&, const unsigned int&)>&
                 callback
     ) const {
-        int event_type;
-
-        switch (event) {
-            case Event::rising_edge:
-                event_type = GPIOD_CTXLESS_EVENT_RISING_EDGE;
-                break;
-            case Event::falling_edge:
-                event_type = GPIOD_CTXLESS_EVENT_FALLING_EDGE;
-                break;
-            case Event::both_edges:
-                event_type = GPIOD_CTXLESS_EVENT_BOTH_EDGES;
-                break;
-            default:
-                throw std::domain_error{"Unknown gpio event encountered."};
-        }
-
-        bool active_low;
-
-        switch (active) {
-            case Active::low:
-                active_low = true;
-                break;
-            case Active::high:
-                active_low = false;
-                break;
-            default:
-                throw std::domain_error{"Unknown gpio active encountered."};
-        }
-
+        int event_type = static_cast<int>(event);
+        bool active_low = static_cast<bool>(active);
         auto time_specification = convert_to_time_specification(timeout);
         GPIOEventData gpio_event_data{status, callback};
         auto return_value = gpiod_ctxless_event_monitor_multiple(
@@ -389,24 +341,268 @@ namespace Revolution {
         // TODO: https://github.com/toradex/torizon-samples/tree/bullseye/pwm
     }
 
-    void SPI::transmit(const std::string& data) const {
-        // TODO: https://github.com/torvalds/linux/blob/v5.15/tools/spi/spidev_test.c
+    static void transfer_spi(
+            const int& descriptor,
+            const std::optional<std::string>& transmitted_data,
+            std::optional<std::string> received_data,
+            const SPI::Mode& mode,
+            const unsigned int& speed,
+            const unsigned char& word_bit_count
+    ) {
+        unsigned int data_size;
 
-        (void) data;
+        if (transmitted_data && received_data) {
+            data_size = transmitted_data.value().size();
+
+            received_data.value().resize(data_size, '\0');
+        } else if (transmitted_data)
+            data_size = transmitted_data.value().size();
+        else if (received_data)
+            data_size = received_data.value().size();
+        else
+            throw std::domain_error{
+                "None of transmitted or received data supplied."
+            };
+
+        auto requested_mode = mode;
+        auto requested_word_bit_count = word_bit_count;
+        auto requested_speed = speed;
+        int return_value = ioctl(
+            descriptor,
+            SPI_IOC_WR_MODE32,
+            &requested_mode
+        );
+
+        if (return_value < 0)
+            throw std::system_error{
+                errno,
+                std::system_category(),
+                "Unable to write spi mode."
+            };
+
+        return_value = ioctl(descriptor, SPI_IOC_RD_MODE32, &requested_mode);
+
+        if (return_value < 0)
+            throw std::system_error{
+                errno,
+                std::system_category(),
+                "Unable to read spi mode."
+            };
+
+        if (requested_mode != mode)
+            throw std::domain_error{
+                "Requested spi mode is not supported by hardware."
+            };
+
+        return_value = ioctl(
+            descriptor,
+            SPI_IOC_WR_MAX_SPEED_HZ,
+            &requested_speed
+        );
+
+        if (return_value < 0)
+            throw std::system_error{
+                errno,
+                std::system_category(),
+                "Unable to set max speed (hz)."
+            };
+
+        return_value = ioctl(
+            descriptor,
+            SPI_IOC_RD_MAX_SPEED_HZ,
+            &requested_speed
+        );
+
+        if (return_value < 0)
+            throw std::system_error{
+                errno,
+                std::system_category(),
+                "Unable to get max speed (hz)."
+            };
+
+        if (requested_speed != speed)
+            throw std::domain_error{
+                "Requested spi max speed is not supported by hardware."
+            };
+
+        return_value = ioctl(
+            descriptor,
+            SPI_IOC_WR_BITS_PER_WORD,
+            &requested_word_bit_count
+        );
+
+        if (return_value < 0)
+            throw std::system_error{
+                errno,
+                std::system_category(),
+                "Unable to set bits per word."
+            };
+
+        return_value = ioctl(
+            descriptor,
+            SPI_IOC_RD_BITS_PER_WORD,
+            &requested_word_bit_count
+        );
+
+        if (return_value < 0)
+            throw std::system_error{
+                errno,
+                std::system_category(),
+                "Unable to get bits per word."
+            };
+
+        if (requested_word_bit_count != word_bit_count)
+            throw std::domain_error{
+                "Requested spi bits per word is not supported by hardware."
+            };
+
+        unsigned char transmitted_bit_count;
+        unsigned char received_bit_count;
+
+        if (static_cast<int>(mode) & SPI_TX_OCTAL)
+            transmitted_bit_count = 8;
+        else if (static_cast<int>(mode) & SPI_TX_QUAD)
+            transmitted_bit_count = 4;
+        else if (static_cast<int>(mode) & SPI_TX_DUAL)
+            transmitted_bit_count = 2;
+        else
+            transmitted_bit_count = 0;
+
+        if (static_cast<int>(mode) & SPI_RX_OCTAL)
+            received_bit_count = 8;
+        else if (static_cast<int>(mode) & SPI_RX_QUAD)
+            received_bit_count = 4;
+        else if (static_cast<int>(mode) & SPI_RX_DUAL)
+            received_bit_count = 2;
+        else
+            received_bit_count = 0;
+
+        spi_ioc_transfer spi_ioc_transfer_data = {
+            (unsigned long long) (
+                transmitted_data ? transmitted_data.value().data() : nullptr
+            ),
+            (unsigned long long) (
+                received_data ? received_data.value().data() : nullptr
+            ),
+            data_size,
+            speed,
+            0,
+            word_bit_count,
+            0,
+            transmitted_bit_count,
+            received_bit_count,
+            0,
+            0
+        };
+
+        return_value = ioctl(
+            descriptor,
+            SPI_IOC_MESSAGE(1),
+            &spi_ioc_transfer_data
+        );
+
+        if (return_value < 1)
+            throw std::system_error{
+                errno,
+                std::system_category(),
+                "Unable to send spi message."
+            };
     }
 
-    std::string SPI::receive() const {
-        // TODO: https://github.com/torvalds/linux/blob/v5.15/tools/spi/spidev_test.c
+    void SPI::transmit(
+            const std::string& data,
+            const SPI::Mode& mode,
+            const unsigned int& speed,
+            const unsigned char& word_bit_count
+    ) const {
+        auto descriptor = open(get_name().data(), O_RDWR);
 
-        return "";
+        if (descriptor < 0)
+            throw std::system_error{
+                errno,
+                std::system_category(),
+                "Unable to open device."
+            };
+
+        transfer_spi(
+            descriptor,
+            data,
+            std::nullopt,
+            mode,
+            speed,
+            word_bit_count
+        );
+        close(descriptor);
     }
 
-    std::string SPI::transmit_and_receive(const std::string& data) const {
-        // TODO: https://github.com/torvalds/linux/blob/v5.15/tools/spi/spidev_test.c
+    std::string SPI::receive(
+            const std::size_t& data_size,
+            const SPI::Mode& mode,
+            const unsigned int& speed,
+            const unsigned char& word_bit_count
+    ) const {
+        std::string data(data_size, '\0');
+        auto descriptor = open(get_name().data(), O_RDWR);
 
-        (void) data;
+        if (descriptor < 0)
+            throw std::system_error{
+                errno,
+                std::system_category(),
+                "Unable to open device."
+            };
 
-        return "";
+        transfer_spi(
+            descriptor,
+            std::nullopt,
+            data,
+            mode,
+            speed,
+            word_bit_count
+        );
+        close(descriptor);
+
+        return data;
+    }
+
+    std::string SPI::transmit_and_receive(
+            const std::string& data,
+            const SPI::Mode& mode,
+            const unsigned int& speed,
+            const unsigned char& word_bit_count
+    ) const {
+        std::string received_data(data.size(), '\0');
+        auto descriptor = open(get_name().data(), O_RDWR);
+
+        if (descriptor < 0)
+            throw std::system_error{
+                errno,
+                std::system_category(),
+                "Unable to open device."
+            };
+
+        transfer_spi(
+            descriptor,
+            data,
+            received_data,
+            mode,
+            speed,
+            word_bit_count
+        );
+        close(descriptor);
+
+        return received_data;
+    }
+
+    SPI::Mode operator|(const SPI::Mode& lhs, const SPI::Mode& rhs) {
+        return static_cast<SPI::Mode>(
+            static_cast<int>(lhs) | static_cast<int>(rhs)
+        );
+    }
+
+    SPI::Mode operator&(const SPI::Mode& lhs, const SPI::Mode& rhs) {
+        return static_cast<SPI::Mode>(
+            static_cast<int>(lhs) & static_cast<int>(rhs)
+        );
     }
 
     void UART::transmit(const std::string& data) const {

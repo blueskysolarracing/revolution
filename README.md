@@ -69,3 +69,4 @@ sudo ninja -C build uninstall
 - Unit tests
 - Performance tests
 - Documentation (probably using sphinx)
+- Prevent file descriptor leaks (device.cpp)
