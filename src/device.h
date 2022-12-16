@@ -9,6 +9,7 @@
 
 #include <gpiod.h>
 #include <linux/spi/spi.h>
+#include <termios.h>
 
 namespace Revolution {
     class Device {
@@ -110,7 +111,7 @@ namespace Revolution {
              transmit_quad = SPI_TX_QUAD,
              receive_dual = SPI_RX_DUAL,
              receive_quad = SPI_RX_QUAD,
-             toggle_chipselect_after_word = SPI_CS_WORD,
+             post_word_chipselect_toggle = SPI_CS_WORD,
              transmit_octal = SPI_TX_OCTAL,
              receive_octal = SPI_RX_OCTAL,
              high_impedance_turnaround = SPI_3WIRE_HIZ,
@@ -143,10 +144,38 @@ namespace Revolution {
 
     class UART : public Device {
     public:
+        enum class BaudRate {
+            BR0 = B0,
+            BR50 = B50,
+            BR75 = B75,
+            BR110 = B110,
+            BR134 = B134,
+            BR150 = B150,
+            BR200 = B200,
+            BR300 = B300,
+            BR600 = B600,
+            BR1200 = B1200,
+            BR1800 = B1800,
+            BR2400 = B2400,
+            BR4800 = B4800,
+            BR9600 = B9600,
+            BR19200 = B19200,
+            BR38400 = B38400,
+            BR57600 = B57600,
+            BR115200 = B115200,
+            BR230400 = B230400
+        };
+
         using Device::Device;
 
-        void transmit(const std::string& data) const;
-        std::string receive() const;
+        void transmit(
+            const std::string& data,
+            const BaudRate& baud_rate
+        ) const;
+        std::string receive(
+            const std::size_t& max_data_size,
+            const BaudRate& baud_rate
+        ) const;
     };
 }
 

@@ -18,6 +18,7 @@
 #include <mqueue.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
+#include <termios.h>
 #include <unistd.h>
 
 namespace Revolution {
@@ -477,7 +478,7 @@ namespace Revolution {
         else
             received_bit_count = 0;
 
-        spi_ioc_transfer spi_ioc_transfer_data = {
+        spi_ioc_transfer spi_ioc_transfer_attributes{
             (unsigned long long) (
                 transmitted_data ? transmitted_data.value().data() : nullptr
             ),
@@ -498,7 +499,7 @@ namespace Revolution {
         return_value = ioctl(
             descriptor,
             SPI_IOC_MESSAGE(1),
-            &spi_ioc_transfer_data
+            &spi_ioc_transfer_attributes
         );
 
         if (return_value < 1)
@@ -532,7 +533,15 @@ namespace Revolution {
             speed,
             word_bit_count
         );
-        close(descriptor);
+
+        auto return_value = close(descriptor);
+
+        if (return_value < 0)
+            throw std::system_error{
+                errno,
+                std::system_category(),
+                "Unable to close device."
+            };
     }
 
     std::string SPI::receive(
@@ -559,7 +568,15 @@ namespace Revolution {
             speed,
             word_bit_count
         );
-        close(descriptor);
+
+        auto return_value = close(descriptor);
+
+        if (return_value < 0)
+            throw std::system_error{
+                errno,
+                std::system_category(),
+                "Unable to close device."
+            };
 
         return data;
     }
@@ -588,7 +605,15 @@ namespace Revolution {
             speed,
             word_bit_count
         );
-        close(descriptor);
+
+        auto return_value = close(descriptor);
+
+        if (return_value < 0)
+            throw std::system_error{
+                errno,
+                std::system_category(),
+                "Unable to close device."
+            };
 
         return received_data;
     }
@@ -605,15 +630,117 @@ namespace Revolution {
         );
     }
 
-    void UART::transmit(const std::string& data) const {
-        // TODO: https://developer.toradex.com/linux-bsp/application-development/peripheral-access/uart-linux#boards
+    static void configure_uart(
+            int descriptor,
+            const UART::BaudRate& baud_rate
+    ) {
+        termios termios_attributes;
 
-        (void) data;
+        auto return_value = tcgetattr(descriptor, &termios_attributes);
+
+        if (return_value < 0)
+            throw std::system_error{
+                errno,
+                std::system_category(),
+                "Unable to get termios attributes."
+            };
+
+        return_value = cfsetspeed(
+            &termios_attributes,
+            static_cast<int>(baud_rate)
+        );
+
+        if (return_value < 0)
+            throw std::system_error{
+                errno,
+                std::system_category(),
+                "Unable to set baud rate."
+            };
+
+        cfmakeraw(&termios_attributes);
+
+        return_value = tcsetattr(descriptor, TCSANOW, &termios_attributes);
+
+        if (return_value < 0)
+            throw std::system_error{
+                errno,
+                std::system_category(),
+                "Unable to set termios attributes."
+            };
     }
 
-    std::string UART::receive() const {
-        // TODO: https://developer.toradex.com/linux-bsp/application-development/peripheral-access/uart-linux#boards
+    void UART::transmit(
+            const std::string& data,
+            const BaudRate& baud_rate
+    ) const {
+        auto flag = O_RDWR | O_NOCTTY | O_NONBLOCK;
+        auto descriptor = open(get_name().data(), flag);
 
-        return "";
+        if (descriptor < 0)
+            throw std::system_error{
+                errno,
+                std::system_category(),
+                "Unable to open device."
+            };
+
+        configure_uart(descriptor, baud_rate);
+
+        auto byte_count = write(descriptor, data.data(), data.size());
+
+        if (byte_count < 0)
+            throw std::system_error{
+                errno,
+                std::system_category(),
+                "Unable to write to uart."
+            };
+
+        auto return_value = close(descriptor);
+
+        if (return_value < 0)
+            throw std::system_error{
+                errno,
+                std::system_category(),
+                "Unable to close device."
+            };
+    }
+
+    std::string UART::receive(
+            const std::size_t& max_data_size,
+            const BaudRate& baud_rate
+    ) const {
+        std::string data(max_data_size, '\0');
+        auto flag = O_RDWR | O_NOCTTY | O_NONBLOCK;
+        auto descriptor = open(get_name().data(), flag);
+
+        if (descriptor < 0)
+            throw std::system_error{
+                errno,
+                std::system_category(),
+                "Unable to open device."
+            };
+
+        configure_uart(descriptor, baud_rate);
+
+        auto byte_count = read(descriptor, data.data(), data.size());
+
+        if (byte_count < 0)
+            throw std::system_error{
+                errno,
+                std::system_category(),
+                "Unable to read from uart."
+            };
+
+        data.resize(byte_count);
+
+        auto return_value = close(descriptor);
+
+        if (return_value < 0)
+            throw std::system_error{
+                errno,
+                std::system_category(),
+                "Unable to close device."
+            };
+
+        return data;
     }
 }
