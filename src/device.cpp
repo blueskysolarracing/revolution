@@ -6,6 +6,7 @@
 #include <cerrno>
 #include <chrono>
 #include <ctime>
+#include <fstream>
 #include <functional>
 #include <optional>
 #include <string>
@@ -326,20 +327,46 @@ namespace Revolution {
             };
     }
 
+    static void help_write(
+        const std::string& filename,
+        const std::string& data
+    ) {
+        std::ofstream ofstream;
+
+        ofstream.exceptions(std::ofstream::failbit | std::ofstream::badbit);
+        ofstream.open(filename, std::fstream::out);
+        ofstream << data;
+        ofstream.close();
+    }
+
     void PWM::enable(
             const unsigned int& period,
             const unsigned int& duty_cycle,
             const Polarity& polarity
     ) const {
-        // TODO: https://github.com/toradex/torizon-samples/tree/bullseye/pwm
+        help_write(get_name() + "../export", "0");
+        help_write(get_name() + "/period", std::to_string(period));
+        help_write(get_name() + "/duty_cycle", std::to_string(duty_cycle));
 
-        (void) period;
-        (void) duty_cycle;
-        (void) polarity;
+        std::string raw_polarity;
+
+        switch (polarity) {
+            case Polarity::normal:
+                raw_polarity = "normal";
+                break;
+            case Polarity::inversed:
+                raw_polarity = "inversed";
+                break;
+            default:
+                throw std::domain_error{"Unknown polarity encountered"};
+        }
+
+        help_write(get_name() + "/polarity", raw_polarity);
+        help_write(get_name() + "/enable", "1");
     }
 
     void PWM::disable() const {
-        // TODO: https://github.com/toradex/torizon-samples/tree/bullseye/pwm
+        help_write(get_name() + "/enable", "0");
     }
 
     static void transfer_spi(
