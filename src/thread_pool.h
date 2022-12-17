@@ -10,10 +10,10 @@
 #include <thread>
 
 namespace Revolution {
-    class Thread_pool {
+    class ThreadPool {
     public:
-        explicit Thread_pool(const unsigned int& thread_count);
-        ~Thread_pool();
+        explicit ThreadPool(const unsigned int& thread_count);
+        ~ThreadPool();
 
         void add(const std::function<void()>& function);
     private:

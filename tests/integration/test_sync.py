@@ -6,7 +6,7 @@ from utilities import HeaderSpace, Topology, start, stop
 
 
 class SyncTestCase(TestCase):
-    TIMEOUT = 3
+    TIMEOUT = 1
 
     def setUp(self):
         start()

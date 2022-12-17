@@ -35,14 +35,14 @@ namespace Revolution {
         const Topology& get_topology() const;
         const Logger& get_logger() const;
         const Heart& get_heart() const;
-        const Thread_pool& get_thread_pool() const;
+        const ThreadPool& get_thread_pool() const;
         const std::atomic_bool& get_status() const;
         virtual const std::string& get_name() const = 0;
         virtual const std::chrono::high_resolution_clock::duration&
             get_message_queue_timeout() const = 0;
 
         Heart& get_heart();
-        Thread_pool& get_thread_pool();
+        ThreadPool& get_thread_pool();
         std::atomic_bool& get_status();
 
         void set_handler(
@@ -112,7 +112,7 @@ namespace Revolution {
         const Topology& topology;
         const Logger logger;
         Heart heart;
-        Thread_pool thread_pool;
+        ThreadPool thread_pool;
         std::atomic_bool status;
         std::unordered_map<
             std::string,

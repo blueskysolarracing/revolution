@@ -71,3 +71,4 @@ sudo ninja -C build uninstall
 - Documentation (probably using sphinx)
 - Prevent file descriptor leaks (device.cpp)
 - If error occurs while configuring pwm, unexport before throwing exception
+- Make use of heart

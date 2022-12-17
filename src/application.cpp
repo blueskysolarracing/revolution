@@ -1,7 +1,6 @@
 #include "application.h"
 
 #include <atomic>
-#include <chrono>
 #include <condition_variable>
 #include <cstdlib>
 #include <functional>
@@ -68,7 +67,7 @@ namespace Revolution {
         return heart;
     }
 
-    const Thread_pool& Application::get_thread_pool() const {
+    const ThreadPool& Application::get_thread_pool() const {
         return thread_pool;
     }
 
@@ -80,7 +79,7 @@ namespace Revolution {
         return heart;
     }
 
-    Thread_pool& Application::get_thread_pool() {
+    ThreadPool& Application::get_thread_pool() {
         return thread_pool;
     }
 
@@ -258,7 +257,7 @@ namespace Revolution {
     }
 
     void Application::set_response(const Message& message) {
-        std::unique_lock lock{get_response_mutex()};
+        std::scoped_lock lock{get_response_mutex()};
 
         if (get_responses().count(message.get_identifier())) {
             get_responses().erase(message.get_identifier());
@@ -378,15 +377,6 @@ namespace Revolution {
     }
 
     void Application::run() {
-        // TODO: check for hanging.
-        // get_thread_pool().add(
-        //     std::bind(
-        //         &Heart::monitor,
-        //         &get_heart(),
-        //         std::cref(get_status()),
-        //         get_timeout()
-        //     )
-        // );
         MessageQueue message_queue{'/' + get_name()};
 
         message_queue.monitor(
