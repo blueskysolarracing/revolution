@@ -50,10 +50,9 @@ namespace Revolution {
 
     static mqd_t open_message_queue(
             const std::string& name,
-            const std::vector<MessageQueue::Flag>& flags = {},
-            const unsigned int& mode = 0600,
-            const std::optional<MessageQueue::Configuration>
-                configuration = std::nullopt
+            const std::vector<MessageQueue::Flag>& flags,
+            const MessageQueue::Mode& mode,
+            const std::optional<MessageQueue::Configuration> configuration
     ) {
         int open_flag{};
 
@@ -116,7 +115,7 @@ namespace Revolution {
 
     std::string MessageQueue::receive(
             const std::vector<Flag> flags,
-            const unsigned int& mode,
+            const Mode& mode,
             const std::optional<Configuration>& configuration
     ) const {
         auto descriptor = open_message_queue(
@@ -153,7 +152,7 @@ namespace Revolution {
             const std::string& raw_message,
             const unsigned int& priority,
             const std::vector<Flag> flags,
-            const unsigned int& mode,
+            const Mode& mode,
             const std::optional<Configuration>& configuration
     ) const {
         auto descriptor = open_message_queue(
@@ -196,7 +195,7 @@ namespace Revolution {
     std::string MessageQueue::timed_receive(
             const std::chrono::high_resolution_clock::duration& timeout,
             const std::vector<Flag> flags,
-            const unsigned int& mode,
+            const Mode& mode,
             const std::optional<Configuration>& configuration
     ) const {
         auto absolute_timeout = timeout
@@ -251,7 +250,7 @@ namespace Revolution {
             const std::chrono::high_resolution_clock::duration& timeout,
             const std::function<void(const std::string&)>& callback,
             const std::vector<Flag> flags,
-            const unsigned int& mode,
+            const Mode& mode,
             const std::optional<Configuration>& configuration
     ) const {
         while (status) {

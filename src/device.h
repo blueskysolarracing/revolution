@@ -50,24 +50,26 @@ namespace Revolution {
             const unsigned int max_message_size;
         };
 
+        using Mode = mode_t;
+
         using Device::Device;
 
         std::string receive(
             const std::vector<Flag> flags = {Flag::readonly, Flag::create},
-            const unsigned int& mode = 0600,
+            const Mode& mode = 0600,
             const std::optional<Configuration>& configuration = std::nullopt
         ) const;
         void send(
             const std::string& raw_message,
             const unsigned int& priority,
             const std::vector<Flag> flags = {Flag::writeonly, Flag::create},
-            const unsigned int& mode = 0600,
+            const Mode& mode = 0600,
             const std::optional<Configuration>& configuration = std::nullopt
         ) const;
         std::string timed_receive(
             const std::chrono::high_resolution_clock::duration& timeout,
             const std::vector<Flag> flags = {Flag::readonly, Flag::create},
-            const unsigned int& mode = 0600,
+            const Mode& mode = 0600,
             const std::optional<Configuration>& configuration = std::nullopt
         ) const;
         void unlink() const;
@@ -76,7 +78,7 @@ namespace Revolution {
             const std::chrono::high_resolution_clock::duration& timeout,
             const std::function<void(const std::string&)>& callback,
             const std::vector<Flag> flags = {Flag::readonly, Flag::create},
-            const unsigned int& mode = 0600,
+            const Mode& mode = 0600,
             const std::optional<Configuration>& configuration = std::nullopt
         ) const;
     };
