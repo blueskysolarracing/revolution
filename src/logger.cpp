@@ -45,7 +45,7 @@ namespace Revolution {
 
         std::scoped_lock lock{get_mutex()};
 
-        std::cout << '<' << priority << '>' << str() << std::endl;
+        std::cout << '<' << priority << '>' << str();
     }
 
     const Logger::Severity& Logger::LogStream::get_severity() const {
