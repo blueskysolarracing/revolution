@@ -143,18 +143,18 @@ namespace Revolution {
              clock_phase = SPI_CPHA,
              clock_polarity = SPI_CPOL,
              chipselect_active_high = SPI_CS_HIGH,
-             least_significant_bit_first = SPI_LSB_FIRST,
-             share_slave_in_and_slave_out = SPI_3WIRE,
-             loopback = SPI_LOOP,
+             per_word_bits_on_wire = SPI_LSB_FIRST,
+             slave_in_slave_out_signals_shared = SPI_3WIRE,
+             loopback_mode = SPI_LOOP,
              no_chip_select = SPI_NO_CS,
-             ready = SPI_READY,
-             transmit_dual = SPI_TX_DUAL,
-             transmit_quad = SPI_TX_QUAD,
-             receive_dual = SPI_RX_DUAL,
-             receive_quad = SPI_RX_QUAD,
-             post_word_chipselect_toggle = SPI_CS_WORD,
-             transmit_octal = SPI_TX_OCTAL,
-             receive_octal = SPI_RX_OCTAL,
+             slave_pulls_low_to_pause = SPI_READY,
+             transmit_with_two_wires = SPI_TX_DUAL,
+             transmit_with_four_wires = SPI_TX_QUAD,
+             receive_with_two_wires = SPI_RX_DUAL,
+             receive_with_four_wires = SPI_RX_QUAD,
+             toggle_chipselect_after_each_word = SPI_CS_WORD,
+             transmit_with_eight_wires = SPI_TX_OCTAL,
+             receive_with_eight_wires = SPI_RX_OCTAL,
              high_impedance_turnaround = SPI_3WIRE_HIZ,
         };
 
@@ -162,26 +162,23 @@ namespace Revolution {
 
         void transmit(
             const std::string& data,
-            const SPI::Mode& mode,
-            const unsigned int& speed,
-            const unsigned char& word_bit_count
+            const std::vector<SPI::Mode>& modes,
+            const unsigned int& speed_hz,
+            const unsigned char& bits_per_word
         ) const;
         std::string receive(
             const std::string::size_type& data_size,
-            const SPI::Mode& mode,
-            const unsigned int& speed,
-            const unsigned char& word_bit_count
+            const std::vector<SPI::Mode>& modes,
+            const unsigned int& speed_hz,
+            const unsigned char& bits_per_word
         ) const;
         std::string transmit_and_receive(
             const std::string& data,
-            const SPI::Mode& mode,
-            const unsigned int& speed,
-            const unsigned char& word_bit_count
+            const std::vector<SPI::Mode>& modes,
+            const unsigned int& speed_hz,
+            const unsigned char& bits_per_word
         ) const;
     };
-
-    SPI::Mode operator|(const SPI::Mode& lhs, const SPI::Mode& rhs);
-    SPI::Mode operator&(const SPI::Mode& lhs, const SPI::Mode& rhs);
 
     class UART : public Device {
     public:

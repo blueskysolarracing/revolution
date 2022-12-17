@@ -55,7 +55,7 @@ namespace Revolution {
             const std::optional<MessageQueue::Configuration>
                 configuration = std::nullopt
     ) {
-        auto open_flag = 0;
+        int open_flag{};
 
         for (const auto& flag : flags)
             open_flag |= static_cast<int>(flag);
@@ -340,8 +340,8 @@ namespace Revolution {
     static int handle_gpio_event(
             int event_type,
             unsigned int offset,
-            [[maybe_unused]] const std::timespec *timestamp,
-            void *data
+            [[maybe_unused]] const std::timespec* timestamp,
+            void* data
     ) {
         const auto& gpio_event_data = *(GPIOEventData*) data;
 
@@ -398,7 +398,7 @@ namespace Revolution {
             };
     }
 
-    static void write_to_file(
+    static void help_write(
         const std::string& filename,
         const std::string& data
     ) {
@@ -416,20 +416,20 @@ namespace Revolution {
             const std::chrono::high_resolution_clock::duration& duty_cycle,
             const Polarity& polarity
     ) const {
-        write_to_file(get_name() + "/export", std::to_string(channel_index));
+        help_write(get_name() + "/export", std::to_string(channel_index));
 
         auto directory_name = get_name()
             + "/pwmchip"
             + std::to_string(channel_index);
 
-        write_to_file(
+        help_write(
             directory_name + "/period",
             std::to_string(
                 std::chrono::duration_cast<std::chrono::nanoseconds>(period)
                     .count()
             )
         );
-        write_to_file(
+        help_write(
             directory_name + "/duty_cycle",
             std::to_string(
                 std::chrono::duration_cast<std::chrono::nanoseconds>(duty_cycle)
@@ -450,36 +450,80 @@ namespace Revolution {
                 throw std::domain_error{"Unknown polarity encountered"};
         }
 
-        write_to_file(directory_name + "/polarity", raw_polarity);
-        write_to_file(directory_name + "/enable", "1");
-        write_to_file(get_name() + "/unexport", std::to_string(channel_index));
+        help_write(directory_name + "/polarity", raw_polarity);
+        help_write(directory_name + "/enable", "1");
+        help_write(get_name() + "/unexport", std::to_string(channel_index));
     }
 
     void PWM::disable(const unsigned int& channel_index) const {
-        write_to_file(get_name() + "/export", std::to_string(channel_index));
+        help_write(get_name() + "/export", std::to_string(channel_index));
 
         auto directory_name = get_name()
             + "/pwmchip"
             + std::to_string(channel_index);
 
-        write_to_file(directory_name + "/enable", "0");
-        write_to_file(get_name() + "/unexport", std::to_string(channel_index));
+        help_write(directory_name + "/enable", "0");
+        help_write(get_name() + "/unexport", std::to_string(channel_index));
+    }
+
+    static int help_open(
+            const std::string& filename,
+            const int& flags
+    ) {
+        auto descriptor = open(filename.data(), flags);
+
+        if (descriptor < 0)
+            throw std::system_error{
+                errno,
+                std::system_category(),
+                "Unable to open file."
+            };
+
+        return descriptor;
+    }
+
+    static void help_close(const int& descriptor) {
+        auto return_value = close(descriptor);
+
+        if (return_value < 0)
+            throw std::system_error{
+                errno,
+                std::system_category(),
+                "Unable to close file."
+            };
+    }
+
+    static void help_ioctl(
+        const int& descriptor,
+        const unsigned long& request,
+        void* const& data
+    ) {
+        auto return_value = ioctl(descriptor, request, data);
+
+        if (return_value < 0)
+            throw std::system_error{
+                errno,
+                std::system_category(),
+                "Unable to manipulate device."
+            };
     }
 
     static void transfer_spi(
             const int& descriptor,
             const std::optional<std::string>& transmitted_data,
             std::optional<std::string> received_data,
-            const SPI::Mode& mode,
-            const unsigned int& speed,
-            const unsigned char& word_bit_count
+            const std::vector<SPI::Mode>& modes,
+            const unsigned int& speed_hz,
+            const unsigned char& bits_per_word
     ) {
         unsigned int data_size;
 
         if (transmitted_data && received_data) {
-            data_size = transmitted_data.value().size();
+            assert(
+                transmitted_data.value().size() == received_data.value().size()
+            );
 
-            received_data.value().resize(data_size, '\0');
+            data_size = transmitted_data.value().size();
         } else if (transmitted_data)
             data_size = transmitted_data.value().size();
         else if (received_data)
@@ -489,94 +533,43 @@ namespace Revolution {
                 "None of transmitted or received data supplied."
             };
 
-        auto requested_mode = mode;
-        auto requested_word_bit_count = word_bit_count;
-        auto requested_speed = speed;
-        auto return_value = ioctl(
-            descriptor,
-            SPI_IOC_WR_MODE32,
-            &requested_mode
-        );
+        int raw_mode{};
 
-        if (return_value < 0)
-            throw std::system_error{
-                errno,
-                std::system_category(),
-                "Unable to write spi mode."
-            };
+        for (const auto& mode : modes)
+            raw_mode |= static_cast<int>(mode);
 
-        return_value = ioctl(descriptor, SPI_IOC_RD_MODE32, &requested_mode);
+        auto requested_raw_mode = raw_mode;
+        auto requested_bits_per_word = bits_per_word;
+        auto requested_speed_hz = speed_hz;
 
-        if (return_value < 0)
-            throw std::system_error{
-                errno,
-                std::system_category(),
-                "Unable to read spi mode."
-            };
+        help_ioctl(descriptor, SPI_IOC_WR_MODE32, &requested_raw_mode);
+        help_ioctl(descriptor, SPI_IOC_RD_MODE32, &requested_raw_mode);
 
-        if (requested_mode != mode)
+        if (requested_raw_mode != raw_mode)
             throw std::domain_error{
                 "Requested spi mode is not supported by hardware."
             };
 
-        return_value = ioctl(
-            descriptor,
-            SPI_IOC_WR_MAX_SPEED_HZ,
-            &requested_speed
-        );
+        help_ioctl(descriptor, SPI_IOC_WR_MAX_SPEED_HZ, &requested_speed_hz);
+        help_ioctl(descriptor, SPI_IOC_RD_MAX_SPEED_HZ, &requested_speed_hz);
 
-        if (return_value < 0)
-            throw std::system_error{
-                errno,
-                std::system_category(),
-                "Unable to set max speed (hz)."
-            };
-
-        return_value = ioctl(
-            descriptor,
-            SPI_IOC_RD_MAX_SPEED_HZ,
-            &requested_speed
-        );
-
-        if (return_value < 0)
-            throw std::system_error{
-                errno,
-                std::system_category(),
-                "Unable to get max speed (hz)."
-            };
-
-        if (requested_speed != speed)
+        if (requested_speed_hz != speed_hz)
             throw std::domain_error{
                 "Requested spi max speed is not supported by hardware."
             };
 
-        return_value = ioctl(
+        help_ioctl(
             descriptor,
             SPI_IOC_WR_BITS_PER_WORD,
-            &requested_word_bit_count
+            &requested_bits_per_word
         );
-
-        if (return_value < 0)
-            throw std::system_error{
-                errno,
-                std::system_category(),
-                "Unable to set bits per word."
-            };
-
-        return_value = ioctl(
+        help_ioctl(
             descriptor,
             SPI_IOC_RD_BITS_PER_WORD,
-            &requested_word_bit_count
+            &requested_bits_per_word
         );
 
-        if (return_value < 0)
-            throw std::system_error{
-                errno,
-                std::system_category(),
-                "Unable to get bits per word."
-            };
-
-        if (requested_word_bit_count != word_bit_count)
+        if (requested_bits_per_word != bits_per_word)
             throw std::domain_error{
                 "Requested spi bits per word is not supported by hardware."
             };
@@ -584,174 +577,106 @@ namespace Revolution {
         unsigned char transmitted_bit_count;
         unsigned char received_bit_count;
 
-        if (static_cast<int>(mode) & SPI_TX_OCTAL)
+        if (static_cast<int>(raw_mode) & SPI_TX_OCTAL)
             transmitted_bit_count = 8;
-        else if (static_cast<int>(mode) & SPI_TX_QUAD)
+        else if (static_cast<int>(raw_mode) & SPI_TX_QUAD)
             transmitted_bit_count = 4;
-        else if (static_cast<int>(mode) & SPI_TX_DUAL)
+        else if (static_cast<int>(raw_mode) & SPI_TX_DUAL)
             transmitted_bit_count = 2;
         else
             transmitted_bit_count = 0;
 
-        if (static_cast<int>(mode) & SPI_RX_OCTAL)
+        if (static_cast<int>(raw_mode) & SPI_RX_OCTAL)
             received_bit_count = 8;
-        else if (static_cast<int>(mode) & SPI_RX_QUAD)
+        else if (static_cast<int>(raw_mode) & SPI_RX_QUAD)
             received_bit_count = 4;
-        else if (static_cast<int>(mode) & SPI_RX_DUAL)
+        else if (static_cast<int>(raw_mode) & SPI_RX_DUAL)
             received_bit_count = 2;
         else
             received_bit_count = 0;
 
-        spi_ioc_transfer spi_ioc_transfer_attributes{
-            (unsigned long long) (
-                transmitted_data ? transmitted_data.value().data() : nullptr
-            ),
-            (unsigned long long) (
-                received_data ? received_data.value().data() : nullptr
-            ),
-            data_size,
-            speed,
-            0,
-            word_bit_count,
-            0,
-            transmitted_bit_count,
-            received_bit_count,
-            0,
-            0
-        };
+        spi_ioc_transfer spi_ioc_transfer_attributes;
 
-        return_value = ioctl(
+        spi_ioc_transfer_attributes.tx_buf = (unsigned long long) (
+            transmitted_data ? transmitted_data.value().data() : nullptr
+        );
+        spi_ioc_transfer_attributes.rx_buf = (unsigned long long) (
+            received_data ? received_data.value().data() : nullptr
+        );
+        spi_ioc_transfer_attributes.len = data_size;
+        spi_ioc_transfer_attributes.speed_hz = speed_hz;
+        spi_ioc_transfer_attributes.bits_per_word = bits_per_word;
+        spi_ioc_transfer_attributes.tx_nbits = transmitted_bit_count;
+        spi_ioc_transfer_attributes.rx_nbits = received_bit_count;
+
+        help_ioctl(
             descriptor,
             SPI_IOC_MESSAGE(1),
             &spi_ioc_transfer_attributes
         );
-
-        if (return_value < 1)
-            throw std::system_error{
-                errno,
-                std::system_category(),
-                "Unable to send spi message."
-            };
     }
 
     void SPI::transmit(
             const std::string& data,
-            const SPI::Mode& mode,
-            const unsigned int& speed,
-            const unsigned char& word_bit_count
+            const std::vector<SPI::Mode>& modes,
+            const unsigned int& speed_hz,
+            const unsigned char& bits_per_word
     ) const {
-        auto descriptor = open(get_name().data(), O_RDWR);
-
-        if (descriptor < 0)
-            throw std::system_error{
-                errno,
-                std::system_category(),
-                "Unable to open device."
-            };
+        auto descriptor = help_open(get_name().data(), O_RDWR);
 
         transfer_spi(
             descriptor,
             data,
             std::nullopt,
-            mode,
-            speed,
-            word_bit_count
+            modes,
+            speed_hz,
+            bits_per_word
         );
-
-        auto return_value = close(descriptor);
-
-        if (return_value < 0)
-            throw std::system_error{
-                errno,
-                std::system_category(),
-                "Unable to close device."
-            };
+        help_close(descriptor);
     }
 
     std::string SPI::receive(
             const std::string::size_type& data_size,
-            const SPI::Mode& mode,
-            const unsigned int& speed,
-            const unsigned char& word_bit_count
+            const std::vector<SPI::Mode>& modes,
+            const unsigned int& speed_hz,
+            const unsigned char& bits_per_word
     ) const {
         std::string data(data_size, '\0');
-        auto descriptor = open(get_name().data(), O_RDWR);
-
-        if (descriptor < 0)
-            throw std::system_error{
-                errno,
-                std::system_category(),
-                "Unable to open device."
-            };
+        auto descriptor = help_open(get_name().data(), O_RDWR);
 
         transfer_spi(
             descriptor,
             std::nullopt,
             data,
-            mode,
-            speed,
-            word_bit_count
+            modes,
+            speed_hz,
+            bits_per_word
         );
-
-        auto return_value = close(descriptor);
-
-        if (return_value < 0)
-            throw std::system_error{
-                errno,
-                std::system_category(),
-                "Unable to close device."
-            };
+        help_close(descriptor);
 
         return data;
     }
 
     std::string SPI::transmit_and_receive(
             const std::string& data,
-            const SPI::Mode& mode,
-            const unsigned int& speed,
-            const unsigned char& word_bit_count
+            const std::vector<SPI::Mode>& modes,
+            const unsigned int& speed_hz,
+            const unsigned char& bits_per_word
     ) const {
         std::string received_data(data.size(), '\0');
-        auto descriptor = open(get_name().data(), O_RDWR);
-
-        if (descriptor < 0)
-            throw std::system_error{
-                errno,
-                std::system_category(),
-                "Unable to open device."
-            };
+        auto descriptor = help_open(get_name().data(), O_RDWR);
 
         transfer_spi(
             descriptor,
             data,
             received_data,
-            mode,
-            speed,
-            word_bit_count
+            modes,
+            speed_hz,
+            bits_per_word
         );
-
-        auto return_value = close(descriptor);
-
-        if (return_value < 0)
-            throw std::system_error{
-                errno,
-                std::system_category(),
-                "Unable to close device."
-            };
+        help_close(descriptor);
 
         return received_data;
-    }
-
-    SPI::Mode operator|(const SPI::Mode& lhs, const SPI::Mode& rhs) {
-        return static_cast<SPI::Mode>(
-            static_cast<int>(lhs) | static_cast<int>(rhs)
-        );
-    }
-
-    SPI::Mode operator&(const SPI::Mode& lhs, const SPI::Mode& rhs) {
-        return static_cast<SPI::Mode>(
-            static_cast<int>(lhs) & static_cast<int>(rhs)
-        );
     }
 
     static void configure_uart(
@@ -759,7 +684,6 @@ namespace Revolution {
             const UART::BaudRate& baud_rate
     ) {
         termios termios_attributes;
-
         auto return_value = tcgetattr(descriptor, &termios_attributes);
 
         if (return_value < 0)
@@ -798,33 +722,19 @@ namespace Revolution {
             const BaudRate& baud_rate
     ) const {
         auto flag = O_RDWR | O_NOCTTY | O_NONBLOCK;
-        auto descriptor = open(get_name().data(), flag);
-
-        if (descriptor < 0)
-            throw std::system_error{
-                errno,
-                std::system_category(),
-                "Unable to open device."
-            };
+        auto descriptor = help_open(get_name().data(), flag);
 
         configure_uart(descriptor, baud_rate);
 
         auto byte_count = write(descriptor, data.data(), data.size());
+
+        help_close(descriptor);
 
         if (byte_count < 0)
             throw std::system_error{
                 errno,
                 std::system_category(),
                 "Unable to write to uart."
-            };
-
-        auto return_value = close(descriptor);
-
-        if (return_value < 0)
-            throw std::system_error{
-                errno,
-                std::system_category(),
-                "Unable to close device."
             };
     }
 
@@ -834,18 +744,13 @@ namespace Revolution {
     ) const {
         std::string data(max_data_size, '\0');
         auto flag = O_RDWR | O_NOCTTY | O_NONBLOCK;
-        auto descriptor = open(get_name().data(), flag);
-
-        if (descriptor < 0)
-            throw std::system_error{
-                errno,
-                std::system_category(),
-                "Unable to open device."
-            };
+        auto descriptor = help_open(get_name().data(), flag);
 
         configure_uart(descriptor, baud_rate);
 
         auto byte_count = read(descriptor, data.data(), data.size());
+
+        help_close(descriptor);
 
         if (byte_count < 0)
             throw std::system_error{
@@ -855,15 +760,6 @@ namespace Revolution {
             };
 
         data.resize(byte_count);
-
-        auto return_value = close(descriptor);
-
-        if (return_value < 0)
-            throw std::system_error{
-                errno,
-                std::system_category(),
-                "Unable to close device."
-            };
 
         return data;
     }
