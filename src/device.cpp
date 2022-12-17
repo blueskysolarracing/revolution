@@ -286,32 +286,6 @@ namespace Revolution {
             };
     }
 
-    int GPIO::handle(
-            int event_type,
-            unsigned int offset,
-            [[maybe_unused]] const std::timespec* timestamp,
-            void* raw_data
-    ) {
-        const auto& data = *(GPIO::Data*) raw_data;
-
-        switch (event_type) {
-            case GPIOD_CTXLESS_EVENT_CB_TIMEOUT:
-                break;
-            case GPIOD_CTXLESS_EVENT_CB_RISING_EDGE:
-                data.callback(GPIO::Event::rising_edge, offset);
-                break;
-            case GPIOD_CTXLESS_EVENT_CB_FALLING_EDGE:
-                data.callback(GPIO::Event::falling_edge, offset);
-                break;
-            default:
-                return GPIOD_CTXLESS_EVENT_CB_RET_ERR;
-        }
-
-        return data.status
-            ? GPIOD_CTXLESS_EVENT_CB_RET_OK
-            : GPIOD_CTXLESS_EVENT_CB_RET_STOP;
-    }
-
     void GPIO::monitor(
             const Event& event,
             const std::vector<unsigned int>& offsets,
@@ -345,6 +319,32 @@ namespace Revolution {
                 std::system_category(),
                 "Error occurred while monitoring gpio"
             };
+    }
+
+    int GPIO::handle(
+            int event_type,
+            unsigned int offset,
+            [[maybe_unused]] const std::timespec* timestamp,
+            void* raw_data
+    ) {
+        const auto& data = *(GPIO::Data*) raw_data;
+
+        switch (event_type) {
+            case GPIOD_CTXLESS_EVENT_CB_TIMEOUT:
+                break;
+            case GPIOD_CTXLESS_EVENT_CB_RISING_EDGE:
+                data.callback(GPIO::Event::rising_edge, offset);
+                break;
+            case GPIOD_CTXLESS_EVENT_CB_FALLING_EDGE:
+                data.callback(GPIO::Event::falling_edge, offset);
+                break;
+            default:
+                return GPIOD_CTXLESS_EVENT_CB_RET_ERR;
+        }
+
+        return data.status
+            ? GPIOD_CTXLESS_EVENT_CB_RET_OK
+            : GPIOD_CTXLESS_EVENT_CB_RET_STOP;
     }
 
     PWM::PWM(const unsigned int& index) :
@@ -692,7 +692,6 @@ namespace Revolution {
             };
 
         cfmakeraw(&attributes);
-
         set_attributes(attributes);
     }
 
