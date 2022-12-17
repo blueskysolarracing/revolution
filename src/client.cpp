@@ -28,14 +28,18 @@ int main(int argc, char *argv[]) {
     Revolution::MessageQueue client_message_queue{'/' + client_name};
     std::atomic_bool status{true};
     std::thread thread{
-        &Revolution::MessageQueue::monitor,
-        &client_message_queue,
-        std::cref(status),
-        timeout,
-        [] (const std::string& raw_message) {
-            auto message = Revolution::Message::deserialize(raw_message);
+        [&client_message_queue, &status] () {
+            client_message_queue.monitor(
+                status,
+                timeout,
+                [] (const std::string& raw_message) {
+                    auto message = Revolution::Message::deserialize(
+                        raw_message
+                    );
 
-            std::cout << message.to_string() << std::endl;
+                    std::cout << message.to_string() << std::endl;
+                }
+            );
         }
     };
 

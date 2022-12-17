@@ -3,10 +3,13 @@
 
 #include <atomic>
 #include <chrono>
+#include <cstddef>
 #include <functional>
 #include <optional>
 #include <string>
+#include <vector>
 
+#include <fcntl.h>
 #include <gpiod.h>
 #include <linux/spi/spi.h>
 #include <termios.h>
@@ -14,7 +17,7 @@
 namespace Revolution {
     class Device {
     public:
-        explicit Device(const std::string& name);
+        Device(const std::string& name);
 
         const std::string& get_name() const;
     private:
@@ -23,21 +26,58 @@ namespace Revolution {
 
     class MessageQueue : public Device {
     public:
+        enum class Flag {
+            readonly = O_RDONLY,
+            writeonly = O_WRONLY,
+            read_and_write = O_RDWR,
+            close_on_execution = O_CLOEXEC,
+            create = O_CREAT,
+            error_if_exists = O_EXCL,
+            non_blocking = O_NONBLOCK
+        };
+
+        class Configuration {
+        public:
+            Configuration(
+                const unsigned int& max_message_count,
+                const unsigned int& max_message_size
+            );
+
+            const unsigned int& get_max_message_count() const;
+            const unsigned int& get_max_message_size() const;
+        private:
+            const unsigned int max_message_count;
+            const unsigned int max_message_size;
+        };
+
         using Device::Device;
 
-        std::string receive() const;
+        std::string receive(
+            const std::vector<Flag> flags = {Flag::readonly, Flag::create},
+            const unsigned int& mode = 0600,
+            const std::optional<Configuration>& configuration = std::nullopt
+        ) const;
         void send(
             const std::string& raw_message,
-            const unsigned int& priority
+            const unsigned int& priority,
+            const std::vector<Flag> flags = {Flag::writeonly, Flag::create},
+            const unsigned int& mode = 0600,
+            const std::optional<Configuration>& configuration = std::nullopt
         ) const;
         std::string timed_receive(
-            const std::chrono::high_resolution_clock::duration& timeout
+            const std::chrono::high_resolution_clock::duration& timeout,
+            const std::vector<Flag> flags = {Flag::readonly, Flag::create},
+            const unsigned int& mode = 0600,
+            const std::optional<Configuration>& configuration = std::nullopt
         ) const;
         void unlink() const;
         void monitor(
             const std::atomic_bool& status,
             const std::chrono::high_resolution_clock::duration& timeout,
-            const std::function<void(const std::string&)>& callback
+            const std::function<void(const std::string&)>& callback,
+            const std::vector<Flag> flags = {Flag::readonly, Flag::create},
+            const unsigned int& mode = 0600,
+            const std::optional<Configuration>& configuration = std::nullopt
         ) const;
     };
 

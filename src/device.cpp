@@ -1,16 +1,18 @@
 #include "device.h"
 
 #include <atomic>
-#include <bit>
 #include <cassert>
 #include <cerrno>
 #include <chrono>
+#include <cstddef>
 #include <ctime>
 #include <fstream>
 #include <functional>
 #include <optional>
+#include <stdexcept>
 #include <string>
 #include <system_error>
+#include <vector>
 
 #include <fcntl.h>
 #include <gpiod.h>
@@ -29,17 +31,52 @@ namespace Revolution {
         return name;
     }
 
+    MessageQueue::Configuration::Configuration(
+            const unsigned int& max_message_count,
+            const unsigned int& max_message_size
+    ) :
+            max_message_count{max_message_count},
+            max_message_size{max_message_size} {}
+
+    const unsigned int&
+            MessageQueue::Configuration::get_max_message_count() const {
+        return max_message_count;
+    }
+
+    const unsigned int&
+            MessageQueue::Configuration::get_max_message_size() const {
+        return max_message_size;
+    }
+
     static mqd_t open_message_queue(
             const std::string& name,
-            const int& open_flag,
-            const mode_t& mode = 0600,
-            const std::optional<mq_attr> attributes = std::nullopt
+            const std::vector<MessageQueue::Flag>& flags = {},
+            const unsigned int& mode = 0600,
+            const std::optional<MessageQueue::Configuration>
+                configuration = std::nullopt
     ) {
+        auto open_flag = 0;
+
+        for (const auto& flag : flags)
+            open_flag |= static_cast<int>(flag);
+
+        mq_attr attributes;
+        mq_attr* attributes_pointer;
+
+        if (configuration) {
+            attributes.mq_maxmsg = configuration.value()
+                .get_max_message_count();
+            attributes.mq_msgsize = configuration.value()
+                .get_max_message_size();
+            attributes_pointer = &attributes;
+        } else
+            attributes_pointer = nullptr;
+
         auto descriptor = mq_open(
             name.data(),
             open_flag,
-            mode,
-            attributes ? &attributes.value() : nullptr
+            (mode_t) mode,
+            attributes_pointer
         );
 
         if (descriptor == (mqd_t) - 1)
@@ -77,8 +114,17 @@ namespace Revolution {
         return attributes;
     }
 
-    std::string MessageQueue::receive() const {
-        auto descriptor = open_message_queue(get_name(), O_RDONLY | O_CREAT);
+    std::string MessageQueue::receive(
+            const std::vector<Flag> flags,
+            const unsigned int& mode,
+            const std::optional<Configuration>& configuration
+    ) const {
+        auto descriptor = open_message_queue(
+            get_name(),
+            flags,
+            mode,
+            configuration
+        );
         auto attributes = get_message_queue_attributes(descriptor);
         std::string raw_message(attributes.mq_msgsize, '\0');
         unsigned int priority;
@@ -105,9 +151,17 @@ namespace Revolution {
 
     void MessageQueue::send(
             const std::string& raw_message,
-            const unsigned int& priority
+            const unsigned int& priority,
+            const std::vector<Flag> flags,
+            const unsigned int& mode,
+            const std::optional<Configuration>& configuration
     ) const {
-        auto descriptor = open_message_queue(get_name(), O_WRONLY | O_CREAT);
+        auto descriptor = open_message_queue(
+            get_name(),
+            flags,
+            mode,
+            configuration
+        );
         auto received_size = mq_send(
             descriptor,
             raw_message.data(),
@@ -140,14 +194,22 @@ namespace Revolution {
     }
 
     std::string MessageQueue::timed_receive(
-            const std::chrono::high_resolution_clock::duration& timeout
+            const std::chrono::high_resolution_clock::duration& timeout,
+            const std::vector<Flag> flags,
+            const unsigned int& mode,
+            const std::optional<Configuration>& configuration
     ) const {
         auto absolute_timeout = timeout
             + std::chrono::high_resolution_clock::now().time_since_epoch();
         auto time_specification = convert_to_time_specification(
             absolute_timeout
         );
-        auto descriptor = open_message_queue(get_name(), O_RDONLY | O_CREAT);
+        auto descriptor = open_message_queue(
+            get_name(),
+            flags,
+            mode,
+            configuration
+        );
         auto attributes = get_message_queue_attributes(descriptor);
         std::string raw_message(attributes.mq_msgsize, '\0');
         unsigned int priority;
@@ -187,11 +249,19 @@ namespace Revolution {
     void MessageQueue::monitor(
             const std::atomic_bool& status,
             const std::chrono::high_resolution_clock::duration& timeout,
-            const std::function<void(const std::string&)>& callback
+            const std::function<void(const std::string&)>& callback,
+            const std::vector<Flag> flags,
+            const unsigned int& mode,
+            const std::optional<Configuration>& configuration
     ) const {
         while (status) {
             try {
-                auto message = timed_receive(timeout);
+                auto message = timed_receive(
+                    timeout,
+                    flags,
+                    mode,
+                    configuration
+                );
 
                 callback(message);
             } catch (const std::system_error& system_error) {
