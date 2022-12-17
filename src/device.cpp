@@ -287,34 +287,28 @@ namespace Revolution {
             };
     }
 
-    struct GPIOEventData {
-        const std::atomic_bool& status;
-        const std::function<void(const GPIO::Event&, const unsigned int&)>&
-            callback;
-    };
-
-    static int handle_gpio_event(
+    int GPIO::handle(
             int event_type,
             unsigned int offset,
             [[maybe_unused]] const std::timespec* timestamp,
-            void* data
+            void* raw_data
     ) {
-        const auto& gpio_event_data = *(GPIOEventData*) data;
+        const auto& data = *(GPIO::Data*) raw_data;
 
         switch (event_type) {
             case GPIOD_CTXLESS_EVENT_CB_TIMEOUT:
                 break;
             case GPIOD_CTXLESS_EVENT_CB_RISING_EDGE:
-                gpio_event_data.callback(GPIO::Event::rising_edge, offset);
+                data.callback(GPIO::Event::rising_edge, offset);
                 break;
             case GPIOD_CTXLESS_EVENT_CB_FALLING_EDGE:
-                gpio_event_data.callback(GPIO::Event::falling_edge, offset);
+                data.callback(GPIO::Event::falling_edge, offset);
                 break;
             default:
                 return GPIOD_CTXLESS_EVENT_CB_RET_ERR;
         }
 
-        return gpio_event_data.status
+        return data.status
             ? GPIOD_CTXLESS_EVENT_CB_RET_OK
             : GPIOD_CTXLESS_EVENT_CB_RET_STOP;
     }
@@ -332,7 +326,7 @@ namespace Revolution {
         auto event_type = static_cast<int>(event);
         auto active_low = static_cast<bool>(active);
         auto time_specification = convert_to_time_specification(timeout);
-        GPIOEventData gpio_event_data{status, callback};
+        Data data{status, callback};
         auto return_value = gpiod_ctxless_event_monitor_multiple(
             get_name().data(),
             event_type,
@@ -342,8 +336,8 @@ namespace Revolution {
             consumer_name.data(),
             &time_specification,
             nullptr,
-            &handle_gpio_event,
-            &gpio_event_data
+            &handle,
+            &data
         );
 
         if (return_value < 0)

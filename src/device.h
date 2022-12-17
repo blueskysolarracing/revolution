@@ -133,6 +133,19 @@ namespace Revolution {
             const std::function<void(const Event&, const unsigned int&)>&
                 callback
         ) const;
+    private:
+        struct Data {
+            const std::atomic_bool& status;
+            const std::function<void(const GPIO::Event&, const unsigned int&)>&
+                callback;
+        };
+
+        static int handle(
+            int event_type,
+            unsigned int offset,
+            const std::timespec* timestamp,
+            void* raw_data
+        );
     };
 
     class PWM : public Device {
