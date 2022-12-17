@@ -2,7 +2,6 @@
 
 #include <cassert>
 #include <cerrno>
-#include <ctime>
 #include <fstream>
 #include <stdexcept>
 #include <system_error>
