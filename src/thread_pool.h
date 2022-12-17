@@ -17,12 +17,6 @@ namespace Revolution {
 
         void add(const std::function<void()>& function);
     private:
-        const std::atomic_bool& get_status() const;
-        const std::list<std::thread>& get_threads() const;
-        const std::queue<std::function<void()>>& get_functions() const;
-        const std::mutex& get_mutex() const;
-        const std::condition_variable& get_condition_variable() const;
-
         std::atomic_bool& get_status();
         std::list<std::thread>& get_threads();
         std::queue<std::function<void()>>& get_functions();

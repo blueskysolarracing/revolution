@@ -1,10 +1,6 @@
 #ifndef REVOLUTION_DISPLAY_H
 #define REVOLUTION_DISPLAY_H
 
-#include <chrono>
-#include <string>
-
-#include "configuration.h"
 #include "peripheral.h"
 
 namespace Revolution {
@@ -17,11 +13,11 @@ namespace Revolution {
             const unsigned int& thread_count = get_default_thread_count()
         );
     private:
+        static const unsigned int& get_default_thread_count();
+
         static const unsigned int default_thread_count;
         static const std::chrono::high_resolution_clock::duration
             message_queue_timeout;
-
-        static const unsigned int& get_default_thread_count();
 
         const std::string& get_name() const override;
         const std::chrono::high_resolution_clock::duration&

@@ -3,16 +3,16 @@
 
 #include <atomic>
 #include <chrono>
+#include <functional>
 
 namespace Revolution {
     class Heart {
     public:
-        const std::atomic_uint& get_count() const;
-
         void beat();
         void monitor(
             const std::atomic_bool& status,
-            const std::chrono::high_resolution_clock::duration& timeout
+            const std::chrono::high_resolution_clock::duration& timeout,
+            const std::function<void()>& callback
         );
     private:
         std::atomic_uint& get_count();

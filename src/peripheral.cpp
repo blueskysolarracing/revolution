@@ -1,15 +1,6 @@
 #include "peripheral.h"
 
-#include <functional>
-#include <mutex>
-#include <optional>
-#include <string>
-#include <unordered_map>
-
-#include "application.h"
-#include "configuration.h"
-#include "message.h"
-#include "logger.h"
+#include <ostream>
 
 namespace Revolution {
     std::optional<std::string> Peripheral::get_state(const std::string& key) {
@@ -49,6 +40,19 @@ namespace Revolution {
     ) {
         std::scoped_lock lock{get_mutex()};
 
+        if (get_watchers().count(key))
+            get_logger() << Logger::Severity::warning
+                << "Overriding an existing watcher: \""
+                << key
+                << "\"..."
+                << std::endl;
+        else
+            get_logger() << Logger::Severity::information
+                << "Adding watcher: \""
+                << key
+                << "\"..."
+                << std::endl;
+
         get_watchers()[key] = watcher;
     }
 
@@ -59,17 +63,6 @@ namespace Revolution {
             get_header_space().get_state_header(),
             std::bind(&Peripheral::handle_state, this, std::placeholders::_1)
         );
-    }
-
-    const std::unordered_map<
-            std::string,
-            std::function<void(const std::string&, const std::string&)>
-    >& Peripheral::get_watchers() const {
-        return watchers;
-    }
-
-    const std::mutex& Peripheral::get_mutex() const {
-        return mutex;
     }
 
     std::unordered_map<
@@ -103,8 +96,7 @@ namespace Revolution {
             get_logger() << Logger::Severity::error
                 << "State expects 2 arguments, but "
                 << message.get_data().size()
-                << " argument(s) were supplied. "
-                << "The message will be ignored."
+                << " argument(s) were supplied. The message will be ignored."
                 << std::endl;
 
             return {};
@@ -119,8 +111,7 @@ namespace Revolution {
             << key
             << "\", \""
             << value
-            << "\") has been updated. "
-            << "If a relevant watcher exists, it will be invoked..."
+            << "\") has been updated. Any relevant watchers will be invoked..."
             << std::endl;
 
         if (watcher)

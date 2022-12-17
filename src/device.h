@@ -179,7 +179,7 @@ namespace Revolution {
     protected:
         const int& get_descriptor() const;
 
-        std::string read(const std::string::size_type& max_data_size) const;
+        std::string read(const std::size_t& max_data_size) const;
         void write(const std::string& data) const;
         void ioctl(const unsigned long& request, void* const& data) const;
     private:
@@ -228,7 +228,7 @@ namespace Revolution {
         const unsigned char& get_bits_per_word() const;
 
         void transmit(const std::string& data) const;
-        std::string receive(const std::string::size_type& data_size) const;
+        std::string receive(const std::size_t& data_size) const;
         std::string transmit_and_receive(
             const std::string& transmitted_data
         ) const;
@@ -272,7 +272,7 @@ namespace Revolution {
         explicit UART(const std::string& name, const BaudRate& baud_rate);
 
         void transmit(const std::string& data) const;
-        std::string receive(const std::string::size_type& max_data_size) const;
+        std::string receive(const std::size_t& max_data_size) const;
     private:
         using Attributes = termios;
 

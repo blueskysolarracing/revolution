@@ -1,16 +1,6 @@
 #include "replica.h"
 
-#include <chrono>
-#include <functional>
-#include <mutex>
 #include <ostream>
-#include <string>
-#include <vector>
-
-#include "application.h"
-#include "configuration.h"
-#include "logger.h"
-#include "message.h"
 
 namespace Revolution {
     Replica::Replica(
@@ -29,16 +19,16 @@ namespace Revolution {
         );
     }
 
+    const unsigned int& Replica::get_default_thread_count() {
+        return default_thread_count;
+    }
+
     const unsigned int Replica::default_thread_count{4};
 
     const std::chrono::high_resolution_clock::duration
             Replica::message_queue_timeout{
         std::chrono::seconds(1)
     };
-
-    const unsigned int& Replica::get_default_thread_count() {
-        return default_thread_count;
-    }
 
     const std::string& Replica::get_name() const {
         return get_topology().get_replica_name();
@@ -47,14 +37,6 @@ namespace Revolution {
     const std::chrono::high_resolution_clock::duration&
             Replica::get_message_queue_timeout() const {
         return message_queue_timeout;
-    }
-
-    const std::vector<std::string>& Replica::get_data() const {
-        return data;
-    }
-
-    const std::mutex& Replica::get_mutex() const {
-        return mutex;
     }
 
     std::vector<std::string>& Replica::get_data() {
@@ -87,8 +69,7 @@ namespace Revolution {
         get_logger() << Logger::Severity::error
             << "Data expects 2 * n arguments (n >= 0), but "
             << message.get_data().size()
-            << " argument(s) were supplied. "
-            << "This message will be ignored."
+            << " argument(s) were supplied. This message will be ignored."
             << std::endl;
 
         return {};

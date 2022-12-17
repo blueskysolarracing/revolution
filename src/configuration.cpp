@@ -1,7 +1,3 @@
-#include <functional>
-#include <string>
-#include <vector>
-
 #include "configuration.h"
 
 namespace Revolution {

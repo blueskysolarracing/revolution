@@ -1,22 +1,9 @@
 #include "application.h"
 
-#include <atomic>
-#include <condition_variable>
 #include <cstdlib>
-#include <functional>
-#include <mutex>
-#include <optional>
 #include <ostream>
-#include <string>
-#include <unordered_map>
-#include <vector>
 
-#include "configuration.h"
 #include "device.h"
-#include "heart.h"
-#include "logger.h"
-#include "message.h"
-#include "thread_pool.h"
 
 namespace Revolution {
     Application::Application(
@@ -61,18 +48,6 @@ namespace Revolution {
 
     const Logger& Application::get_logger() const {
         return logger;
-    }
-
-    const Heart& Application::get_heart() const {
-        return heart;
-    }
-
-    const ThreadPool& Application::get_thread_pool() const {
-        return thread_pool;
-    }
-
-    const std::atomic_bool& Application::get_status() const {
-        return status;
     }
 
     Heart& Application::get_heart() {
@@ -179,31 +154,6 @@ namespace Revolution {
         );
     }
 
-    const std::unordered_map<
-            std::string,
-            std::function<std::vector<std::string>(const Message&)>
-    >& Application::get_handlers() const {
-        return handlers;
-    }
-
-    const std::mutex& Application::get_handler_mutex() const {
-        return handler_mutex;
-    }
-
-    const std::unordered_map<unsigned int, std::optional<Message>>&
-            Application::get_responses() const {
-        return responses;
-    }
-
-    const std::mutex& Application::get_response_mutex() const {
-        return response_mutex;
-    }
-
-    const std::condition_variable&
-            Application::get_response_condition_variable() const {
-        return response_condition_variable;
-    }
-
     std::unordered_map<
             std::string,
             std::function<std::vector<std::string>(const Message&)>
@@ -272,8 +222,7 @@ namespace Revolution {
             get_logger() << Logger::Severity::error
                 << "Abort expects no arguments, but "
                 << message.get_data().size()
-                << " argument(s) were supplied. "
-                << "This message will be ignored."
+                << " argument(s) were supplied. This message will be ignored."
                 << std::endl;
             
             return {};
@@ -291,8 +240,7 @@ namespace Revolution {
             get_logger() << Logger::Severity::error
                 << "Exit expects no arguments, but "
                 << message.get_data().size()
-                << " argument(s) were supplied. "
-                << "This message will be ignored."
+                << " argument(s) were supplied. This message will be ignored."
                 << std::endl;
 
             return {};
@@ -324,8 +272,7 @@ namespace Revolution {
             get_logger() << Logger::Severity::warning
                 << "Status expects no arguments, but "
                 << message.get_data().size()
-                << " argument(s) were supplied. "
-                << "The argument(s) will be ignored."
+                << " argument(s) were supplied. They will be ignored."
                 << std::endl;
 
         get_logger() << Logger::Severity::information

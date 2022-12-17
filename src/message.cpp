@@ -2,10 +2,7 @@
 
 #include <cstddef>
 #include <iterator>
-#include <optional>
 #include <sstream>
-#include <string>
-#include <vector>
 
 namespace Revolution {
     Message Message::deserialize(const std::string& raw_message) {
@@ -135,9 +132,9 @@ namespace Revolution {
         return oss.str();
     }
 
-    unsigned int Message::count{};
-
     unsigned int& Message::get_count() {
         return count;
     }
+
+    unsigned int Message::count{};
 }

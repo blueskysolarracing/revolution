@@ -1,38 +1,30 @@
 #include "heart.h"
 
-#include <atomic>
-#include <chrono>
 #include <cstdlib>
 #include <iostream>
 #include <thread>
 
 namespace Revolution {
-    const std::atomic_uint& Heart::get_count() const {
-        return count;
-    }
-
     void Heart::beat() {
         ++get_count();
     }
 
     void Heart::monitor(
             const std::atomic_bool& status,
-            const std::chrono::high_resolution_clock::duration& timeout
+            const std::chrono::high_resolution_clock::duration& timeout,
+            const std::function<void()>& callback
     ) {
-        get_count() = 1;
-
         while (status) {
+            get_count() = 0;
+            callback();
+            std::this_thread::sleep_for(timeout);
+
             if (!get_count()) {
-                std::cerr << "No heartbeat within the timeout! "
-                    << "Heart attack occurred. Aborting..."
+                std::cerr << "No heartbeat within the timeout... Heart attack!"
                     << std::endl;
 
                 std::abort();
             }
-
-            get_count() = 0;
-
-            std::this_thread::sleep_for(timeout);
         }
     }
 

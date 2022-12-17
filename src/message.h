@@ -31,9 +31,9 @@ namespace Revolution {
         std::string serialize() const;
         std::string to_string() const;
     private:
-        static unsigned int count;
-
         static unsigned int& get_count();
+
+        static unsigned int count;
 
         const std::string sender_name;
         const std::string receiver_name;

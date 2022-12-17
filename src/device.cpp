@@ -456,9 +456,7 @@ namespace Revolution {
         return descriptor;
     }
 
-    std::string DevDevice::read(
-            const std::string::size_type& max_data_size
-    ) const {
+    std::string DevDevice::read(const std::size_t& max_data_size) const {
         std::string data(max_data_size, '\0');
         auto data_size = ::read(get_descriptor(), data.data(), data.size());
 
@@ -597,7 +595,7 @@ namespace Revolution {
         transfer(data, std::nullopt);
     }
 
-    std::string SPI::receive(const std::string::size_type& data_size) const {
+    std::string SPI::receive(const std::size_t& data_size) const {
         std::string data(data_size, '\0');
 
         transfer(std::nullopt, data);
@@ -688,7 +686,10 @@ namespace Revolution {
                 }
             } {
         auto attributes = get_attributes();
-        auto return_value = cfsetspeed(&attributes, static_cast<int>(baud_rate));
+        auto return_value = cfsetspeed(
+            &attributes,
+            static_cast<int>(baud_rate)
+        );
 
         if (return_value < 0)
             throw std::system_error{
@@ -706,9 +707,7 @@ namespace Revolution {
         write(data);
     }
 
-    std::string UART::receive(
-            const std::string::size_type& max_data_size
-    ) const {
+    std::string UART::receive(const std::size_t& max_data_size) const {
         return read(max_data_size);
     }
 

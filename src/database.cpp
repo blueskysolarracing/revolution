@@ -1,18 +1,6 @@
 #include "database.h"
 
-#include <chrono>
-#include <functional>
-#include <limits>
-#include <mutex>
-#include <optional>
-#include <string>
-#include <unordered_map>
-#include <vector>
-
-#include "application.h"
-#include "configuration.h"
-#include "logger.h"
-#include "message.h"
+#include <ostream>
 
 namespace Revolution {
     Database::Database(
@@ -34,12 +22,6 @@ namespace Revolution {
         std::this_thread::sleep_for(get_timeout());
     }
 
-    const unsigned int Database::default_thread_count{4};
-
-    const std::chrono::high_resolution_clock::duration Database::timeout{
-        std::chrono::milliseconds(500)
-    };
-
     const unsigned int& Database::get_default_thread_count() {
         return default_thread_count;
     }
@@ -49,6 +31,12 @@ namespace Revolution {
         return timeout;
     }
 
+    const unsigned int Database::default_thread_count{4};
+
+    const std::chrono::high_resolution_clock::duration Database::timeout{
+        std::chrono::seconds(1)
+    };
+
     const std::string& Database::get_name() const {
         return get_topology().get_database_name();
     }
@@ -56,15 +44,6 @@ namespace Revolution {
     const std::chrono::high_resolution_clock::duration&
             Database::get_message_queue_timeout() const {
         return get_timeout();
-    }
-
-    const std::unordered_map<std::string, std::string>&
-            Database::get_states() const {
-        return states;
-    }
-
-    const std::mutex& Database::get_mutex() const {
-        return mutex;
     }
 
     std::unordered_map<std::string, std::string>&
@@ -101,8 +80,7 @@ namespace Revolution {
 
         if (data.size() % 2 == 1) {
             get_logger() << Logger::Severity::error
-                << "Unpaired elements in the data. "
-                << "This data will not be written."
+                << "Unpaired elements in the data. This data will be ignored."
                 << std::endl;
 
             return;
@@ -177,8 +155,7 @@ namespace Revolution {
         get_logger() << Logger::Severity::error
             << "State expects 1 or 2 arguments, but "
             << message.get_data().size()
-            << " argument(s) were supplied. "
-            << "This message will be ignored."
+            << " argument(s) were supplied. This message will be ignored."
             << std::endl;
 
         return {};

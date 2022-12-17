@@ -1,12 +1,7 @@
-#include <atomic>
-#include <chrono>
-#include <functional>
 #include <iostream>
 #include <iterator>
 #include <sstream>
-#include <string>
 #include <thread>
-#include <vector>
 
 #include "device.h"
 #include "message.h"
@@ -17,8 +12,7 @@ const std::chrono::high_resolution_clock::duration timeout{
 
 int main(int argc, char *argv[]) {
     if (argc < 2) {
-        std::cout << "Usage: "
-            << "./client client_name [target_name header data...]"
+        std::cout << "Usage: ./client client_name [target_name header data...]"
             << std::endl;
 
         return -1;

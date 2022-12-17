@@ -1,13 +1,5 @@
 #include "thread_pool.h"
 
-#include <atomic>
-#include <condition_variable>
-#include <functional>
-#include <list>
-#include <mutex>
-#include <queue>
-#include <thread>
-
 namespace Revolution {
     ThreadPool::ThreadPool(const unsigned int& thread_count) : status{true} {
         for (unsigned int i = 0; i < thread_count; ++i)
@@ -28,28 +20,6 @@ namespace Revolution {
         get_functions().push(function);
 
         get_condition_variable().notify_one();
-    }
-
-    const std::atomic_bool& ThreadPool::get_status() const {
-        return status;
-    }
-
-    const std::list<std::thread>& ThreadPool::get_threads() const {
-        return threads;
-    }
-
-    const std::queue<std::function<void()>>&
-            ThreadPool::get_functions() const {
-        return functions;
-    }
-
-    const std::mutex& ThreadPool::get_mutex() const {
-        return mutex;
-    }
-
-    const std::condition_variable&
-            ThreadPool::get_condition_variable() const {
-        return condition_variable;
     }
 
     std::atomic_bool& ThreadPool::get_status() {

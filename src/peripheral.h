@@ -1,15 +1,7 @@
 #ifndef REVOLUTION_PERIPHERAL_H
 #define REVOLUTION_PERIPHERAL_H
 
-#include <functional>
-#include <mutex>
-#include <optional>
-#include <string>
-#include <unordered_map>
-
 #include "application.h"
-#include "configuration.h"
-#include "message.h"
 
 namespace Revolution {
     class Peripheral : public Application {
@@ -26,18 +18,11 @@ namespace Revolution {
 
         virtual void setup() override;
     private:
-        const std::unordered_map<
-            std::string,
-            std::function<void(const std::string&, const std::string&)>
-        >& get_watchers() const;
-        const std::mutex& get_mutex() const;
-
         std::unordered_map<
             std::string,
             std::function<void(const std::string&, const std::string&)>
         >& get_watchers();
         std::mutex& get_mutex();
-
         std::optional<
             const std::reference_wrapper<
                 const std::function<

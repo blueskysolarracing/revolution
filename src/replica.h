@@ -1,14 +1,7 @@
 #ifndef REVOLUTION_REPLICA_H
 #define REVOLUTION_REPLICA_H
 
-#include <chrono>
-#include <mutex>
-#include <string>
-#include <vector>
-
 #include "application.h"
-#include "configuration.h"
-#include "message.h"
 
 namespace Revolution {
     class Replica : public Application {
@@ -22,18 +15,15 @@ namespace Revolution {
     protected:
         void setup() override;
     private:
+        static const unsigned int& get_default_thread_count();
+
         static const unsigned int default_thread_count;
         static const std::chrono::high_resolution_clock::duration
             message_queue_timeout;
 
-        static const unsigned int& get_default_thread_count();
-
         const std::string& get_name() const override;
         const std::chrono::high_resolution_clock::duration&
             get_message_queue_timeout() const override;
-
-        const std::vector<std::string>& get_data() const;
-        const std::mutex& get_mutex() const;
 
         std::vector<std::string>& get_data();
         std::mutex& get_mutex();
