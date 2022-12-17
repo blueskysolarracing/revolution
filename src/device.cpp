@@ -282,7 +282,7 @@ namespace Revolution {
             const std::string& consumer_name
     ) const {
         std::vector<int> raw_values(offsets.size(), 0);
-        bool active_low = static_cast<bool>(active);
+        auto active_low = static_cast<bool>(active);
         auto return_value = gpiod_ctxless_get_value_multiple(
             get_name().data(),
             offsets.data(),
@@ -311,7 +311,7 @@ namespace Revolution {
         assert(offsets.size() == values.size());
 
         std::vector<int> raw_values{values.begin(), values.end()};
-        bool active_low = static_cast<bool>(active);
+        auto active_low = static_cast<bool>(active);
         auto return_value = gpiod_ctxless_set_value_multiple(
             get_name().data(),
             offsets.data(),
@@ -333,7 +333,8 @@ namespace Revolution {
 
     struct GPIOEventData {
         const std::atomic_bool& status;
-        const std::function<void(const GPIO::Event&, const unsigned int&)>& callback;
+        const std::function<void(const GPIO::Event&, const unsigned int&)>&
+            callback;
     };
 
     static int handle_gpio_event(
@@ -372,8 +373,8 @@ namespace Revolution {
             const std::function<void(const Event&, const unsigned int&)>&
                 callback
     ) const {
-        int event_type = static_cast<int>(event);
-        bool active_low = static_cast<bool>(active);
+        auto event_type = static_cast<int>(event);
+        auto active_low = static_cast<bool>(active);
         auto time_specification = convert_to_time_specification(timeout);
         GPIOEventData gpio_event_data{status, callback};
         auto return_value = gpiod_ctxless_event_monitor_multiple(
@@ -397,7 +398,7 @@ namespace Revolution {
             };
     }
 
-    static void help_write(
+    static void write_to_file(
         const std::string& filename,
         const std::string& data
     ) {
@@ -410,13 +411,31 @@ namespace Revolution {
     }
 
     void PWM::enable(
-            const unsigned int& period,
-            const unsigned int& duty_cycle,
+            const unsigned int& channel_index,
+            const std::chrono::high_resolution_clock::duration& period,
+            const std::chrono::high_resolution_clock::duration& duty_cycle,
             const Polarity& polarity
     ) const {
-        help_write(get_name() + "../export", "0");
-        help_write(get_name() + "/period", std::to_string(period));
-        help_write(get_name() + "/duty_cycle", std::to_string(duty_cycle));
+        write_to_file(get_name() + "/export", std::to_string(channel_index));
+
+        auto directory_name = get_name()
+            + "/pwmchip"
+            + std::to_string(channel_index);
+
+        write_to_file(
+            directory_name + "/period",
+            std::to_string(
+                std::chrono::duration_cast<std::chrono::nanoseconds>(period)
+                    .count()
+            )
+        );
+        write_to_file(
+            directory_name + "/duty_cycle",
+            std::to_string(
+                std::chrono::duration_cast<std::chrono::nanoseconds>(duty_cycle)
+                    .count()
+            )
+        );
 
         std::string raw_polarity;
 
@@ -431,12 +450,20 @@ namespace Revolution {
                 throw std::domain_error{"Unknown polarity encountered"};
         }
 
-        help_write(get_name() + "/polarity", raw_polarity);
-        help_write(get_name() + "/enable", "1");
+        write_to_file(directory_name + "/polarity", raw_polarity);
+        write_to_file(directory_name + "/enable", "1");
+        write_to_file(get_name() + "/unexport", std::to_string(channel_index));
     }
 
-    void PWM::disable() const {
-        help_write(get_name() + "/enable", "0");
+    void PWM::disable(const unsigned int& channel_index) const {
+        write_to_file(get_name() + "/export", std::to_string(channel_index));
+
+        auto directory_name = get_name()
+            + "/pwmchip"
+            + std::to_string(channel_index);
+
+        write_to_file(directory_name + "/enable", "0");
+        write_to_file(get_name() + "/unexport", std::to_string(channel_index));
     }
 
     static void transfer_spi(
@@ -465,7 +492,7 @@ namespace Revolution {
         auto requested_mode = mode;
         auto requested_word_bit_count = word_bit_count;
         auto requested_speed = speed;
-        int return_value = ioctl(
+        auto return_value = ioctl(
             descriptor,
             SPI_IOC_WR_MODE32,
             &requested_mode
@@ -642,7 +669,7 @@ namespace Revolution {
     }
 
     std::string SPI::receive(
-            const std::size_t& data_size,
+            const std::string::size_type& data_size,
             const SPI::Mode& mode,
             const unsigned int& speed,
             const unsigned char& word_bit_count
@@ -802,7 +829,7 @@ namespace Revolution {
     }
 
     std::string UART::receive(
-            const std::size_t& max_data_size,
+            const std::string::size_type& max_data_size,
             const BaudRate& baud_rate
     ) const {
         std::string data(max_data_size, '\0');

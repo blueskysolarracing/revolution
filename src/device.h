@@ -129,11 +129,12 @@ namespace Revolution {
         };
 
         void enable(
-            const unsigned int& period,
-            const unsigned int& duty_cycle,
+            const unsigned int& channel_index,
+            const std::chrono::high_resolution_clock::duration& period,
+            const std::chrono::high_resolution_clock::duration& duty_cycle,
             const Polarity& polarity
         ) const;
-        void disable() const;
+        void disable(const unsigned int& channel_index) const;
     };
 
     class SPI : public Device {
@@ -166,7 +167,7 @@ namespace Revolution {
             const unsigned char& word_bit_count
         ) const;
         std::string receive(
-            const std::size_t& data_size,
+            const std::string::size_type& data_size,
             const SPI::Mode& mode,
             const unsigned int& speed,
             const unsigned char& word_bit_count
@@ -213,7 +214,7 @@ namespace Revolution {
             const BaudRate& baud_rate
         ) const;
         std::string receive(
-            const std::size_t& max_data_size,
+            const std::string::size_type& max_data_size,
             const BaudRate& baud_rate
         ) const;
     };
