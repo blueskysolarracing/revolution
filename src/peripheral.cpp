@@ -124,7 +124,7 @@ namespace Revolution {
             << std::endl;
 
         if (watcher)
-            watcher.value()(key, value);
+            (*watcher)(key, value);
 
         return {};
     }

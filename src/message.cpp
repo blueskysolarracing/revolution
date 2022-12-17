@@ -54,7 +54,7 @@ namespace Revolution {
             header{header},
             data{data},
             priority{priority},
-            identifier{identifier ? identifier.value() : get_count()++} {}
+            identifier{identifier ? *identifier : get_count()++} {}
 
     bool Message::operator==(const Message& that) const {
         return get_sender_name() == that.get_sender_name()

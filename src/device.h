@@ -9,15 +9,26 @@
 #include <string>
 #include <vector>
 
-#include <fcntl.h>
 #include <gpiod.h>
-#include <linux/spi/spi.h>
+#include <linux/spi/spidev.h>
+#include <mqueue.h>
 #include <termios.h>
 
 namespace Revolution {
+    enum class OpenFlag {
+        readonly = O_RDONLY,
+        writeonly = O_WRONLY,
+        read_write = O_RDWR,
+        close_on_execution = O_CLOEXEC,
+        create = O_CREAT,
+        error_if_exists = O_EXCL,
+        non_blocking_mode = O_NONBLOCK,
+        non_controlled_terminal_device = O_NOCTTY
+    };
+
     class Device {
     public:
-        Device(const std::string& name);
+        explicit Device(const std::string& name);
 
         const std::string& get_name() const;
     private:
@@ -26,16 +37,6 @@ namespace Revolution {
 
     class MessageQueue : public Device {
     public:
-        enum class Flag {
-            readonly = O_RDONLY,
-            writeonly = O_WRONLY,
-            read_and_write = O_RDWR,
-            close_on_execution = O_CLOEXEC,
-            create = O_CREAT,
-            error_if_exists = O_EXCL,
-            non_blocking = O_NONBLOCK
-        };
-
         class Configuration {
         public:
             Configuration(
@@ -52,35 +53,48 @@ namespace Revolution {
 
         using Mode = mode_t;
 
-        using Device::Device;
-
-        std::string receive(
-            const std::vector<Flag> flags = {Flag::readonly, Flag::create},
+        explicit MessageQueue(
+            const std::string& name, 
+            const std::vector<OpenFlag>& open_flags = {
+                OpenFlag::read_write,
+                OpenFlag::create
+            },
             const Mode& mode = 0600,
             const std::optional<Configuration>& configuration = std::nullopt
-        ) const;
+        );
+        ~MessageQueue();
+
+        std::string receive() const;
         void send(
             const std::string& raw_message,
-            const unsigned int& priority,
-            const std::vector<Flag> flags = {Flag::writeonly, Flag::create},
-            const Mode& mode = 0600,
-            const std::optional<Configuration>& configuration = std::nullopt
+            const unsigned int& priority
         ) const;
         std::string timed_receive(
-            const std::chrono::high_resolution_clock::duration& timeout,
-            const std::vector<Flag> flags = {Flag::readonly, Flag::create},
-            const Mode& mode = 0600,
-            const std::optional<Configuration>& configuration = std::nullopt
+            const std::chrono::high_resolution_clock::duration& timeout
         ) const;
         void unlink() const;
+
         void monitor(
             const std::atomic_bool& status,
             const std::chrono::high_resolution_clock::duration& timeout,
-            const std::function<void(const std::string&)>& callback,
-            const std::vector<Flag> flags = {Flag::readonly, Flag::create},
-            const Mode& mode = 0600,
-            const std::optional<Configuration>& configuration = std::nullopt
+            const std::function<void(const std::string&)>& callback
         ) const;
+    private:
+        using Descriptor = mqd_t;
+        using Attributes = mq_attr;
+
+        const Descriptor& get_descriptor() const;
+        Descriptor& get_descriptor();
+        Attributes get_attributes() const;
+
+        void open(
+            const std::vector<OpenFlag>& flags,
+            const Mode& mode,
+            const std::optional<Configuration>& configuration
+        );
+        void close();
+
+        Descriptor descriptor;
     };
 
     class GPIO : public Device {
@@ -123,66 +137,115 @@ namespace Revolution {
 
     class PWM : public Device {
     public:
-        using Device::Device;
-
         enum class Polarity {
             normal,
             inversed
         };
 
+        explicit PWM(const unsigned int& index);
+        ~PWM();
+
+        const unsigned int& get_index() const;
+
         void enable(
-            const unsigned int& channel_index,
             const std::chrono::high_resolution_clock::duration& period,
             const std::chrono::high_resolution_clock::duration& duty_cycle,
             const Polarity& polarity
         ) const;
-        void disable(const unsigned int& channel_index) const;
+        void disable() const;
+    private:
+        static const std::string& get_path();
+        static const std::string& get_name_prefix();
+
+        static const std::string path;
+        static const std::string name_prefix;
+
+        void write(const std::string& filename, const std::string& data) const;
+        void set_attribute(
+            const std::string& key,
+            const std::string& value
+        ) const;
+
+        const unsigned int index;
     };
 
-    class SPI : public Device {
+    class DevDevice : public Device {
+    public:
+        DevDevice(
+            const std::string& name,
+            const std::vector<OpenFlag>& open_flags
+        );
+        ~DevDevice();
+    protected:
+        const int& get_descriptor() const;
+
+        std::string read(const std::string::size_type& max_data_size) const;
+        void write(const std::string& data) const;
+        void ioctl(const unsigned long& request, void* const& data) const;
+    private:
+        static const std::string& get_path();
+
+        static const std::string path;
+
+        int& get_descriptor();
+
+        void open(const std::vector<OpenFlag>& open_flags);
+        void close();
+
+        int descriptor;
+    };
+
+    class SPI : public DevDevice {
     public:
         enum class Mode {
              clock_phase = SPI_CPHA,
              clock_polarity = SPI_CPOL,
              chipselect_active_high = SPI_CS_HIGH,
-             per_word_bits_on_wire = SPI_LSB_FIRST,
-             slave_in_slave_out_signals_shared = SPI_3WIRE,
-             loopback_mode = SPI_LOOP,
+             least_significant_bit_first = SPI_LSB_FIRST,
+             share_slave_in_slave_out = SPI_3WIRE,
+             loopback = SPI_LOOP,
              no_chip_select = SPI_NO_CS,
-             slave_pulls_low_to_pause = SPI_READY,
-             transmit_with_two_wires = SPI_TX_DUAL,
-             transmit_with_four_wires = SPI_TX_QUAD,
-             receive_with_two_wires = SPI_RX_DUAL,
-             receive_with_four_wires = SPI_RX_QUAD,
-             toggle_chipselect_after_each_word = SPI_CS_WORD,
-             transmit_with_eight_wires = SPI_TX_OCTAL,
-             receive_with_eight_wires = SPI_RX_OCTAL,
+             ready = SPI_READY,
+             transmit_dual = SPI_TX_DUAL,
+             transmit_quad = SPI_TX_QUAD,
+             receive_dual = SPI_RX_DUAL,
+             receive_quad = SPI_RX_QUAD,
+             chipselect_word = SPI_CS_WORD,
+             transmit_octal = SPI_TX_OCTAL,
+             receive_octal = SPI_RX_OCTAL,
              high_impedance_turnaround = SPI_3WIRE_HIZ,
         };
 
-        using Device::Device;
+        explicit SPI(
+            const std::string& name,
+            const std::vector<Mode>& modes,
+            const unsigned int& speed_hz,
+            const unsigned char& bits_per_word
+        );
 
-        void transmit(
-            const std::string& data,
-            const std::vector<SPI::Mode>& modes,
-            const unsigned int& speed_hz,
-            const unsigned char& bits_per_word
-        ) const;
-        std::string receive(
-            const std::string::size_type& data_size,
-            const std::vector<SPI::Mode>& modes,
-            const unsigned int& speed_hz,
-            const unsigned char& bits_per_word
-        ) const;
+        const std::vector<Mode>& get_modes() const;
+        const unsigned int& get_speed_hz() const;
+        const unsigned char& get_bits_per_word() const;
+
+        void transmit(const std::string& data) const;
+        std::string receive(const std::string::size_type& data_size) const;
         std::string transmit_and_receive(
-            const std::string& data,
-            const std::vector<SPI::Mode>& modes,
-            const unsigned int& speed_hz,
-            const unsigned char& bits_per_word
+            const std::string& transmitted_data
         ) const;
+    private:
+        using Attributes = spi_ioc_transfer;
+
+        void transfer(
+            const std::optional<std::string>& transmitted_data,
+            std::optional<std::string> received_data
+        ) const;
+
+        const std::vector<Mode> modes;
+        const unsigned int speed_hz;
+        const unsigned char bits_per_word;
     };
 
-    class UART : public Device {
+    class UART : public DevDevice {
     public:
         enum class BaudRate {
             BR0 = B0,
@@ -206,16 +269,15 @@ namespace Revolution {
             BR230400 = B230400
         };
 
-        using Device::Device;
+        explicit UART(const std::string& name, const BaudRate& baud_rate);
 
-        void transmit(
-            const std::string& data,
-            const BaudRate& baud_rate
-        ) const;
-        std::string receive(
-            const std::string::size_type& max_data_size,
-            const BaudRate& baud_rate
-        ) const;
+        void transmit(const std::string& data) const;
+        std::string receive(const std::string::size_type& max_data_size) const;
+    private:
+        using Attributes = termios;
+
+        Attributes get_attributes() const;
+        void set_attributes(const Attributes& attributes) const;
     };
 }
 

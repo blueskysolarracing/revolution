@@ -249,7 +249,7 @@ namespace Revolution {
         while (!get_responses().at(message.get_identifier()))
             get_response_condition_variable().wait(lock);
 
-        auto response = get_responses().at(message.get_identifier()).value();
+        auto response = *get_responses().at(message.get_identifier());
 
         get_responses().erase(message.get_identifier());
 
@@ -361,7 +361,7 @@ namespace Revolution {
             return;
         }
 
-        auto data = handler.value()(message);
+        auto data = (*handler)(message);
 
         get_logger() << Logger::Severity::information
             << "Sending response..."
@@ -388,5 +388,6 @@ namespace Revolution {
                 handle(message);
             }
         );
+        message_queue.unlink();
     }
 }

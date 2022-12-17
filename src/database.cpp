@@ -37,7 +37,7 @@ namespace Revolution {
     const unsigned int Database::default_thread_count{4};
 
     const std::chrono::high_resolution_clock::duration Database::timeout{
-        std::chrono::seconds(1)
+        std::chrono::milliseconds(500)
     };
 
     const unsigned int& Database::get_default_thread_count() {

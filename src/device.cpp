@@ -1,30 +1,29 @@
 #include "device.h"
 
-#include <atomic>
 #include <cassert>
 #include <cerrno>
-#include <chrono>
-#include <cstddef>
 #include <ctime>
 #include <fstream>
-#include <functional>
-#include <optional>
 #include <stdexcept>
-#include <string>
 #include <system_error>
-#include <vector>
 
-#include <fcntl.h>
-#include <gpiod.h>
-#include <linux/spi/spidev.h>
-#include <linux/spi/spi.h>
-#include <mqueue.h>
 #include <sys/ioctl.h>
-#include <sys/stat.h>
-#include <termios.h>
-#include <unistd.h>
 
 namespace Revolution {
+    static std::timespec convert_to_time_specification(
+            const std::chrono::high_resolution_clock::duration& timeout
+    ) {
+        auto second = std::chrono::duration_cast<std::chrono::seconds>(
+            timeout
+        );
+        auto nanosecond = std::chrono::duration_cast<std::chrono::nanoseconds>(
+            timeout - second
+        );
+        std::timespec time_specification{second.count(), nanosecond.count()};
+
+        return time_specification;
+    }
+
     Device::Device(const std::string& name) : name{name} {}
 
     const std::string& Device::get_name() const {
@@ -48,93 +47,28 @@ namespace Revolution {
         return max_message_size;
     }
 
-    static mqd_t open_message_queue(
-            const std::string& name,
-            const std::vector<MessageQueue::Flag>& flags,
-            const MessageQueue::Mode& mode,
-            const std::optional<MessageQueue::Configuration> configuration
-    ) {
-        int open_flag{};
-
-        for (const auto& flag : flags)
-            open_flag |= static_cast<int>(flag);
-
-        mq_attr attributes;
-        mq_attr* attributes_pointer;
-
-        if (configuration) {
-            attributes.mq_maxmsg = configuration.value()
-                .get_max_message_count();
-            attributes.mq_msgsize = configuration.value()
-                .get_max_message_size();
-            attributes_pointer = &attributes;
-        } else
-            attributes_pointer = nullptr;
-
-        auto descriptor = mq_open(
-            name.data(),
-            open_flag,
-            (mode_t) mode,
-            attributes_pointer
-        );
-
-        if (descriptor == (mqd_t) - 1)
-            throw std::system_error{
-                errno,
-                std::system_category(),
-                "Unable to open the message queue"
-            };
-
-        return descriptor;
-    }
-
-    static void close_message_queue(const mqd_t& descriptor) {
-        auto return_value = mq_close(descriptor);
-
-        if (return_value < 0)
-            throw std::system_error{
-                errno,
-                std::system_category(),
-                "Unable to close the message queue"
-            };
-    }
-
-    static mq_attr get_message_queue_attributes(const mqd_t& descriptor) {
-        mq_attr attributes;
-        auto return_value = mq_getattr(descriptor, &attributes);
-
-        if (return_value < 0)
-            throw std::system_error{
-                errno,
-                std::system_category(),
-                "Unable to get the message queue attributes"
-            };
-
-        return attributes;
-    }
-
-    std::string MessageQueue::receive(
-            const std::vector<Flag> flags,
+    MessageQueue::MessageQueue(
+            const std::string& name, 
+            const std::vector<OpenFlag>& open_flags,
             const Mode& mode,
             const std::optional<Configuration>& configuration
-    ) const {
-        auto descriptor = open_message_queue(
-            get_name(),
-            flags,
-            mode,
-            configuration
-        );
-        auto attributes = get_message_queue_attributes(descriptor);
-        std::string raw_message(attributes.mq_msgsize, '\0');
+    ) : Device{name} {
+        open(open_flags, mode, configuration);
+    }
+
+    MessageQueue::~MessageQueue() {
+        close();
+    }
+
+    std::string MessageQueue::receive() const {
+        std::string raw_message(get_attributes().mq_msgsize, '\0');
         unsigned int priority;
         auto received_size = mq_receive(
-            descriptor,
+            get_descriptor(),
             raw_message.data(),
             raw_message.size(),
             &priority
         );
-
-        close_message_queue(descriptor);
 
         if (received_size < 0)
             throw std::system_error{
@@ -150,25 +84,14 @@ namespace Revolution {
 
     void MessageQueue::send(
             const std::string& raw_message,
-            const unsigned int& priority,
-            const std::vector<Flag> flags,
-            const Mode& mode,
-            const std::optional<Configuration>& configuration
+            const unsigned int& priority
     ) const {
-        auto descriptor = open_message_queue(
-            get_name(),
-            flags,
-            mode,
-            configuration
-        );
         auto received_size = mq_send(
-            descriptor,
+            get_descriptor(),
             raw_message.data(),
             raw_message.size(),
             priority
         );
-
-        close_message_queue(descriptor);
 
         if (received_size < 0)
             throw std::system_error{
@@ -178,49 +101,23 @@ namespace Revolution {
             };
     }
 
-    static std::timespec convert_to_time_specification(
-            const std::chrono::high_resolution_clock::duration& timeout
-    ) {
-        auto second = std::chrono::duration_cast<std::chrono::seconds>(
-            timeout
-        );
-        auto nanosecond = std::chrono::duration_cast<std::chrono::nanoseconds>(
-            timeout - second
-        );
-        std::timespec time_specification{second.count(), nanosecond.count()};
-
-        return time_specification;
-    }
-
     std::string MessageQueue::timed_receive(
-            const std::chrono::high_resolution_clock::duration& timeout,
-            const std::vector<Flag> flags,
-            const Mode& mode,
-            const std::optional<Configuration>& configuration
+            const std::chrono::high_resolution_clock::duration& timeout
     ) const {
         auto absolute_timeout = timeout
             + std::chrono::high_resolution_clock::now().time_since_epoch();
         auto time_specification = convert_to_time_specification(
             absolute_timeout
         );
-        auto descriptor = open_message_queue(
-            get_name(),
-            flags,
-            mode,
-            configuration
-        );
-        auto attributes = get_message_queue_attributes(descriptor);
-        std::string raw_message(attributes.mq_msgsize, '\0');
+        std::string raw_message(get_attributes().mq_msgsize, '\0');
         unsigned int priority;
         auto received_size = mq_timedreceive(
-            descriptor,
+            get_descriptor(),
             raw_message.data(),
             raw_message.size(),
             &priority,
             &time_specification
         );
-
-        close_message_queue(descriptor);
 
         if (received_size < 0)
             throw std::system_error{
@@ -248,19 +145,11 @@ namespace Revolution {
     void MessageQueue::monitor(
             const std::atomic_bool& status,
             const std::chrono::high_resolution_clock::duration& timeout,
-            const std::function<void(const std::string&)>& callback,
-            const std::vector<Flag> flags,
-            const Mode& mode,
-            const std::optional<Configuration>& configuration
+            const std::function<void(const std::string&)>& callback
     ) const {
         while (status) {
             try {
-                auto message = timed_receive(
-                    timeout,
-                    flags,
-                    mode,
-                    configuration
-                );
+                auto message = timed_receive(timeout);
 
                 callback(message);
             } catch (const std::system_error& system_error) {
@@ -273,6 +162,74 @@ namespace Revolution {
                     throw;
             }
         }
+    }
+
+    const MessageQueue::Descriptor& MessageQueue::get_descriptor() const {
+        return descriptor;
+    }
+
+    MessageQueue::Descriptor& MessageQueue::get_descriptor() {
+        return descriptor;
+    }
+
+    MessageQueue::Attributes MessageQueue::get_attributes() const {
+        Attributes attributes;
+        auto return_value = mq_getattr(get_descriptor(), &attributes);
+
+        if (return_value < 0)
+            throw std::system_error{
+                errno,
+                std::system_category(),
+                "Unable to get the message queue attributes"
+            };
+
+        return attributes;
+    }
+
+    void MessageQueue::open(
+            const std::vector<OpenFlag>& open_flags,
+            const MessageQueue::Mode& mode,
+            const std::optional<MessageQueue::Configuration>& configuration
+    ) {
+        int raw_open_flags{};
+
+        for (const auto& open_flag : open_flags)
+            raw_open_flags |= static_cast<int>(open_flag);
+
+        std::optional<Attributes> attributes;
+
+        if (configuration) {
+            attributes = Attributes{};
+            attributes->mq_maxmsg = configuration->get_max_message_count();
+            attributes->mq_msgsize = configuration->get_max_message_size();
+        }
+
+        get_descriptor() = mq_open(
+            get_name().data(),
+            raw_open_flags,
+            mode,
+            attributes ? &*attributes : nullptr
+        );
+
+        if (get_descriptor() == (Descriptor) - 1)
+            throw std::system_error{
+                errno,
+                std::system_category(),
+                "Unable to open the message queue"
+            };
+    }
+
+    void MessageQueue::close() {
+        auto return_value = mq_close(get_descriptor());
+
+        if (return_value < 0)
+            throw std::system_error{
+                errno,
+                std::system_category(),
+                "Unable to close the message queue"
+            };
+
+        get_descriptor() = (Descriptor) - 1;
     }
 
     std::vector<bool> GPIO::get(
@@ -397,42 +354,39 @@ namespace Revolution {
             };
     }
 
-    static void help_write(
-        const std::string& filename,
-        const std::string& data
-    ) {
-        std::ofstream ofstream;
+    PWM::PWM(const unsigned int& index) :
+            Device{get_name_prefix() + std::to_string(index)},
+            index{index} {
+        write("/export", std::to_string(get_index()));
+    }
 
-        ofstream.exceptions(std::ofstream::failbit | std::ofstream::badbit);
-        ofstream.open(filename, std::fstream::out);
-        ofstream << data;
-        ofstream.close();
+    PWM::~PWM() {
+        write("/unexport", std::to_string(get_index()));
+    }
+
+    const unsigned int& PWM::get_index() const {
+        return index;
     }
 
     void PWM::enable(
-            const unsigned int& channel_index,
             const std::chrono::high_resolution_clock::duration& period,
             const std::chrono::high_resolution_clock::duration& duty_cycle,
             const Polarity& polarity
     ) const {
-        help_write(get_name() + "/export", std::to_string(channel_index));
-
-        auto directory_name = get_name()
-            + "/pwmchip"
-            + std::to_string(channel_index);
-
-        help_write(
-            directory_name + "/period",
+        set_attribute(
+            "/period",
             std::to_string(
-                std::chrono::duration_cast<std::chrono::nanoseconds>(period)
-                    .count()
+                std::chrono::duration_cast<std::chrono::nanoseconds>(
+                    period
+                ).count()
             )
         );
-        help_write(
-            directory_name + "/duty_cycle",
+        set_attribute(
+            "/duty_cycle",
             std::to_string(
-                std::chrono::duration_cast<std::chrono::nanoseconds>(duty_cycle)
-                    .count()
+                std::chrono::duration_cast<std::chrono::nanoseconds>(
+                    duty_cycle
+                ).count()
             )
         );
 
@@ -449,55 +403,93 @@ namespace Revolution {
                 throw std::domain_error{"Unknown polarity encountered"};
         }
 
-        help_write(directory_name + "/polarity", raw_polarity);
-        help_write(directory_name + "/enable", "1");
-        help_write(get_name() + "/unexport", std::to_string(channel_index));
+        set_attribute("/polarity", raw_polarity);
+        set_attribute("/enable", "1");
     }
 
-    void PWM::disable(const unsigned int& channel_index) const {
-        help_write(get_name() + "/export", std::to_string(channel_index));
-
-        auto directory_name = get_name()
-            + "/pwmchip"
-            + std::to_string(channel_index);
-
-        help_write(directory_name + "/enable", "0");
-        help_write(get_name() + "/unexport", std::to_string(channel_index));
+    void PWM::disable() const {
+        set_attribute("/enable", "0");
     }
 
-    static int help_open(
+    const std::string& PWM::get_path() {
+        return path;
+    }
+
+    const std::string& PWM::get_name_prefix() {
+        return name_prefix;
+    }
+
+    const std::string PWM::path{"/sys/class/pwm/pwmchip"};
+    const std::string PWM::name_prefix{"/pwmchip"};
+
+    void PWM::write(
             const std::string& filename,
-            const int& flags
-    ) {
-        auto descriptor = open(filename.data(), flags);
+            const std::string& data
+    ) const {
+        std::ofstream ofstream;
 
-        if (descriptor < 0)
-            throw std::system_error{
-                errno,
-                std::system_category(),
-                "Unable to open file."
-            };
+        ofstream.exceptions(std::ofstream::failbit | std::ofstream::badbit);
+        ofstream.open(get_path() + filename, std::fstream::out);
+        ofstream << data;
+        ofstream.close();
+    }
 
+    void PWM::set_attribute(
+            const std::string& key,
+            const std::string& value
+    ) const {
+        write(get_name() + key, value);
+    }
+
+    DevDevice::DevDevice(
+            const std::string& name,
+            const std::vector<OpenFlag>& open_flags
+    ) : Device{name}, descriptor{-1} {
+        open(open_flags);
+    }
+
+    DevDevice::~DevDevice() {
+        close();
+    }
+
+    const int& DevDevice::get_descriptor() const {
         return descriptor;
     }
 
-    static void help_close(const int& descriptor) {
-        auto return_value = close(descriptor);
+    std::string DevDevice::read(
+            const std::string::size_type& max_data_size
+    ) const {
+        std::string data(max_data_size, '\0');
+        auto data_size = ::read(get_descriptor(), data.data(), data.size());
 
-        if (return_value < 0)
+        if (data_size < 0)
             throw std::system_error{
                 errno,
                 std::system_category(),
-                "Unable to close file."
+                "Unable to read from device."
+            };
+
+        data.resize(data_size);
+
+        return data;
+    }
+
+    void DevDevice::write(const std::string& data) const {
+        auto data_size = ::write(get_descriptor(), data.data(), data.size());
+
+        if (data_size < 0)
+            throw std::system_error{
+                errno,
+                std::system_category(),
+                "Unable to write to device."
             };
     }
 
-    static void help_ioctl(
-        const int& descriptor,
-        const unsigned long& request,
-        void* const& data
-    ) {
-        auto return_value = ioctl(descriptor, request, data);
+    void DevDevice::ioctl(
+            const unsigned long& request,
+            void* const& data
+    ) const {
+        auto return_value = ::ioctl(get_descriptor(), request, data);
 
         if (return_value < 0)
             throw std::system_error{
@@ -507,26 +499,136 @@ namespace Revolution {
             };
     }
 
-    static void transfer_spi(
-            const int& descriptor,
-            const std::optional<std::string>& transmitted_data,
-            std::optional<std::string> received_data,
-            const std::vector<SPI::Mode>& modes,
+    const std::string& DevDevice::get_path() {
+        return path;
+    }
+
+    const std::string DevDevice::path{"/dev"};
+
+    int& DevDevice::get_descriptor() {
+        return descriptor;
+    }
+
+    void DevDevice::open(const std::vector<OpenFlag>& open_flags) {
+        int raw_open_flags{};
+
+        for (const auto& open_flag : open_flags)
+            raw_open_flags |= static_cast<int>(open_flag);
+
+        get_descriptor() = ::open(
+            (get_path() + get_name()).data(),
+            raw_open_flags
+        );
+
+        if (get_descriptor() < 0)
+            throw std::system_error{
+                errno,
+                std::system_category(),
+                "Unable to open file."
+            };
+    }
+
+    void DevDevice::close() {
+        auto return_value = ::close(get_descriptor());
+
+        if (return_value < 0)
+            throw std::system_error{
+                errno,
+                std::system_category(),
+                "Unable to close file."
+            };
+
+        get_descriptor() = -1;
+    }
+
+    SPI::SPI(
+            const std::string& name,
+            const std::vector<Mode>& modes,
             const unsigned int& speed_hz,
             const unsigned char& bits_per_word
-    ) {
+    ) :
+            DevDevice{name, {OpenFlag::read_write}},
+            modes{modes},
+            speed_hz{speed_hz},
+            bits_per_word{bits_per_word} {
+        int raw_mode{};
+
+        for (const auto& mode : modes)
+            raw_mode |= static_cast<int>(mode);
+
+        auto requested_raw_mode = raw_mode;
+        auto requested_bits_per_word = get_bits_per_word();
+        auto requested_speed_hz = get_speed_hz();
+
+        ioctl(SPI_IOC_WR_MODE32, &requested_raw_mode);
+        ioctl(SPI_IOC_RD_MODE32, &requested_raw_mode);
+        ioctl(SPI_IOC_WR_MAX_SPEED_HZ, &requested_speed_hz);
+        ioctl(SPI_IOC_RD_MAX_SPEED_HZ, &requested_speed_hz);
+        ioctl(SPI_IOC_WR_BITS_PER_WORD, &requested_bits_per_word);
+        ioctl(SPI_IOC_RD_BITS_PER_WORD, &requested_bits_per_word);
+
+        if (requested_raw_mode != raw_mode)
+            throw std::domain_error{
+                "Requested spi mode is not supported by hardware."
+            };
+        else if (requested_speed_hz != get_speed_hz())
+            throw std::domain_error{
+                "Requested spi max speed is not supported by hardware."
+            };
+        else if (requested_bits_per_word != get_bits_per_word())
+            throw std::domain_error{
+                "Requested spi bits per word is not supported by hardware."
+            };
+    }
+
+    const std::vector<SPI::Mode>& SPI::get_modes() const {
+        return modes;
+    }
+
+    const unsigned int& SPI::get_speed_hz() const {
+        return speed_hz;
+    }
+
+    const unsigned char& SPI::get_bits_per_word() const {
+        return bits_per_word;
+    }
+
+    void SPI::transmit(const std::string& data) const {
+        transfer(data, std::nullopt);
+    }
+
+    std::string SPI::receive(const std::string::size_type& data_size) const {
+        std::string data(data_size, '\0');
+
+        transfer(std::nullopt, data);
+
+        return data;
+    }
+
+    std::string SPI::transmit_and_receive(
+            const std::string& transmitted_data
+    ) const {
+        std::string received_data(transmitted_data.size(), '\0');
+
+        transfer(transmitted_data, received_data);
+
+        return received_data;
+    }
+
+    void SPI::transfer(
+            const std::optional<std::string>& transmitted_data,
+            std::optional<std::string> received_data
+    ) const {
         unsigned int data_size;
 
         if (transmitted_data && received_data) {
-            assert(
-                transmitted_data.value().size() == received_data.value().size()
-            );
+            assert(transmitted_data->size() == received_data->size());
 
-            data_size = transmitted_data.value().size();
+            data_size = transmitted_data->size();
         } else if (transmitted_data)
-            data_size = transmitted_data.value().size();
+            data_size = transmitted_data->size();
         else if (received_data)
-            data_size = received_data.value().size();
+            data_size = received_data->size();
         else
             throw std::domain_error{
                 "None of transmitted or received data supplied."
@@ -534,168 +636,59 @@ namespace Revolution {
 
         int raw_mode{};
 
-        for (const auto& mode : modes)
+        for (const auto& mode : get_modes())
             raw_mode |= static_cast<int>(mode);
 
-        auto requested_raw_mode = raw_mode;
-        auto requested_bits_per_word = bits_per_word;
-        auto requested_speed_hz = speed_hz;
+        Attributes attributes;
 
-        help_ioctl(descriptor, SPI_IOC_WR_MODE32, &requested_raw_mode);
-        help_ioctl(descriptor, SPI_IOC_RD_MODE32, &requested_raw_mode);
-
-        if (requested_raw_mode != raw_mode)
-            throw std::domain_error{
-                "Requested spi mode is not supported by hardware."
-            };
-
-        help_ioctl(descriptor, SPI_IOC_WR_MAX_SPEED_HZ, &requested_speed_hz);
-        help_ioctl(descriptor, SPI_IOC_RD_MAX_SPEED_HZ, &requested_speed_hz);
-
-        if (requested_speed_hz != speed_hz)
-            throw std::domain_error{
-                "Requested spi max speed is not supported by hardware."
-            };
-
-        help_ioctl(
-            descriptor,
-            SPI_IOC_WR_BITS_PER_WORD,
-            &requested_bits_per_word
+        attributes.tx_buf = (unsigned long long) (
+            transmitted_data ? transmitted_data->data() : nullptr
         );
-        help_ioctl(
-            descriptor,
-            SPI_IOC_RD_BITS_PER_WORD,
-            &requested_bits_per_word
+        attributes.rx_buf = (unsigned long long) (
+            received_data ? received_data->data() : nullptr
         );
+        attributes.len = data_size;
+        attributes.speed_hz = get_speed_hz();
+        attributes.bits_per_word = get_bits_per_word();
 
-        if (requested_bits_per_word != bits_per_word)
-            throw std::domain_error{
-                "Requested spi bits per word is not supported by hardware."
-            };
-
-        unsigned char transmitted_bit_count;
-        unsigned char received_bit_count;
-
-        if (static_cast<int>(raw_mode) & SPI_TX_OCTAL)
-            transmitted_bit_count = 8;
-        else if (static_cast<int>(raw_mode) & SPI_TX_QUAD)
-            transmitted_bit_count = 4;
-        else if (static_cast<int>(raw_mode) & SPI_TX_DUAL)
-            transmitted_bit_count = 2;
+        if (static_cast<int>(raw_mode)
+                & static_cast<int>(Mode::transmit_octal))
+            attributes.tx_nbits = 8;
+        else if (static_cast<int>(raw_mode)
+                & static_cast<int>(Mode::transmit_quad))
+            attributes.tx_nbits = 4;
+        else if (static_cast<int>(raw_mode)
+                & static_cast<int>(Mode::transmit_dual))
+            attributes.tx_nbits = 2;
         else
-            transmitted_bit_count = 0;
+            attributes.tx_nbits = 0;
 
-        if (static_cast<int>(raw_mode) & SPI_RX_OCTAL)
-            received_bit_count = 8;
-        else if (static_cast<int>(raw_mode) & SPI_RX_QUAD)
-            received_bit_count = 4;
-        else if (static_cast<int>(raw_mode) & SPI_RX_DUAL)
-            received_bit_count = 2;
+        if (static_cast<int>(raw_mode)
+                & static_cast<int>(Mode::receive_octal))
+            attributes.rx_nbits = 8;
+        else if (static_cast<int>(raw_mode)
+                & static_cast<int>(Mode::receive_quad))
+            attributes.rx_nbits = 4;
+        else if (static_cast<int>(raw_mode)
+                & static_cast<int>(Mode::receive_dual))
+            attributes.rx_nbits = 2;
         else
-            received_bit_count = 0;
+            attributes.rx_nbits = 0;
 
-        spi_ioc_transfer spi_ioc_transfer_attributes;
-
-        spi_ioc_transfer_attributes.tx_buf = (unsigned long long) (
-            transmitted_data ? transmitted_data.value().data() : nullptr
-        );
-        spi_ioc_transfer_attributes.rx_buf = (unsigned long long) (
-            received_data ? received_data.value().data() : nullptr
-        );
-        spi_ioc_transfer_attributes.len = data_size;
-        spi_ioc_transfer_attributes.speed_hz = speed_hz;
-        spi_ioc_transfer_attributes.bits_per_word = bits_per_word;
-        spi_ioc_transfer_attributes.tx_nbits = transmitted_bit_count;
-        spi_ioc_transfer_attributes.rx_nbits = received_bit_count;
-
-        help_ioctl(
-            descriptor,
-            SPI_IOC_MESSAGE(1),
-            &spi_ioc_transfer_attributes
-        );
+        ioctl(SPI_IOC_MESSAGE(1), &attributes);
     }
 
-    void SPI::transmit(
-            const std::string& data,
-            const std::vector<SPI::Mode>& modes,
-            const unsigned int& speed_hz,
-            const unsigned char& bits_per_word
-    ) const {
-        auto descriptor = help_open(get_name().data(), O_RDWR);
-
-        transfer_spi(
-            descriptor,
-            data,
-            std::nullopt,
-            modes,
-            speed_hz,
-            bits_per_word
-        );
-        help_close(descriptor);
-    }
-
-    std::string SPI::receive(
-            const std::string::size_type& data_size,
-            const std::vector<SPI::Mode>& modes,
-            const unsigned int& speed_hz,
-            const unsigned char& bits_per_word
-    ) const {
-        std::string data(data_size, '\0');
-        auto descriptor = help_open(get_name().data(), O_RDWR);
-
-        transfer_spi(
-            descriptor,
-            std::nullopt,
-            data,
-            modes,
-            speed_hz,
-            bits_per_word
-        );
-        help_close(descriptor);
-
-        return data;
-    }
-
-    std::string SPI::transmit_and_receive(
-            const std::string& data,
-            const std::vector<SPI::Mode>& modes,
-            const unsigned int& speed_hz,
-            const unsigned char& bits_per_word
-    ) const {
-        std::string received_data(data.size(), '\0');
-        auto descriptor = help_open(get_name().data(), O_RDWR);
-
-        transfer_spi(
-            descriptor,
-            data,
-            received_data,
-            modes,
-            speed_hz,
-            bits_per_word
-        );
-        help_close(descriptor);
-
-        return received_data;
-    }
-
-    static void configure_uart(
-            int descriptor,
-            const UART::BaudRate& baud_rate
-    ) {
-        termios termios_attributes;
-        auto return_value = tcgetattr(descriptor, &termios_attributes);
-
-        if (return_value < 0)
-            throw std::system_error{
-                errno,
-                std::system_category(),
-                "Unable to get termios attributes."
-            };
-
-        return_value = cfsetspeed(
-            &termios_attributes,
-            static_cast<int>(baud_rate)
-        );
+    UART::UART(const std::string& name, const BaudRate& baud_rate) :
+            DevDevice{
+                name,
+                {
+                    OpenFlag::read_write,
+                    OpenFlag::non_blocking_mode,
+                    OpenFlag::non_controlled_terminal_device
+                }
+            } {
+        auto attributes = get_attributes();
+        auto return_value = cfsetspeed(&attributes, static_cast<int>(baud_rate));
 
         if (return_value < 0)
             throw std::system_error{
@@ -704,9 +697,37 @@ namespace Revolution {
                 "Unable to set baud rate."
             };
 
-        cfmakeraw(&termios_attributes);
+        cfmakeraw(&attributes);
 
-        return_value = tcsetattr(descriptor, TCSANOW, &termios_attributes);
+        set_attributes(attributes);
+    }
+
+    void UART::transmit(const std::string& data) const {
+        write(data);
+    }
+
+    std::string UART::receive(
+            const std::string::size_type& max_data_size
+    ) const {
+        return read(max_data_size);
+    }
+
+    UART::Attributes UART::get_attributes() const {
+        Attributes attributes;
+        auto return_value = tcgetattr(get_descriptor(), &attributes);
+
+        if (return_value < 0)
+            throw std::system_error{
+                errno,
+                std::system_category(),
+                "Unable to get termios attributes."
+            };
+
+        return attributes;
+    }
+
+    void UART::set_attributes(const Attributes& attributes) const {
+        auto return_value = tcsetattr(get_descriptor(), TCSANOW, &attributes);
 
         if (return_value < 0)
             throw std::system_error{
@@ -714,52 +735,5 @@ namespace Revolution {
                 std::system_category(),
                 "Unable to set termios attributes."
             };
-    }
-
-    void UART::transmit(
-            const std::string& data,
-            const BaudRate& baud_rate
-    ) const {
-        auto flag = O_RDWR | O_NOCTTY | O_NONBLOCK;
-        auto descriptor = help_open(get_name().data(), flag);
-
-        configure_uart(descriptor, baud_rate);
-
-        auto byte_count = write(descriptor, data.data(), data.size());
-
-        help_close(descriptor);
-
-        if (byte_count < 0)
-            throw std::system_error{
-                errno,
-                std::system_category(),
-                "Unable to write to uart."
-            };
-    }
-
-    std::string UART::receive(
-            const std::string::size_type& max_data_size,
-            const BaudRate& baud_rate
-    ) const {
-        std::string data(max_data_size, '\0');
-        auto flag = O_RDWR | O_NOCTTY | O_NONBLOCK;
-        auto descriptor = help_open(get_name().data(), flag);
-
-        configure_uart(descriptor, baud_rate);
-
-        auto byte_count = read(descriptor, data.data(), data.size());
-
-        help_close(descriptor);
-
-        if (byte_count < 0)
-            throw std::system_error{
-                errno,
-                std::system_category(),
-                "Unable to read from uart."
-            };
-
-        data.resize(byte_count);
-
-        return data;
     }
 }
