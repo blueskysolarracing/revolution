@@ -214,6 +214,11 @@ namespace Revolution {
         enum class Mode {
              clock_phase = SPI_CPHA,
              clock_polarity = SPI_CPOL,
+             mode_0 = SPI_MODE_0,
+             mode_1 = SPI_MODE_1,
+             mode_2 = SPI_MODE_2,
+             mode_3 = SPI_MODE_3,
+             mode_x_mask = SPI_MODE_X_MASK,
              chipselect_active_high = SPI_CS_HIGH,
              least_significant_bit_first = SPI_LSB_FIRST,
              share_slave_in_slave_out = SPI_3WIRE,
@@ -228,6 +233,7 @@ namespace Revolution {
              transmit_octal = SPI_TX_OCTAL,
              receive_octal = SPI_RX_OCTAL,
              high_impedance_turnaround = SPI_3WIRE_HIZ,
+             user_mask = SPI_MODE_USER_MASK
         };
 
         explicit SPI(
