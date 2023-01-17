@@ -9,8 +9,9 @@
 #include <sys/ioctl.h>
 
 namespace Revolution {
+    template<class ClockDuration>
     static std::timespec convert_to_time_specification(
-            const std::chrono::high_resolution_clock::duration& timeout
+            const ClockDuration& timeout
     ) {
         auto second = std::chrono::duration_cast<std::chrono::seconds>(
             timeout
@@ -101,10 +102,10 @@ namespace Revolution {
     }
 
     std::string MessageQueue::timed_receive(
-            const std::chrono::high_resolution_clock::duration& timeout
+            const std::chrono::system_clock::duration& timeout
     ) const {
         auto absolute_timeout = timeout
-            + std::chrono::high_resolution_clock::now().time_since_epoch();
+            + std::chrono::system_clock::now().time_since_epoch();
         auto time_specification = convert_to_time_specification(
             absolute_timeout
         );
@@ -143,7 +144,7 @@ namespace Revolution {
 
     void MessageQueue::monitor(
             const std::atomic_bool& status,
-            const std::chrono::high_resolution_clock::duration& timeout,
+            const std::chrono::system_clock::duration& timeout,
             const std::function<void(const std::string&)>& callback
     ) const {
         while (status) {
@@ -292,7 +293,7 @@ namespace Revolution {
             const Active& active,
             const std::string& consumer_name,
             const std::atomic_bool& status,
-            const std::chrono::high_resolution_clock::duration& timeout,
+            const std::chrono::steady_clock::duration& timeout,
             const std::function<void(const Event&, const unsigned int&)>&
                 callback
     ) const {
@@ -588,22 +589,15 @@ namespace Revolution {
         transfer(data, std::nullopt);
     }
 
-    std::string SPI::receive(const std::size_t& data_size) const {
-        std::string data(data_size, '\0');
-
+    void SPI::receive(const std::string& data) const {
         transfer(std::nullopt, data);
-
-        return data;
     }
 
-    std::string SPI::transmit_and_receive(
-            const std::string& transmitted_data
+    void SPI::transmit_and_receive(
+            const std::string& transmitted_data,
+            const std::string& received_data
     ) const {
-        std::string received_data(transmitted_data.size(), '\0');
-
         transfer(transmitted_data, received_data);
-
-        return received_data;
     }
 
     void SPI::transfer(

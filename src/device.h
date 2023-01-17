@@ -71,13 +71,13 @@ namespace Revolution {
             const unsigned int& priority
         ) const;
         std::string timed_receive(
-            const std::chrono::high_resolution_clock::duration& timeout
+            const std::chrono::system_clock::duration& timeout
         ) const;
         void unlink() const;
 
         void monitor(
             const std::atomic_bool& status,
-            const std::chrono::high_resolution_clock::duration& timeout,
+            const std::chrono::system_clock::duration& timeout,
             const std::function<void(const std::string&)>& callback
         ) const;
     private:
@@ -130,7 +130,7 @@ namespace Revolution {
             const Active& active,
             const std::string& consumer_name,
             const std::atomic_bool& status,
-            const std::chrono::high_resolution_clock::duration& timeout,
+            const std::chrono::steady_clock::duration& timeout,
             const std::function<void(const Event&, const unsigned int&)>&
                 callback
         ) const;
@@ -248,9 +248,10 @@ namespace Revolution {
         const unsigned char& get_bits_per_word() const;
 
         void transmit(const std::string& data) const;
-        std::string receive(const std::size_t& data_size) const;
-        std::string transmit_and_receive(
-            const std::string& transmitted_data
+        void receive(const std::string& data) const;
+        void transmit_and_receive(
+            const std::string& transmitted_data,
+            const std::string& received_data
         ) const;
     private:
         using Attributes = spi_ioc_transfer;
