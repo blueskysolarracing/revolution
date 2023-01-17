@@ -549,8 +549,8 @@ namespace Revolution {
             raw_mode |= static_cast<int>(mode);
 
         auto requested_raw_mode = raw_mode;
-        auto requested_bits_per_word = get_bits_per_word();
         auto requested_speed_hz = get_speed_hz();
+        auto requested_bits_per_word = get_bits_per_word();
 
         ioctl(SPI_IOC_WR_MODE32, &requested_raw_mode);
         ioctl(SPI_IOC_RD_MODE32, &requested_raw_mode);
