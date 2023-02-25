@@ -41,11 +41,11 @@ deployment to PyPI (step 0)::
 
 deployment to PyPI (step 1):: 
 
-    python -m build (edited) 
+    python -m build
 
 deployment to PyPI (step 2):: 
 
-    twine upload dist/* (edited) 
+    twine upload dist/*
 
 **Docker**
 ----------
