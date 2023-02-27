@@ -1,6 +1,6 @@
 from collections.abc import Iterator
 from contextlib import closing, contextmanager
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from enum import Flag, auto
 from multiprocessing import Lock, get_logger
 from multiprocessing.synchronize import Lock as _Lock  # FIXME
@@ -86,3 +86,10 @@ class DataManager(Generic[_T]):
 
         with self.__writer_lock, closing(data_wrapper):
             yield cast(_T, data_wrapper)
+
+    @contextmanager
+    def copy(self) -> Iterator[_T]:
+        with self.read():
+            data = replace(self.__data)
+
+        yield data

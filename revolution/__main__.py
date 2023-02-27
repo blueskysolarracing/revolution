@@ -3,10 +3,11 @@ from logging import DEBUG
 
 from revolution import Application, Context, Environment
 
-_logger = log_to_stderr(DEBUG)
+_logger = log_to_stderr()
 
 
 def main() -> None:
+    _logger.setLevel(DEBUG)
     _logger.info('Launching revolution...')
 
     context = Context()

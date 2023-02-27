@@ -147,6 +147,24 @@ class DataManagerTestCase(TestCase):
             self.assertRaises(ValueError, setattr, data, 'two', -2)
             self.assertRaises(ValueError, setattr, data, 'three', -3)
 
+    def test_copy(self) -> None:
+        data = _MockData()
+        data_manager = DataManager(data)
+
+        with data_manager.copy() as data_copy:
+            data_copy.one = -1
+            data_copy.two = -2
+            data_copy.three = -3
+
+            self.assertEqual(data_copy.one, -1)
+            self.assertEqual(data_copy.two, -2)
+            self.assertEqual(data_copy.three, -3)
+
+            with data_manager.read() as data:
+                self.assertEqual(data.one, 1)
+                self.assertEqual(data.two, 2)
+                self.assertEqual(data.three, 3)
+
 
 if __name__ == '__main__':
     main()

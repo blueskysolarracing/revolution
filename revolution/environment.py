@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from enum import Enum, auto
+from enum import Enum, IntEnum, auto
 from multiprocessing import Queue, get_logger
 from typing import Any
 
@@ -22,9 +22,45 @@ class Message:
     kwargs: dict[str, Any] = field(default_factory=dict)
 
 
+class Direction(IntEnum):
+    UP = 2
+    DOWN = 3
+    LEFT = 5
+    RIGHT = 7
+    FORWARD = 11
+    BACKWARD = 13
+
+
 @dataclass
 class Context:
-    pass
+    # Motor
+    motor_direction_input: Direction = Direction.FORWARD
+    acceleration_input: float = 0
+    regeneration_input: float = 0
+    eco_status_input: bool = False
+    gear_index_input_counter: int = 0
+
+    # Miscellaneous
+    horn_status_input: bool = False
+    left_indicator_status_input: bool = False
+    right_indicator_status_input: bool = False
+    hazard_lights_status_input: bool = False
+    daytime_running_light_status_input: bool = False
+    display_backlight_status_input: bool = False
+
+    # Battery
+    battery_relay_status: bool = False
+    battery_relay_status_input: int = 0
+    array_relay_status_input: int = 0
+
+    # Unclassified
+    brake_status_input: float = 0
+    backup_camera_control_status_input: int = 0
+    fan_status_input: int = 0
+    directional_pad_input: Direction | None = None
+    radio_status_input: bool = False
+    steering_wheel_in_place_status_input: bool = False
+    thermistor_status_input: int = False
 
 
 class Endpoint(Enum):

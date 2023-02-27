@@ -25,6 +25,10 @@ class Application(ABC):
         = field(default_factory=dict, init=False)
     __status: bool = field(default=False, init=False)
 
+    @property
+    def status(self) -> bool:
+        return self.__status
+
     def mainloop(self) -> None:
         _logger.info('Starting...')
 
@@ -32,16 +36,20 @@ class Application(ABC):
 
         self._setup()
         self.__run()
+        self._teardown()
 
     def _setup(self) -> None:
         _logger.info('Setting up...')
 
         self._handlers[Header.STOP] = self.__handle_stop
 
+    def _teardown(self) -> None:
+        _logger.info('Tearing down...')
+
     def __run(self) -> None:
         _logger.info('Running...')
 
-        while self.__status:
+        while self.status:
             message = self._environment.receive(self.endpoint)
 
             self.__handle(message)
