@@ -1,11 +1,11 @@
 from dataclasses import dataclass
-from multiprocessing import get_logger
+from logging import getLogger
 from typing import ClassVar
 
 from revolution.application import Application
 from revolution.environment import Endpoint
 
-_logger = get_logger()
+_logger = getLogger(__name__)
 
 
 @dataclass

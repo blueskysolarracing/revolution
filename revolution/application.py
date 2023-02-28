@@ -1,13 +1,14 @@
 from abc import ABC
-from concurrent.futures import ThreadPoolExecutor
 from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
-from multiprocessing import get_logger
+from logging import getLogger
+from queue import Empty
 from typing import ClassVar
 
 from revolution.environment import Endpoint, Environment, Header, Message
 
-_logger = get_logger()
+_logger = getLogger(__name__)
 
 
 @dataclass
@@ -17,22 +18,21 @@ class Application(ABC):
         application = cls(environment)
         application.mainloop()
 
-    endpoint: ClassVar[Endpoint]
+    endpoint: ClassVar[Endpoint | None] = None
+    _timeout: ClassVar[float | None] = 1
     _environment: Environment
     _thread_pool_executor: ThreadPoolExecutor \
         = field(default_factory=ThreadPoolExecutor, init=False)
     _handlers: dict[Header, Callable[..., None]] \
         = field(default_factory=dict, init=False)
-    __status: bool = field(default=False, init=False)
 
     @property
-    def status(self) -> bool:
-        return self.__status
+    def _status(self) -> bool:
+        with self._environment.read() as data:
+            return data.status
 
     def mainloop(self) -> None:
         _logger.info('Starting...')
-
-        self.__status = True
 
         self._setup()
         self.__run()
@@ -41,23 +41,32 @@ class Application(ABC):
     def _setup(self) -> None:
         _logger.info('Setting up...')
 
-        self._handlers[Header.STOP] = self.__handle_stop
-
     def _teardown(self) -> None:
         _logger.info('Tearing down...')
 
     def __run(self) -> None:
+        assert self.endpoint is not None
+
         _logger.info('Running...')
 
-        while self.status:
-            message = self._environment.receive(self.endpoint)
+        while self._status:
+            try:
+                message = self._environment.receive(
+                    self.endpoint,
+                    timeout=self._timeout,
+                )
+            except Empty:
+                message = None
 
-            self.__handle(message)
+            if message is not None:
+                self.__handle(message)
 
     def __handle(self, message: Message) -> None:
-        self._handlers[message.header](*message.args, **message.kwargs)
+        _logger.info(f'Handling message {message}...')
 
-    def __handle_stop(self) -> None:
-        _logger.info('Stopping...')
+        handler = self._handlers.get(message.header)
 
-        self.__status = False
+        if handler is None:
+            _logger.error(f'Unable to handle message {message}')
+        else:
+            handler(*message.args, **message.kwargs)

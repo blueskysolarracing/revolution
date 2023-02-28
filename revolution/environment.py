@@ -2,16 +2,16 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum, IntEnum, auto
-from multiprocessing import Queue, get_logger
+from logging import getLogger
+from queue import Queue
 from typing import Any
 
 from revolution.data import DataManager
 
-_logger = get_logger()
+_logger = getLogger(__name__)
 
 
 class Header(Enum):
-    STOP = auto()
     DEBUG = auto()
 
 
@@ -33,12 +33,15 @@ class Direction(IntEnum):
 
 @dataclass
 class Context:
+    status: bool = True
+
     # Motor
-    motor_direction_input: Direction = Direction.FORWARD
-    acceleration_input: float = 0
-    regeneration_input: float = 0
-    eco_status_input: bool = False
-    gear_index_input_counter: int = 0
+    motor_acceleration_input: float = 0
+    motor_regeneration_input: float = 0
+    motor_status_input: bool = False
+    motor_directional_input: Direction = Direction.FORWARD
+    motor_economical_mode_input: bool = True
+    motor_gear_input_counter: int = 0
 
     # Miscellaneous
     horn_status_input: bool = False
