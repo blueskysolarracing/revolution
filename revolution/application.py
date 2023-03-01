@@ -19,7 +19,7 @@ class Application(ABC):
         application.mainloop()
 
     endpoint: ClassVar[Endpoint | None] = None
-    _timeout: ClassVar[float | None] = 1
+    _message_queue_timeout: ClassVar[float | None] = 1
     _environment: Environment
     _thread_pool_executor: ThreadPoolExecutor \
         = field(default_factory=ThreadPoolExecutor, init=False)
@@ -51,9 +51,9 @@ class Application(ABC):
 
         while self._status:
             try:
-                message = self._environment.receive(
+                message = self._environment.receive_message(
                     self.endpoint,
-                    timeout=self._timeout,
+                    timeout=self._message_queue_timeout,
                 )
             except Empty:
                 message = None

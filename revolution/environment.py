@@ -82,7 +82,7 @@ class Environment(DataManager[Context]):
         for endpoint in Endpoint:
             self.__queues[endpoint] = Queue()
 
-    def receive(
+    def receive_message(
             self,
             endpoint: Endpoint,
             block: bool = True,
@@ -90,7 +90,7 @@ class Environment(DataManager[Context]):
     ) -> Message:
         return self.__queues[endpoint].get(block, timeout)
 
-    def send(
+    def send_message(
             self,
             endpoint: Endpoint,
             message: Message,
