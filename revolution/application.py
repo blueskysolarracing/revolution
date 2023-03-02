@@ -6,7 +6,7 @@ from logging import getLogger
 from queue import Empty
 from typing import ClassVar
 
-from revolution.environment import Endpoint, Environment, Header, Message
+from revolution.environment import Endpoint, Environment, Header
 
 _logger = getLogger(__name__)
 
@@ -30,7 +30,6 @@ class Application(ABC):
         _logger.info('Starting...')
 
         self._setup()
-        self.__run()
         self._teardown()
 
     @property
@@ -41,15 +40,17 @@ class Application(ABC):
     def _setup(self) -> None:
         _logger.info('Setting up...')
 
-    def _teardown(self) -> None:
-        _logger.info('Tearing down...')
+        self._thread_pool_executor.submit(self.__handle_messages)
 
+    def _teardown(self) -> None:
         self._thread_pool_executor.shutdown()
 
-    def __run(self) -> None:
+        _logger.info('Tearing down...')
+
+    def __handle_messages(self) -> None:
         assert self.endpoint is not None
 
-        _logger.info('Running...')
+        _logger.info('Handling messages...')
 
         while self._status:
             try:
@@ -61,14 +62,11 @@ class Application(ABC):
                 message = None
 
             if message is not None:
-                self.__handle(message)
+                _logger.info(f'Handling message {message}...')
 
-    def __handle(self, message: Message) -> None:
-        _logger.info(f'Handling message {message}...')
+                handler = self._handlers.get(message.header)
 
-        handler = self._handlers.get(message.header)
-
-        if handler is None:
-            _logger.error(f'Unable to handle message {message}')
-        else:
-            handler(*message.args, **message.kwargs)
+                if handler is None:
+                    _logger.error(f'Unable to handle message {message}')
+                else:
+                    handler(*message.args, **message.kwargs)

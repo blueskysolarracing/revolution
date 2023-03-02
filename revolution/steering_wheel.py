@@ -12,5 +12,4 @@ _logger = getLogger(__name__)
 class SteeringWheel(Application):
     endpoint: ClassVar[Endpoint] = Endpoint.STEERING_WHEEL
 
-    def _setup(self) -> None:
-        pass
+    pass  # TODO
