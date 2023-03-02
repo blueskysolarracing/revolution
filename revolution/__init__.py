@@ -15,6 +15,7 @@ __all__ = (
     'MotorController',
     'SPI',
     'SteeringWheel',
+    'ThreadPool',
     'gpio_patcher',
     'main',
     'parse_arguments',
@@ -41,4 +42,5 @@ from revolution.periphery import (
     spi_patcher,
 )
 from revolution.steering_wheel import SteeringWheel
+from revolution.thread_pool import ThreadPool
 from revolution.utilities import main, parse_arguments

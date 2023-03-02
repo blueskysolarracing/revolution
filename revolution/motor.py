@@ -124,10 +124,10 @@ class Motor(Application):
     def _setup(self) -> None:
         super()._setup()
 
-        self._thread_pool_executor.submit(self.__update_controller)
-        self._thread_pool_executor.submit(self.__update_status)
-        self._thread_pool_executor.submit(self.__update_gear)
-        self._thread_pool_executor.submit(self.__update_revolution)
+        self._thread_pool.add(self.__update_controller)
+        self._thread_pool.add(self.__update_status)
+        self._thread_pool.add(self.__update_gear)
+        self._thread_pool.add(self.__update_revolution)
 
     def __update_controller(self) -> None:
         while self._status:
