@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from enum import Enum, IntEnum, auto
+from math import inf
 from logging import getLogger
 from queue import Queue
 from typing import Any
@@ -40,7 +41,7 @@ class Context:
     motor_directional_input: Direction = Direction.FORWARD
     motor_economical_mode_input: bool = True
     motor_gear_input: int = 0
-    motor_revolution_period: float = 0
+    motor_revolution_period: float = inf
 
     # Miscellaneous
     horn_status_input: bool = False
