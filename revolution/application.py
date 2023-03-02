@@ -21,10 +21,10 @@ class Application(ABC):
     endpoint: ClassVar[Endpoint | None] = None
     _message_queue_timeout: ClassVar[float | None] = 1
     _environment: Environment
-    _thread_pool_executor: ThreadPoolExecutor \
-        = field(default_factory=ThreadPoolExecutor, init=False)
     _handlers: dict[Header, Callable[..., None]] \
         = field(default_factory=dict, init=False)
+    _thread_pool_executor: ThreadPoolExecutor \
+        = field(default_factory=ThreadPoolExecutor, init=False)
 
     def mainloop(self) -> None:
         _logger.info('Starting...')
@@ -43,6 +43,8 @@ class Application(ABC):
 
     def _teardown(self) -> None:
         _logger.info('Tearing down...')
+
+        self._thread_pool_executor.shutdown()
 
     def __run(self) -> None:
         assert self.endpoint is not None
