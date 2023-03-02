@@ -26,17 +26,17 @@ class Application(ABC):
     _handlers: dict[Header, Callable[..., None]] \
         = field(default_factory=dict, init=False)
 
-    @property
-    def _status(self) -> bool:
-        with self._environment.read() as data:
-            return data.status
-
     def mainloop(self) -> None:
         _logger.info('Starting...')
 
         self._setup()
         self.__run()
         self._teardown()
+
+    @property
+    def _status(self) -> bool:
+        with self._environment.read() as data:
+            return data.status
 
     def _setup(self) -> None:
         _logger.info('Setting up...')

@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from dataclasses import dataclass, field
 from enum import Enum, IntEnum, auto
 from logging import getLogger
@@ -42,6 +40,7 @@ class Context:
     motor_directional_input: Direction = Direction.FORWARD
     motor_economical_mode_input: bool = True
     motor_gear_input_counter: int = 0
+    motor_revolution_period: float = 0
 
     # Miscellaneous
     horn_status_input: bool = False

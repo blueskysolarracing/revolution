@@ -1,11 +1,12 @@
+from collections import deque
 from dataclasses import dataclass
 from logging import getLogger
-from periphery import GPIO, SPI
-from time import sleep
+from time import sleep, time
 from typing import ClassVar
 
 from revolution.application import Application
 from revolution.environment import Direction, Endpoint
+from revolution.periphery import GPIO, SPI
 
 _logger = getLogger(__name__)
 
@@ -37,6 +38,9 @@ class MotorController:
         = GPIO('', 0, 'out')  # TODO
     vfm_up_switch_gpio: ClassVar[GPIO] = GPIO('', 0, 'out')  # TODO
     vfm_down_switch_gpio: ClassVar[GPIO] = GPIO('', 0, 'out')  # TODO
+    revolution_gpio: ClassVar[GPIO] = GPIO('', 0, 'in')  # TODO
+    main_switch_timeout: ClassVar[float] = 5
+    vfm_switch_timeout: ClassVar[float] = 0.2
 
     def __post_init__(self) -> None:
         self.accelerate(0, True)
@@ -72,7 +76,7 @@ class MotorController:
         self.main_switch_gpio.write(not status)
 
         if wait:
-            sleep(5)
+            sleep(self.main_switch_timeout)
 
     def direct(self, direction: Direction) -> None:
         match direction:
@@ -90,12 +94,12 @@ class MotorController:
 
     def gear_up(self) -> None:
         self.vfm_up_switch_gpio.write(True)
-        sleep(0.2)
+        sleep(self.vfm_switch_timeout)
         self.vfm_up_switch_gpio.write(False)
 
     def gear_down(self) -> None:
         self.vfm_down_switch_gpio.write(True)
-        sleep(0.2)
+        sleep(self.vfm_switch_timeout)
         self.vfm_down_switch_gpio.write(False)
 
 
@@ -111,25 +115,27 @@ class Motor(Application):
         super()._teardown()
 
     def __update_controller(self) -> None:
-        with self._environment.read() as data:
-            self.__controller.accelerate(data.motor_acceleration_input)
-            self.__controller.regenerate(data.motor_regeneration_input)
-            self.__controller.state(data.motor_status_input)
-            self.__controller.direct(data.motor_directional_input)
-            self.__controller.economize(data.motor_economical_mode_input)
+        while self._status:
+            with self._environment.read() as data:
+                self.__controller.accelerate(data.motor_acceleration_input)
+                self.__controller.regenerate(data.motor_regeneration_input)
+                self.__controller.state(data.motor_status_input)
+                self.__controller.direct(data.motor_directional_input)
+                self.__controller.economize(data.motor_economical_mode_input)
 
-    def __update_gears(self) -> None:
-        with self._environment.read_and_write() as data:
-            if data.motor_gear_input_counter > 0:
-                gear_index_input = 1
-            elif data.motor_gear_input_counter < 0:
-                gear_index_input = -1
-            else:
-                gear_index_input = 0
+    def __update_gear(self) -> None:
+        while self._status:
+            with self._environment.read_and_write() as data:
+                if data.motor_gear_input_counter > 0:
+                    gear_index_input = 1
+                elif data.motor_gear_input_counter < 0:
+                    gear_index_input = -1
+                else:
+                    gear_index_input = 0
 
-            data.motor_gear_input_counter -= gear_index_input
+                data.motor_gear_input_counter -= gear_index_input
 
-        if gear_index_input > 0:
-            self.__controller.gear_up()
-        elif gear_index_input < 0:
-            self.__controller.gear_down()
+            if gear_index_input > 0:
+                self.__controller.gear_up()
+            elif gear_index_input < 0:
+                self.__controller.gear_down()
