@@ -1,7 +1,6 @@
-from collections import deque
 from dataclasses import dataclass
 from logging import getLogger
-from time import sleep, time
+from time import sleep
 from typing import ClassVar
 
 from revolution.application import Application
