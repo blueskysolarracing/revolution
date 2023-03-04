@@ -5,12 +5,12 @@ from typing import Any
 
 
 @dataclass
-class ThreadPool:
+class WorkerPool:
     __threads: list[Thread] = field(default_factory=list, init=False)
 
     def add(
             self,
-            function: Callable[..., None],
+            function: Callable[..., Any],
             /,
             *args: Any,
             **kwargs: Any,

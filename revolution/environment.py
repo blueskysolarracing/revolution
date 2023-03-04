@@ -14,11 +14,11 @@ class Header(Enum):
     DEBUG = auto()
 
 
-@dataclass
-class Message:
-    header: Header
-    args: list[Any] = field(default_factory=list)
-    kwargs: dict[str, Any] = field(default_factory=dict)
+class Endpoint(Enum):
+    DISPLAY = auto()
+    MOTOR = auto()
+    STEERING_WHEEL = auto()
+    DEBUGGER = auto()
 
 
 class Direction(IntEnum):
@@ -66,11 +66,11 @@ class Context:
     thermistor_status_input: int = False
 
 
-class Endpoint(Enum):
-    DISPLAY = auto()
-    MOTOR = auto()
-    STEERING_WHEEL = auto()
-    DEBUGGER = auto()
+@dataclass
+class Message:
+    header: Header
+    args: tuple[Any, ...] = field(default_factory=tuple)
+    kwargs: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass

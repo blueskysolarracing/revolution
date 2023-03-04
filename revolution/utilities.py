@@ -6,7 +6,7 @@ from sys import stderr
 
 from revolution.application import Application
 from revolution.environment import Context, Environment
-from revolution.thread_pool import ThreadPool
+from revolution.worker_pool import WorkerPool
 
 _logger = getLogger(__name__)
 
@@ -23,13 +23,13 @@ def parse_arguments() -> Namespace:
         '-d',
         '--debug',
         action=BooleanOptionalAction,
-        help='set debug mode (disabled by default)',
+        help='debug mode (disabled by default)',
     )
     parser.add_argument(
         '-i',
         '--interactive',
         action=BooleanOptionalAction,
-        help='set interactive mode (disabled by default)',
+        help='interactive mode (disabled by default)',
     )
 
     return parser.parse_args()
@@ -44,13 +44,13 @@ def main() -> None:
 
     context = Context()
     environment = Environment(context)
-    thread_pool = ThreadPool()
+    worker_pool = WorkerPool()
 
     for application_type in Application.__subclasses__():
         if application_type.endpoint is not None:
-            thread_pool.add(application_type.main, environment)
+            worker_pool.add(application_type.main, environment)
 
     if arguments.interactive:
         interact(local={'environment': environment})
 
-    thread_pool.join()
+    worker_pool.join()

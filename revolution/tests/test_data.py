@@ -68,9 +68,13 @@ class DataAccessorTestCase(TestCase):
         data = _MockData()
 
         for data_accessor in (
+            DataAccessor(data, DataAccessor.Mode(0)),
             DataAccessor(data, DataAccessor.Mode.READ),
             DataAccessor(data, DataAccessor.Mode.WRITE),
-            DataAccessor(data, DataAccessor.Mode.WRITE),
+            DataAccessor(
+                data,
+                DataAccessor.Mode.READ | DataAccessor.Mode.WRITE,
+            ),
         ):
             data_accessor.close()
 

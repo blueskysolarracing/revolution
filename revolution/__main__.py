@@ -1,4 +1,4 @@
-from revolution import main
+from revolution.utilities import main
 
 if __name__ == '__main__':
     main()

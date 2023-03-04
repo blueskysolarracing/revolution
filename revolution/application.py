@@ -3,58 +3,56 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from logging import getLogger
 from queue import Empty
-from typing import ClassVar
+from typing import ClassVar, TypeVar
 
 from revolution.environment import Endpoint, Environment, Header
-from revolution.thread_pool import ThreadPool
+from revolution.worker_pool import WorkerPool
 
 _logger = getLogger(__name__)
+_T = TypeVar('_T', bound='Application')
 
 
 @dataclass
 class Application(ABC):
     @classmethod
-    def main(cls, environment: Environment) -> None:
+    def main(cls: type[_T], environment: Environment) -> _T:
         application = cls(environment)
         application.mainloop()
 
+        return application
+
     endpoint: ClassVar[Endpoint | None] = None
-    _message_queue_timeout: ClassVar[float | None] = 1
+    message_queue_timeout: ClassVar[float] = 0.1
     _environment: Environment
     _handlers: dict[Header, Callable[..., None]] \
         = field(default_factory=dict, init=False)
-    _thread_pool: ThreadPool = field(default_factory=ThreadPool, init=False)
+    _worker_pool: WorkerPool = field(default_factory=WorkerPool, init=False)
+
+    @property
+    def status(self) -> bool:
+        with self._environment.read() as data:
+            return data.status
 
     def mainloop(self) -> None:
         _logger.info('Starting...')
 
         self._setup()
-        self._thread_pool.join()
+        self._run()
         self._teardown()
-
-    @property
-    def _status(self) -> bool:
-        with self._environment.read() as data:
-            return data.status
 
     def _setup(self) -> None:
         _logger.info('Setting up...')
 
-        self._thread_pool.add(self.__handle_messages)
-
-    def _teardown(self) -> None:
-        _logger.info('Tearing down...')
-
-    def __handle_messages(self) -> None:
+    def _run(self) -> None:
         assert self.endpoint is not None
 
         _logger.info('Handling messages...')
 
-        while self._status:
+        while self.status:
             try:
                 message = self._environment.receive_message(
                     self.endpoint,
-                    timeout=self._message_queue_timeout,
+                    timeout=self.message_queue_timeout,
                 )
             except Empty:
                 message = None
@@ -68,3 +66,6 @@ class Application(ABC):
                     _logger.error(f'Unable to handle message {message}')
                 else:
                     handler(*message.args, **message.kwargs)
+
+    def _teardown(self) -> None:
+        _logger.info('Tearing down...')

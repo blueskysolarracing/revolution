@@ -119,38 +119,38 @@ class MotorController:
 @dataclass
 class Motor(Application):
     endpoint: ClassVar[Endpoint] = Endpoint.MOTOR
-    __controller: ClassVar[MotorController] = MotorController()
+    controller: ClassVar[MotorController] = MotorController()
 
     def _setup(self) -> None:
         super()._setup()
 
-        self._thread_pool.add(self.__update_controller)
-        self._thread_pool.add(self.__update_status)
-        self._thread_pool.add(self.__update_gear)
-        self._thread_pool.add(self.__update_revolution)
+        self._worker_pool.add(self.__update_controller)
+        self._worker_pool.add(self.__update_status)
+        self._worker_pool.add(self.__update_gear)
+        self._worker_pool.add(self.__update_revolution)
 
     def __update_controller(self) -> None:
-        while self._status:
+        while self.status:
             with self._environment.read() as data:
                 acceleration_input = data.motor_acceleration_input
                 regeneration_input = data.motor_regeneration_input
                 directional_input = data.motor_directional_input
                 economical_mode_input = data.motor_economical_mode_input
 
-            self.__controller.accelerate(acceleration_input)
-            self.__controller.regenerate(regeneration_input)
-            self.__controller.direct(directional_input)
-            self.__controller.economize(economical_mode_input)
+            self.controller.accelerate(acceleration_input)
+            self.controller.regenerate(regeneration_input)
+            self.controller.direct(directional_input)
+            self.controller.economize(economical_mode_input)
 
     def __update_status(self) -> None:
-        while self._status:
+        while self.status:
             with self._environment.read() as data:
                 status_input = data.motor_status_input
 
-            self.__controller.state(status_input)
+            self.controller.state(status_input)
 
     def __update_gear(self) -> None:
-        while self._status:
+        while self.status:
             with self._environment.read_and_write() as data:
                 if data.motor_gear_input > 0:
                     gear_index_input = 1
@@ -162,13 +162,13 @@ class Motor(Application):
                 data.motor_gear_input -= gear_index_input
 
             if gear_index_input > 0:
-                self.__controller.gear_up()
+                self.controller.gear_up()
             elif gear_index_input < 0:
-                self.__controller.gear_down()
+                self.controller.gear_down()
 
     def __update_revolution(self) -> None:
-        while self._status:
-            revolution_period = self.__controller.revolution_period
+        while self.status:
+            revolution_period = self.controller.revolution_period
 
             with self._environment.write() as data:
                 data.motor_revolution_period = revolution_period
