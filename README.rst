@@ -50,17 +50,53 @@ deployment to PyPI (step 2)::
 **Docker**
 ----------
 
+Build dockerfile into image:: 
+    
+    cd <directory_containing_dockerfile>
+
+    docker build --tag <image_name>:<tag> .
+    
+    Ex: docker build --tag blueskysolarracing/revolution:0.0.0.dev1 .
+
+
 deployment to docker:: 
 
-    docker build --tag blueskysolarracing/revolution:0.0.0.dev1 .
+    docker push <image_name>:<tag>
 
-deployment to docker:: 
+    Ex: docker push blueskysolarracing/revolution:0.0.0.dev1
+	
+Create and start docker container::
 
-    docker push blueskysolarracing/revolution:0.0.0.dev1
+	docker run --name <container_name> <image_name>:<tag>
+	
+Create and start docker container in detached mode::
+
+	docker run --name <container_name> -d <image_name>:<tag>
+    
+Create and start docker container with persisted data between file system and container::
+
+    cd <revolution_repo_path>
+    
+    docker run --name <container_name> -v ${pwd}/revolution:/usr/local/lib/python3.10/site-packages/revolution <image_name>:<tag>
+    
+Stop a started container::
+
+	docker stop <container_name_or_ID>
+	
+Start a stopped container::
+
+	docker start <container_name_or_ID>
+	
+
+Explore a running container. This command runs a new process inside a running container and lets you visit the file system::
+    
+    docker exec -t -i <container_name_or_ID> /bin/bash
 
 **git tag**
 -----------
 
 add git tag:: 
+    
+    git tag <tag>
 
-    git tag 0.0.0.dev1
+    Ex: git tag 0.0.0.dev1
