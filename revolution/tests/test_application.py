@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from threading import Thread
 from time import sleep
 from typing import Any, ClassVar
@@ -21,8 +21,8 @@ class _Debugger(Application):
     setup_flag: bool = False
     teardown_flag: bool = False
     debug_flag: bool = False
-    debug_args: tuple[Any, ...] | None = None
-    debug_kwargs: dict[str, Any] | None = None
+    debug_args: tuple[Any, ...] = ()
+    debug_kwargs: dict[str, Any] = field(default_factory=dict)
 
     def mainloop(self) -> None:
         super().mainloop()
@@ -42,8 +42,8 @@ class _Debugger(Application):
 
     def __handle_debug(self, /, *args: Any, **kwargs: Any) -> None:
         self.debug_flag = True
-        self.debug_args = args
-        self.debug_kwargs = kwargs
+        self.debug_args += args
+        self.debug_kwargs.update(kwargs)
 
 
 class ApplicationTestCase(TestCase):
@@ -77,7 +77,11 @@ class ApplicationTestCase(TestCase):
 
         environment.send_message(
             Endpoint.DEBUGGER,
-            Message(Header.DEBUG, (0, 1, 2), {'hello': 'world'}),
+            Message(Header.DEBUG, (0, 1), {'hello': 'world'}),
+        )
+        environment.send_message(
+            Endpoint.DEBUGGER,
+            Message(Header.DEBUG, (2,)),
         )
         thread.start()
         sleep(debugger.message_queue_timeout)

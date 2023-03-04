@@ -1,16 +1,17 @@
-from dataclasses import dataclass
-from math import inf
+from dataclasses import dataclass, field
 from logging import getLogger
+from math import inf
+from periphery import GPIO, SPI
 from time import sleep, time
 from typing import ClassVar
 
 from revolution.application import Application
 from revolution.environment import Direction, Endpoint
-from revolution.periphery import GPIO, SPI
 
 _logger = getLogger(__name__)
 
 
+@dataclass
 class MotorController:
     @staticmethod
     def __position_potentiometer(
@@ -30,20 +31,28 @@ class MotorController:
 
         spi.transfer(data)
 
-    acceleration_potentiometer_spi: ClassVar[SPI] = SPI('', 0, 1)  # TODO
-    regeneration_potentiometer_spi: ClassVar[SPI] = SPI('', 0, 1)  # TODO
-    main_switch_gpio: ClassVar[GPIO] = GPIO('', 0, 'out')  # TODO
-    forward_or_reverse_switch_gpio: ClassVar[GPIO] = GPIO('', 0, 'out')  # TODO
-    power_or_economical_switch_gpio: ClassVar[GPIO] \
-        = GPIO('', 0, 'out')  # TODO
-    vfm_up_switch_gpio: ClassVar[GPIO] = GPIO('', 0, 'out')  # TODO
-    vfm_down_switch_gpio: ClassVar[GPIO] = GPIO('', 0, 'out')  # TODO
-    revolution_gpio: ClassVar[GPIO] = GPIO('', 0, 'in', 'rising')  # TODO
     main_switch_timeout: ClassVar[float] = 5
     vfm_switch_timeout: ClassVar[float] = 0.2
     revolution_timeout: ClassVar[float] = 10
+    acceleration_potentiometer_spi: SPI = field(init=False)
+    regeneration_potentiometer_spi: SPI = field(init=False)
+    main_switch_gpio: GPIO = field(init=False)
+    forward_or_reverse_switch_gpio: GPIO = field(init=False)
+    power_or_economical_switch_gpio: GPIO = field(init=False)
+    vfm_up_switch_gpio: GPIO = field(init=False)
+    vfm_down_switch_gpio: GPIO = field(init=False)
+    revolution_gpio: GPIO = field(init=False)
 
     def __post_init__(self) -> None:
+        self.acceleration_potentiometer_spi = SPI('', 0, 1)  # TODO
+        self.regeneration_potentiometer_spi = SPI('', 0, 1)  # TODO
+        self.main_switch_gpio = GPIO('', 0, 'out')  # TODO
+        self.forward_or_reverse_switch_gpio = GPIO('', 0, 'out')  # TODO
+        self.power_or_economical_switch_gpio = GPIO('', 0, 'out')  # TODO
+        self.vfm_up_switch_gpio = GPIO('', 0, 'out')  # TODO
+        self.vfm_down_switch_gpio = GPIO('', 0, 'out')  # TODO
+        self.revolution_gpio = GPIO('', 0, 'in', 'rising')  # TODO
+
         self.accelerate(0, True)
         self.regenerate(0, True)
 
@@ -119,7 +128,7 @@ class MotorController:
 @dataclass
 class Motor(Application):
     endpoint: ClassVar[Endpoint] = Endpoint.MOTOR
-    controller: ClassVar[MotorController] = MotorController()
+    controller: MotorController = field(default_factory=MotorController)
 
     def _setup(self) -> None:
         super()._setup()
