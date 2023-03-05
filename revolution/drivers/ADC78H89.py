@@ -5,7 +5,8 @@
     ADC78H89 7-Channel, 500 KSPS, 12-Bit A/D Converter
     -Max. conversion rate: 500KSPS 
     -Data is straight binary, refer to Fig. 23 
-    -Each conversion requires 16 CLK cycle, and is triggered when !CS goes low. The conversion is applied to the channel in the Control Register. Therefore, there is a one sample delay between writing to the control register and reading the data.
+    -Each conversion requires 16 CLK cycle, and is triggered when !CS goes low. The conversion is applied to the channel in the Control Register.
+     Therefore, there is a one sample delay between writing to the control register and reading the data.
     -Write to the Control Register to select which channel is being sampled: [X X ADD2 ADD1 ADD0 X X X]. Even though this register is 8b, writing to it requires 16 clock cycles since a conversion is taking place in parallel. Only the first 8b are read. 
     -First conversion after power-up is channel #1
 
@@ -16,9 +17,7 @@
 """
 
 from enum import Enum
-from dataclasses import dataclass
 from periphery.spi import SPI
-from periphery.gpio import GPIO
 from typing import List, Generator
 
 ############# CONSTANTS #############
@@ -30,27 +29,18 @@ REF_VOLTAGE = 3.3
 
 ############## CLASSES ##############
 class channel(Enum):
-    CHANNEL_1 = 0
-    CHANNEL_2 = 1
-    CHANNEL_3 = 2
-    CHANNEL_4 = 3
-    CHANNEL_5 = 4
-    CHANNEL_6 = 5
-    CHANNEL_7 = 6
+    CHANNEL_1 = 1
+    CHANNEL_2 = 2
+    CHANNEL_3 = 3
+    CHANNEL_4 = 4
+    CHANNEL_5 = 5
+    CHANNEL_6 = 6
+    CHANNEL_7 = 7
 
-@dataclass
 class ADC78H89():
-    def __init__(self, devpath:str, CS_GPIOsConfig:list([str, int, bool, bool])) -> None: #TODO: Might want to change this CS_GPIOsConfig structure
+    def __init__(self, devpath:str) -> None:
         self.__voltageBuffer = len(channel)*[-1.0]
         self.__spiDev = SPI(devpath, SPI_MODE, SPI_MAX_SPEED, SPI_BIT_ORDER, SPI_BITS_PER_WORDS)
-        self.__CS_GPIOsConfig = CS_GPIOsConfig
-
-        self.__CS_GPIO: list([Generator, str, int, bool, bool]) = list()
-        for GPIOConfig in self.__CS_GPIOsConfig:
-            newGPIO = GPIO(devpath=GPIOConfig[0],
-                        line=GPIOConfig[1],
-                        direction='out')
-            self.__CS_GPIO.append([newGPIO] + GPIOConfig)
 
     """
         Returns the last unfiltered voltage
@@ -58,25 +48,15 @@ class ADC78H89():
     def getMeasurementRaw(self, ch:Enum) -> float:
         return self.__voltageBuffer[ch.value]
 
-    def setCS(self) -> None:
-        for GPIOConfig in self.__CS_GPIO:
-            GPIOConfig[0].write(GPIOConfig[3])
-
-    def resetCS(self) -> None:
-        for GPIOConfig in self.__CS_GPIO:
-            GPIOConfig[0].write(GPIOConfig[4])
-
     """
         Handles the SPI calls and updates the voltage buffer. This method is expected to be called every 10ms
     """
     def run10ms(self) -> None:
         for ch in channel:
-            nextChannel = (ch.value + 1) % 7 #Rollover to 0 at last channel
+            nextChannel = ch.value % 7 #Rollover to 0 at last channel
             controlRegister = [(nextChannel << 5), 0x00] #TODO: Need to double-check order that this is sent
 
-            self.setCS()
-            rawData = self.__spiDev.transfer(controlRegister) #TODO: Understand how this is handled internally to 1) know if to give it a dummy CS GPIO and 2) know how timing will work for CS
-            self.resetCS()
+            rawData = self.__spiDev.transfer(controlRegister)
 
             ADCCode = (rawData[0] << 8) + rawData[1] #TODO: Need to double-check order that this is sent
             self.__voltageBuffer[ch.value] = REF_VOLTAGE * (ADCCode / 4096.0)
