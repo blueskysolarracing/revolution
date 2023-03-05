@@ -47,7 +47,7 @@ def main() -> None:
     worker_pool = WorkerPool()
 
     for application_type in Application.__subclasses__():
-        if application_type.endpoint is not None:
+        if hasattr(application_type, 'endpoint'):
             worker_pool.add(application_type.main, environment)
 
     if arguments.interactive:

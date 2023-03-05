@@ -77,7 +77,6 @@ class DataAccessorTestCase(TestCase):
             ),
         ):
             data_accessor.close()
-
             self.assertRaises(ValueError, getattr, data_accessor, 'one')
             self.assertRaises(ValueError, getattr, data_accessor, 'two')
             self.assertRaises(ValueError, getattr, data_accessor, 'three')

@@ -1,6 +1,5 @@
 from dataclasses import dataclass, field
 from threading import Thread
-from time import sleep
 from typing import Any, ClassVar
 from unittest import TestCase, main
 
@@ -17,12 +16,13 @@ from revolution.environment import (
 @dataclass
 class _Debugger(Application):
     endpoint: ClassVar[Endpoint] = Endpoint.DEBUGGER
-    mainloop_flag: bool = False
-    setup_flag: bool = False
-    teardown_flag: bool = False
-    debug_flag: bool = False
-    debug_args: tuple[Any, ...] = ()
-    debug_kwargs: dict[str, Any] = field(default_factory=dict)
+    mainloop_flag: bool = field(default=False, init=False)
+    setup_flag: bool = field(default=False, init=False)
+    run_flag: bool = field(default=False, init=False)
+    teardown_flag: bool = field(default=False, init=False)
+    debug_flag: bool = field(default=False, init=False)
+    debug_args: tuple[Any, ...] = field(default=(), init=False)
+    debug_kwargs: dict[str, Any] = field(default_factory=dict, init=False)
 
     def mainloop(self) -> None:
         super().mainloop()
@@ -35,6 +35,11 @@ class _Debugger(Application):
         self._handlers[Header.DEBUG] = self.__handle_debug
         self.setup_flag = True
 
+    def _run(self) -> None:
+        super()._run()
+
+        self.run_flag = True
+
     def _teardown(self) -> None:
         self.teardown_flag = True
 
@@ -43,7 +48,7 @@ class _Debugger(Application):
     def __handle_debug(self, /, *args: Any, **kwargs: Any) -> None:
         self.debug_flag = True
         self.debug_args += args
-        self.debug_kwargs.update(kwargs)
+        self.debug_kwargs |= kwargs
 
 
 class ApplicationTestCase(TestCase):
@@ -53,19 +58,17 @@ class ApplicationTestCase(TestCase):
         debugger = _Debugger(environment)
         thread = Thread(target=debugger.mainloop)
 
+        self.assertFalse(debugger.mainloop_flag)
+        self.assertFalse(debugger.setup_flag)
+        self.assertFalse(debugger.run_flag)
+        self.assertFalse(debugger.teardown_flag)
+        self.assertFalse(debugger.debug_flag)
         thread.start()
-        thread.join(timeout=2 * debugger.message_queue_timeout)
-        self.assertTrue(thread.is_alive())
-        self.assertTrue(debugger.status)
-
-        with environment.write() as data:
-            data.status = False
-
-        thread.join(timeout=2 * debugger.message_queue_timeout)
-        self.assertFalse(thread.is_alive())
-        self.assertFalse(debugger.status)
+        environment.send_message(debugger.endpoint, Message(Header.STOP))
+        thread.join()
         self.assertTrue(debugger.mainloop_flag)
         self.assertTrue(debugger.setup_flag)
+        self.assertTrue(debugger.run_flag)
         self.assertTrue(debugger.teardown_flag)
         self.assertFalse(debugger.debug_flag)
 
@@ -75,23 +78,23 @@ class ApplicationTestCase(TestCase):
         debugger = _Debugger(environment)
         thread = Thread(target=debugger.mainloop)
 
+        self.assertFalse(debugger.debug_flag)
+        self.assertSequenceEqual(debugger.debug_args, ())
+        self.assertDictEqual(debugger.debug_kwargs, {})
+        thread.start()
         environment.send_message(
-            Endpoint.DEBUGGER,
+            debugger.endpoint,
             Message(Header.DEBUG, (0, 1), {'hello': 'world'}),
         )
         environment.send_message(
-            Endpoint.DEBUGGER,
+            debugger.endpoint,
             Message(Header.DEBUG, (2,)),
         )
-        thread.start()
-        sleep(debugger.message_queue_timeout)
-
-        with environment.write() as data:
-            data.status = False
-
+        environment.send_message(debugger.endpoint, Message(Header.STOP))
+        thread.join()
         self.assertTrue(debugger.debug_flag)
-        self.assertEqual(debugger.debug_args, (0, 1, 2))
-        self.assertEqual(debugger.debug_kwargs, {'hello': 'world'})
+        self.assertSequenceEqual(debugger.debug_args, (0, 1, 2))
+        self.assertDictEqual(debugger.debug_kwargs, {'hello': 'world'})
 
 
 if __name__ == '__main__':

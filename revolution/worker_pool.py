@@ -1,7 +1,10 @@
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from logging import getLogger
 from threading import Thread
 from typing import Any
+
+_logger = getLogger(__name__)
 
 
 @dataclass
@@ -23,7 +26,9 @@ class WorkerPool:
 
                 try:
                     function(*args, **kwargs)
-                except:  # noqa: E722
+                except Exception as exception:  # noqa: E722
+                    _logger.exception(exception)
+
                     status = False
 
         thread = Thread(target=run)

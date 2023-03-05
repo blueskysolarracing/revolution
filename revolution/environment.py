@@ -11,6 +11,7 @@ _logger = getLogger(__name__)
 
 
 class Header(Enum):
+    STOP = auto()
     DEBUG = auto()
 
 
@@ -32,8 +33,6 @@ class Direction(IntEnum):
 
 @dataclass
 class Context:
-    status: bool = True
-
     # Motor
     motor_acceleration_input: float = 0
     motor_regeneration_input: float = 0
@@ -52,9 +51,8 @@ class Context:
     display_backlight_status_input: bool = False
 
     # Battery
-    battery_relay_status: bool = False
-    battery_relay_status_input: int = 0
-    array_relay_status_input: int = 0
+    battery_relay_status_input: bool = False
+    array_relay_status_input: bool = False
 
     # Unclassified
     brake_status_input: float = 0
