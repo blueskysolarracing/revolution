@@ -51,6 +51,16 @@ class MotorControllerTestCase(TestCase):
 
         self.assertEqual(controller.revolution_period, inf)
 
+    def test_status(self) -> None:
+        controller = MotorController(*(MagicMock() for _ in range(8)))
+        cast(MagicMock, controller.main_switch_gpio).read.return_value = False
+
+        self.assertTrue(controller.status)
+
+        cast(MagicMock, controller.main_switch_gpio).read.return_value = True
+
+        self.assertFalse(controller.status)
+
     def test_accelerate(self) -> None:
         controller = MotorController(*(MagicMock() for _ in range(8)))
         cast(MagicMock, controller.acceleration_potentiometer_spi) \

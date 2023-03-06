@@ -3,7 +3,6 @@ from functools import partial
 from logging import getLogger
 from math import inf
 from periphery import GPIO, SPI
-from threading import Lock
 from time import sleep, time
 from typing import ClassVar
 
@@ -134,12 +133,10 @@ class MotorController:
 class Motor(Application):
     endpoint: ClassVar[Endpoint] = Endpoint.MOTOR
     controller: MotorController = field(default_factory=MotorController)
-    controller_status: bool = field(init=False)
-    controller_status_lock: Lock = field(default_factory=Lock, init=False)
+    _controller_status: bool = field(init=False)
 
     def __post_init__(self) -> None:
-        with self.controller_status_lock:
-            self.controller_status = self.controller.status
+        self._controller_status = self.controller.status
 
     def _setup(self) -> None:
         super()._setup()
@@ -155,18 +152,13 @@ class Motor(Application):
             with self._environment.read() as data:
                 status_input = data.motor_status_input
 
-            if self.controller.status != status_input:
-                self.controller.state(status_input)
+            self.controller.state(status_input)
 
-                with self.controller_status_lock:
-                    self.controller_status = status_input
+            self._controller_status = status_input
 
     def __update_spi(self) -> None:
         while self._status:
-            with self.controller_status_lock:
-                controller_status = self.controller_status
-
-            if controller_status:
+            if self._controller_status:
                 with self._environment.read() as data:
                     acceleration_input = data.motor_acceleration_input
                     regeneration_input = data.motor_regeneration_input
