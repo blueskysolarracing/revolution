@@ -152,9 +152,13 @@ class Motor(Application):
             with self._environment.read() as data:
                 status_input = data.motor_status_input
 
+            if not status_input:
+                self._controller_status = status_input
+
             self.controller.state(status_input)
 
-            self._controller_status = status_input
+            if status_input:
+                self._controller_status = status_input
 
     def __update_spi(self) -> None:
         while self._status:
@@ -162,12 +166,17 @@ class Motor(Application):
                 with self._environment.read() as data:
                     acceleration_input = data.motor_acceleration_input
                     regeneration_input = data.motor_regeneration_input
+                    brake_status_input = data.brake_status_input
 
-                self.controller.accelerate(acceleration_input)
-                self.controller.regenerate(regeneration_input)
-            else:
-                self.controller.accelerate(0)
-                self.controller.regenerate(0)
+                if not brake_status_input and not regeneration_input:
+                    self.controller.accelerate(acceleration_input)
+                else:
+                    self.controller.accelerate(0)
+
+                if not brake_status_input:
+                    self.controller.regenerate(regeneration_input)
+                else:
+                    self.controller.regenerate(0)
 
     def __update_gpio(self) -> None:
         while self._status:

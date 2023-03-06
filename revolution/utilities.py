@@ -3,10 +3,10 @@ from code import interact
 from datetime import datetime
 from logging import DEBUG, INFO, basicConfig, getLogger
 from sys import stderr
+from threading import Thread
 
 from revolution.application import Application
 from revolution.environment import Context, Environment
-from revolution.worker_pool import WorkerPool
 
 _logger = getLogger(__name__)
 
@@ -44,13 +44,16 @@ def main() -> None:
 
     context = Context()
     environment = Environment(context)
-    worker_pool = WorkerPool()
+    threads = []
 
     for application_type in Application.__subclasses__():
         if hasattr(application_type, 'endpoint'):
-            worker_pool.add(application_type.main, environment)
+            threads.append(
+                Thread(target=application_type.main, args=(environment,)),
+            )
 
     if arguments.interactive:
         interact(local={'environment': environment})
 
-    worker_pool.join()
+    for thread in threads:
+        thread.join()
