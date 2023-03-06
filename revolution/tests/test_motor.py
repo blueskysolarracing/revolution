@@ -367,7 +367,7 @@ class MotorTestCase(TestCase):
         context = Context()
         environment = Environment(context)
         motor = Motor(environment, MagicMock())
-        motor.controller.revolution_period = inf
+        cast(MagicMock, motor.controller).revolution_period = inf
         thread = Thread(target=motor.mainloop)
 
         thread.start()
@@ -376,7 +376,7 @@ class MotorTestCase(TestCase):
         with environment.read() as data:
             self.assertEqual(data.motor_revolution_period, inf)
 
-        motor.controller.revolution_period = 1
+        cast(MagicMock, motor.controller).revolution_period = 1
 
         sleep(1)
 
