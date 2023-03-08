@@ -129,6 +129,7 @@ class MotorController:
 @dataclass
 class Motor(Application):
     endpoint: ClassVar[Endpoint] = Endpoint.MOTOR
+    timeout: ClassVar[float] = 0.01
     controller: MotorController = field(default_factory=MotorController)
     __usage: Event = field(default_factory=Event, init=False)
 
@@ -158,6 +159,8 @@ class Motor(Application):
             if status_input:
                 self.__usage.set()
 
+            sleep(self.timeout)
+
     def __update_spi(self) -> None:
         while self._status:
             if self._controller_status:
@@ -176,6 +179,8 @@ class Motor(Application):
                 else:
                     self.controller.regenerate(0)
 
+            sleep(self.timeout)
+
     def __update_gpio(self) -> None:
         while self._status:
             with self.environment.read() as data:
@@ -184,6 +189,7 @@ class Motor(Application):
 
             self.controller.direct(direction_input)
             self.controller.economize(economical_mode_input)
+            sleep(self.timeout)
 
     def __update_gear(self) -> None:
         while self._status:
@@ -202,9 +208,13 @@ class Motor(Application):
             elif gear_index_input < 0:
                 self.controller.gear_down()
 
+            sleep(self.timeout)
+
     def __update_revolution(self) -> None:
         while self._status:
             revolution_period = self.controller.revolution_period
 
             with self.environment.write() as data:
                 data.motor_revolution_period = revolution_period
+
+            sleep(self.timeout)
