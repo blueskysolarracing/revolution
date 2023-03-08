@@ -1,6 +1,5 @@
 from ctypes import Structure
 from types import TracebackType
-from typing import Literal
 
 KERNEL_VERSION: tuple[int, int]
 
@@ -20,7 +19,7 @@ class SPI:
     def fd(self) -> int: ...
     @property
     def devpath(self) -> str: ...
-    mode: Literal[0, 1, 2, 3]
+    mode: int
     max_speed: int | float
     bit_order: str
     bits_per_word: int

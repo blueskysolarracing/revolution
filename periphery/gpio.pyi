@@ -1,13 +1,13 @@
 from ctypes import Structure
 from types import TracebackType
-from typing import Any, Literal
+from typing import Any
 
 KERNEL_VERSION: tuple[int, int]
 
 class GPIOError(IOError): ...
 
 class EdgeEvent:
-    def __new__(cls, edge: Literal['rising', 'falling'], timestamp: int) -> EdgeEvent: ...
+    def __new__(cls, edge: str, timestamp: int) -> EdgeEvent: ...
 
 class GPIO:
     def __new__(cls, *args: Any, **kwargs: Any) -> GPIO: ...
@@ -37,10 +37,10 @@ class GPIO:
     def chip_name(self) -> str: ...
     @property
     def chip_label(self) -> str: ...
-    direction: Literal['in', 'out', 'high', 'low']
-    edge: Literal['none', 'rising', 'falling', 'both']
-    bias: Literal['default', 'pull_up', 'pull_down', 'disable']
-    drive: Literal['default', 'open_drain', 'open_source']
+    direction: str
+    edge: str
+    bias: str
+    drive: str
     inverted: bool
 
 class _CGpiochipInfo(Structure): ...
@@ -55,10 +55,10 @@ class CdevGPIO(GPIO):
         self,
         path: str,
         line: int | str,
-        direction: Literal['in', 'out', 'high', 'low'],
-        edge: Literal['none', 'rising', 'falling', 'both'] = ...,
-        bias: Literal['default', 'pull_up', 'pull_down', 'disable'] = ...,
-        drive: Literal['default', 'open_drain', 'open_source'] = ...,
+        direction: str,
+        edge: str,
+        bias: str,
+        drive: str,
         inverted: bool = ...,
         label: str | None = ...,
     ) -> None: ...
