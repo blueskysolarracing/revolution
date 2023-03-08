@@ -37,7 +37,7 @@ class Context:
     motor_acceleration_input: float = 0
     motor_regeneration_input: float = 0
     motor_status_input: bool = False
-    motor_directional_input: Direction = Direction.FORWARD
+    motor_direction_input: Direction = Direction.FORWARD
     motor_economical_mode_input: bool = True
     motor_gear_input: int = 0
     motor_revolution_period: float = inf

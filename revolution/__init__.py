@@ -26,7 +26,7 @@ from revolution.environment import (
     Header,
     Message,
 )
-from revolution.motor import MotorController, Motor
+from revolution.motor import Motor, MotorController
 from revolution.steering_wheel import SteeringWheel
 from revolution.utilities import main, parse_arguments
 from revolution.worker_pool import WorkerPool

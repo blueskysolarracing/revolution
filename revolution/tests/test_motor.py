@@ -31,6 +31,21 @@ class MotorControllerTestCase(TestCase):
         cast(MagicMock, controller.regeneration_potentiometer_spi) \
             .transfer \
             .assert_called_with([1 << 5, 0])
+        cast(MagicMock, controller.main_switch_gpio) \
+            .write \
+            .assert_called_with(False)
+        cast(MagicMock, controller.forward_or_reverse_switch_gpio) \
+            .write \
+            .assert_called_with(False)
+        cast(MagicMock, controller.power_or_economical_switch_gpio) \
+            .write \
+            .assert_called_with(False)
+        cast(MagicMock, controller.vfm_up_switch_gpio) \
+            .write \
+            .assert_called_with(False)
+        cast(MagicMock, controller.vfm_down_switch_gpio) \
+            .write \
+            .assert_called_with(False)
 
     def test_revolution_period(self) -> None:
         def side_effect(*args: Any, **kwargs: Any) -> Any:
@@ -45,11 +60,11 @@ class MotorControllerTestCase(TestCase):
         cast(MagicMock, controller.revolution_gpio).poll.return_value \
             = True
 
-        self.assertAlmostEqual(controller.revolution_period, timeout, 2)
+        self.assertAlmostEqual(controller.revolution_period, 2 * timeout, 2)
 
         timeout = controller.revolution_timeout / 20
 
-        self.assertAlmostEqual(controller.revolution_period, timeout, 2)
+        self.assertAlmostEqual(controller.revolution_period, 2 * timeout, 2)
 
         cast(MagicMock, controller.revolution_gpio).poll.side_effect \
             = None
@@ -60,11 +75,11 @@ class MotorControllerTestCase(TestCase):
 
     def test_status(self) -> None:
         controller = MotorController(*(MagicMock() for _ in range(8)))
-        cast(MagicMock, controller.main_switch_gpio).read.return_value = False
+        cast(MagicMock, controller.main_switch_gpio).read.return_value = True
 
         self.assertTrue(controller.status)
 
-        cast(MagicMock, controller.main_switch_gpio).read.return_value = True
+        cast(MagicMock, controller.main_switch_gpio).read.return_value = False
 
         self.assertFalse(controller.status)
 
@@ -132,7 +147,7 @@ class MotorControllerTestCase(TestCase):
 
     def test_state(self) -> None:
         controller = MotorController(*(MagicMock() for _ in range(8)))
-        cast(MagicMock, controller.main_switch_gpio).read.return_value = True
+        cast(MagicMock, controller.main_switch_gpio).read.return_value = False
         timestamp = time()
 
         controller.state(True)
@@ -142,16 +157,16 @@ class MotorControllerTestCase(TestCase):
         )
         cast(MagicMock, controller.main_switch_gpio) \
             .write \
-            .assert_called_with(False)
+            .assert_called_with(True)
 
-        cast(MagicMock, controller.main_switch_gpio).read.return_value = False
+        cast(MagicMock, controller.main_switch_gpio).read.return_value = True
         timestamp = time()
 
         controller.state(False)
         self.assertLess(time() - timestamp, controller.main_switch_timeout)
         cast(MagicMock, controller.main_switch_gpio) \
             .write \
-            .assert_called_with(True)
+            .assert_called_with(False)
 
     def test_direct(self) -> None:
         controller = MotorController(*(MagicMock() for _ in range(8)))
@@ -307,7 +322,7 @@ class MotorTestCase(TestCase):
         cast(MagicMock, motor.controller).economize.assert_called_with(True)
 
         with environment.write() as data:
-            data.motor_directional_input = Direction.BACKWARD
+            data.motor_direction_input = Direction.BACKWARD
             data.motor_economical_mode_input = False
 
         sleep(1)
