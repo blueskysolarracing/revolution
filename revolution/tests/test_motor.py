@@ -232,13 +232,13 @@ class MotorTestCase(TestCase):
         thread = Thread(target=motor.mainloop)
 
         thread.start()
-        sleep(1)
+        sleep(2 * motor.timeout)
         cast(MagicMock, motor.controller).state.assert_called_with(False)
 
         with environment.write() as data:
             data.motor_status_input = True
 
-        sleep(1)
+        sleep(2 * motor.timeout)
         cast(MagicMock, motor.controller).state.assert_called_with(True)
         environment.send_message(motor.endpoint, Message(Header.STOP))
         thread.join()
@@ -256,14 +256,14 @@ class MotorTestCase(TestCase):
             data.motor_regeneration_input = 1
             data.brake_status_input = 1
 
-        sleep(1)
+        sleep(2 * motor.timeout)
         cast(MagicMock, motor.controller).accelerate.assert_not_called()
         cast(MagicMock, motor.controller).regenerate.assert_not_called()
 
         with environment.write() as data:
             data.motor_status_input = True
 
-        sleep(1)
+        sleep(2 * motor.timeout)
         self.assertRaises(
             AssertionError,
             cast(MagicMock, motor.controller).accelerate.assert_any_call,
@@ -280,7 +280,7 @@ class MotorTestCase(TestCase):
         with environment.write() as data:
             data.brake_status_input = 0
 
-        sleep(1)
+        sleep(2 * motor.timeout)
         self.assertRaises(
             AssertionError,
             cast(MagicMock, motor.controller).accelerate.assert_any_call,
@@ -292,7 +292,7 @@ class MotorTestCase(TestCase):
         with environment.write() as data:
             data.motor_regeneration_input = 0
 
-        sleep(1)
+        sleep(2 * motor.timeout)
         cast(MagicMock, motor.controller).accelerate.assert_called_with(1)
         cast(MagicMock, motor.controller).regenerate.assert_called_with(0)
         environment.send_message(motor.endpoint, Message(Header.STOP))
@@ -305,7 +305,7 @@ class MotorTestCase(TestCase):
         thread = Thread(target=motor.mainloop)
 
         thread.start()
-        sleep(1)
+        sleep(2 * motor.timeout)
         self.assertRaises(
             AssertionError,
             cast(MagicMock, motor.controller).direct.assert_any_call,
@@ -325,7 +325,7 @@ class MotorTestCase(TestCase):
             data.motor_direction_input = Direction.BACKWARD
             data.motor_economical_mode_input = False
 
-        sleep(1)
+        sleep(2 * motor.timeout)
         cast(MagicMock, motor.controller).direct.assert_called_with(
             Direction.BACKWARD,
         )
@@ -340,14 +340,14 @@ class MotorTestCase(TestCase):
         thread = Thread(target=motor.mainloop)
 
         thread.start()
-        sleep(1)
+        sleep(2 * motor.timeout)
         cast(MagicMock, motor.controller).gear_up.assert_not_called()
         cast(MagicMock, motor.controller).gear_down.assert_not_called()
 
         with environment.write() as data:
             data.motor_gear_input = 3
 
-        sleep(1)
+        sleep(4 * motor.timeout)
         self.assertEqual(
             cast(MagicMock, motor.controller).gear_up.call_count,
             3,
@@ -360,7 +360,7 @@ class MotorTestCase(TestCase):
             self.assertEqual(data.motor_gear_input, 0)
             data.motor_gear_input = -3
 
-        sleep(1)
+        sleep(4 * motor.timeout)
         cast(MagicMock, motor.controller).gear_up.assert_not_called()
         self.assertEqual(
             cast(MagicMock, motor.controller).gear_down.call_count,
@@ -372,7 +372,7 @@ class MotorTestCase(TestCase):
         with environment.read() as data:
             self.assertEqual(data.motor_gear_input, 0)
 
-        sleep(1)
+        sleep(2 * motor.timeout)
         cast(MagicMock, motor.controller).gear_up.assert_not_called()
         cast(MagicMock, motor.controller).gear_down.assert_not_called()
         environment.send_message(motor.endpoint, Message(Header.STOP))
@@ -386,14 +386,14 @@ class MotorTestCase(TestCase):
         thread = Thread(target=motor.mainloop)
 
         thread.start()
-        sleep(1)
+        sleep(2 * motor.timeout)
 
         with environment.read() as data:
             self.assertEqual(data.motor_revolution_period, inf)
 
         cast(MagicMock, motor.controller).revolution_period = 1
 
-        sleep(1)
+        sleep(2 * motor.timeout)
 
         with environment.read() as data:
             self.assertEqual(data.motor_revolution_period, 1)
