@@ -22,46 +22,55 @@ class Endpoint(Enum):
     DEBUGGER = auto()
 
 
+class DirectionalPad(Enum):
+    UP = auto()
+    DOWN = auto()
+    LEFT = auto()
+    RIGHT = auto()
+    CENTER = auto()
+
+
 class Direction(IntEnum):
-    UP = 2
-    DOWN = 3
-    LEFT = 5
-    RIGHT = 7
-    FORWARD = 11
-    BACKWARD = 13
+    FORWARD = 0
+    BACKWARD = 1
 
 
 @dataclass
 class Context:
     # Motor
-    motor_acceleration_input: float = 0
-    motor_regeneration_input: float = 0
+    acceleration_input: float = 0
+    regeneration_input: float = 0
     motor_status_input: bool = False
-    motor_direction_input: Direction = Direction.FORWARD
-    motor_economical_mode_input: bool = True
-    motor_gear_input: int = 0
-    motor_revolution_period: float = inf
+    direction_input: Direction = Direction.FORWARD
+    economical_mode_input: bool = True
+    variable_field_magnet_up_input: int = 0
+    variable_field_magnet_down_input: int = 0
+    revolution_period: float = inf
 
     # Miscellaneous
-    horn_status_input: bool = False
     left_indicator_status_input: bool = False
     right_indicator_status_input: bool = False
     hazard_lights_status_input: bool = False
     daytime_running_light_status_input: bool = False
-    display_backlight_status_input: bool = False
+    horn_status_input: bool = False
+    fan_status_input: bool = False
 
-    # Battery
-    battery_relay_status_input: bool = False
+    # Power
     array_relay_status_input: bool = False
+    battery_relay_status_input: bool = False
+
+    # Display
+    thermistor_input: float = 0
+    backup_camera_control_status_input: bool = False
+    steering_wheel_in_place_status_input: bool = False
+    left_directional_pad_input: bool = False
+    right_directional_pad_input: bool = False
+    up_directional_pad_input: bool = False
+    down_directional_pad_input: bool = False
+    center_directional_pad_input: bool = False
 
     # Unclassified
-    brake_status_input: float = 0
-    backup_camera_control_status_input: int = 0
-    fan_status_input: int = 0
-    directional_pad_input: Direction | None = None
-    radio_status_input: bool = False
-    steering_wheel_in_place_status_input: bool = False
-    thermistor_status_input: int = False
+    brake_status_input: bool = False
 
 
 @dataclass

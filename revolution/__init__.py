@@ -1,8 +1,11 @@
 __all__ = (
+    'ADC78H89',
     'Application',
     'Context',
     'DataAccessor',
     'DataManager',
+    'Direction',
+    'DirectionalPad',
     'Display',
     'Endpoint',
     'Environment',
@@ -19,8 +22,11 @@ __all__ = (
 from revolution.application import Application
 from revolution.data import DataAccessor, DataManager
 from revolution.display import Display
+from revolution.drivers import ADC78H89
 from revolution.environment import (
     Context,
+    Direction,
+    DirectionalPad,
     Endpoint,
     Environment,
     Header,

@@ -3,7 +3,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from logging import getLogger
 from threading import Event
-from typing import ClassVar
+from typing import Any, ClassVar
 
 from revolution.environment import Endpoint, Environment, Header
 from revolution.worker_pool import WorkerPool
@@ -20,7 +20,7 @@ class Application(ABC):
 
     endpoint: ClassVar[Endpoint]
     environment: Environment
-    _handlers: dict[Header, Callable[..., None]] \
+    _handlers: dict[Header, Callable[..., Any]] \
         = field(default_factory=dict, init=False)
     _worker_pool: WorkerPool = field(default_factory=WorkerPool, init=False)
     __stoppage: Event = field(default_factory=Event, init=False)
