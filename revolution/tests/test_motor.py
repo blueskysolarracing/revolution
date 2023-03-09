@@ -31,9 +31,9 @@ class MotorControllerTestCase(TestCase):
         cast(MagicMock, controller.regeneration_potentiometer_spi) \
             .transfer \
             .assert_called_with([1 << 5, 0])
-        cast(MagicMock, controller.main_switch_gpio) \
-            .write \
-            .assert_called_with(False)
+        cast(MagicMock, controller.main_switch_gpio).write.assert_called_with(
+            False,
+        )
         cast(MagicMock, controller.forward_or_reverse_switch_gpio) \
             .write \
             .assert_called_with(False)
@@ -57,8 +57,7 @@ class MotorControllerTestCase(TestCase):
         timeout = controller.revolution_timeout / 100
         cast(MagicMock, controller.revolution_gpio).poll.side_effect \
             = side_effect
-        cast(MagicMock, controller.revolution_gpio).poll.return_value \
-            = True
+        cast(MagicMock, controller.revolution_gpio).poll.return_value = True
 
         self.assertAlmostEqual(controller.revolution_period, 2 * timeout, 2)
 
@@ -66,10 +65,8 @@ class MotorControllerTestCase(TestCase):
 
         self.assertAlmostEqual(controller.revolution_period, 2 * timeout, 2)
 
-        cast(MagicMock, controller.revolution_gpio).poll.side_effect \
-            = None
-        cast(MagicMock, controller.revolution_gpio).poll.return_value \
-            = False
+        cast(MagicMock, controller.revolution_gpio).poll.side_effect = None
+        cast(MagicMock, controller.revolution_gpio).poll.return_value = False
 
         self.assertEqual(controller.revolution_period, inf)
 
@@ -155,18 +152,18 @@ class MotorControllerTestCase(TestCase):
             time() - timestamp,
             controller.main_switch_timeout,
         )
-        cast(MagicMock, controller.main_switch_gpio) \
-            .write \
-            .assert_called_with(True)
+        cast(MagicMock, controller.main_switch_gpio).write.assert_called_with(
+            True,
+        )
 
         cast(MagicMock, controller.main_switch_gpio).read.return_value = True
         timestamp = time()
 
         controller.state(False)
         self.assertLess(time() - timestamp, controller.main_switch_timeout)
-        cast(MagicMock, controller.main_switch_gpio) \
-            .write \
-            .assert_called_with(False)
+        cast(MagicMock, controller.main_switch_gpio).write.assert_called_with(
+            False,
+        )
 
     def test_direct(self) -> None:
         controller = MotorController(*(MagicMock() for _ in range(8)))
@@ -314,9 +311,7 @@ class MotorTestCase(TestCase):
             controller.economize.assert_any_call,
             False,
         )
-        controller.direct.assert_called_with(
-            Direction.FORWARD,
-        )
+        controller.direct.assert_called_with(Direction.FORWARD)
         controller.economize.assert_called_with(True)
 
         with environment.write() as data:
@@ -324,9 +319,7 @@ class MotorTestCase(TestCase):
             data.economical_mode_input = False
 
         sleep(2 * motor.timeout)
-        controller.direct.assert_called_with(
-            Direction.BACKWARD,
-        )
+        controller.direct.assert_called_with(Direction.BACKWARD)
         controller.economize.assert_called_with(False)
         environment.send_message(motor.endpoint, Message(Header.STOP))
         thread.join()
@@ -340,21 +333,14 @@ class MotorTestCase(TestCase):
 
         thread.start()
         sleep(2 * motor.timeout)
-        controller \
-            .variable_field_magnet_up \
-            .assert_not_called()
-        controller \
-            .variable_field_magnet_down \
-            .assert_not_called()
+        controller.variable_field_magnet_up.assert_not_called()
+        controller.variable_field_magnet_down.assert_not_called()
 
         with environment.write() as data:
             data.variable_field_magnet_up_input = 3
 
         sleep(4 * motor.timeout)
-        self.assertEqual(
-            controller.variable_field_magnet_up.call_count,
-            3,
-        )
+        self.assertEqual(controller.variable_field_magnet_up.call_count, 3)
         controller.variable_field_magnet_down.assert_not_called()
         controller.variable_field_magnet_up.reset_mock()
         controller.variable_field_magnet_down.reset_mock()
@@ -365,10 +351,7 @@ class MotorTestCase(TestCase):
 
         sleep(4 * motor.timeout)
         controller.variable_field_magnet_up.assert_not_called()
-        self.assertEqual(
-            controller.variable_field_magnet_down.call_count,
-            3,
-        )
+        self.assertEqual(controller.variable_field_magnet_down.call_count, 3)
         controller.variable_field_magnet_up.reset_mock()
         controller.variable_field_magnet_down.reset_mock()
 
