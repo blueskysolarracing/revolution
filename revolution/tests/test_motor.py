@@ -46,8 +46,8 @@ class MotorTestCase(TestCase):
         thread.start()
 
         with environment.write() as data:
-            data.acceleration_input = 1
-            data.regeneration_input = 1
+            data.acceleration_pedal_input = 1
+            data.regeneration_paddle_input = 1
             data.brake_status_input = True
 
         sleep(2 * motor.timeout)
@@ -84,7 +84,7 @@ class MotorTestCase(TestCase):
         controller.regenerate.assert_called_with(1)
 
         with environment.write() as data:
-            data.regeneration_input = 0
+            data.regeneration_paddle_input = 0
 
         sleep(2 * motor.timeout)
         controller.accelerate.assert_called_with(1)

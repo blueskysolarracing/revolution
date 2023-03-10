@@ -81,8 +81,14 @@ class Motor(Application):
         while self._status:
             if self._controller_status:
                 with self.environment.read() as data:
-                    acceleration_input = data.acceleration_input
-                    regeneration_input = data.regeneration_input
+                    acceleration_input = max(
+                        data.acceleration_pedal_input,
+                        data.acceleration_paddle_input,
+                    )
+                    regeneration_input = max(
+                        data.regeneration_pedal_input,
+                        data.regeneration_paddle_input,
+                    )
                     brake_status_input = data.brake_status_input
 
                 if not brake_status_input and not regeneration_input:

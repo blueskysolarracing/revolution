@@ -9,6 +9,7 @@ from typing import ClassVar
 from revolution.application import Application
 from revolution.drivers import ADC78H89
 from revolution.environment import Context, Endpoint
+from revolution.utilities import interpolate
 
 _logger = getLogger(__name__)
 
@@ -25,7 +26,6 @@ class SteeringWheel(Application):
     endpoint: ClassVar[Endpoint] = Endpoint.STEERING_WHEEL
     timeout: ClassVar[float] = 0.01
 
-    # Motor
     acceleration_pedal_input_channel: ClassVar[ADC78H89.InputChannel] \
         = ADC78H89.InputChannel.AIN1  # TODO
     regeneration_pedal_input_channel: ClassVar[ADC78H89.InputChannel] \
@@ -34,7 +34,19 @@ class SteeringWheel(Application):
         = ADC78H89.InputChannel.AIN3  # TODO
     regeneration_paddle_input_channel: ClassVar[ADC78H89.InputChannel] \
         = ADC78H89.InputChannel.AIN4  # TODO
+    thermistor_input_channel: ClassVar[ADC78H89.InputChannel] \
+        = ADC78H89.InputChannel.AIN5  # TODO
+    acceleration_pedal_input_range: ClassVar[tuple[float, float]] \
+        = (0, 0)  # TODO
+    regeneration_pedal_input_range: ClassVar[tuple[float, float]] \
+        = (0, 0)  # TODO
+    acceleration_paddle_input_range: ClassVar[tuple[float, float]] \
+        = (0, 0)  # TODO
+    regeneration_paddle_input_range: ClassVar[tuple[float, float]] \
+        = (0, 0)  # TODO
+    thermistor_input_range: ClassVar[tuple[float, float]] = (0, 0)  # TODO
 
+    # Motor
     direction_switch_gpio: GPIO \
         = field(default_factory=partial(GPIO, '', 0, 'in'))  # TODO
     variable_field_magnet_up_switch_gpio: GPIO \
@@ -63,9 +75,6 @@ class SteeringWheel(Application):
         = field(default_factory=partial(GPIO, '', 0, 'in'))  # TODO
 
     # Display
-    thermistor_input_channel: ClassVar[ADC78H89.InputChannel] \
-        = ADC78H89.InputChannel.AIN5  # TODO
-
     backup_camera_control_switch_gpio: GPIO \
         = field(default_factory=partial(GPIO, '', 0, 'in'))  # TODO
     steering_wheel_in_place_switch_gpio: GPIO \
@@ -87,12 +96,36 @@ class SteeringWheel(Application):
 
     converter_spi: SPI = field(default_factory=partial(SPI, '', 3, 1e6))
     converter: ADC78H89 = field(init=False)
+    conversions: dict[str, tuple[ADC78H89.InputChannel, tuple[float, float]]] \
+        = field(init=False)
     boolean_momentary_switch_gpios: dict[str, GPIO] = field(init=False)
     boolean_toggle_switch_gpios: dict[str, GPIO] = field(init=False)
     additive_toggle_switch_gpios: dict[str, GPIO] = field(init=False)
 
     def __post_init__(self) -> None:
         self.converter = ADC78H89(self.converter_spi)
+        self.conversions = {
+            'acceleration_pedal_input': (
+                self.acceleration_pedal_input_channel,
+                self.acceleration_pedal_input_range,
+            ),
+            'regeneration_pedal_input': (
+                self.regeneration_pedal_input_channel,
+                self.regeneration_pedal_input_range,
+            ),
+            'acceleration_paddle_input': (
+                self.acceleration_paddle_input_channel,
+                self.acceleration_paddle_input_range,
+            ),
+            'regeneration_paddle_input': (
+                self.regeneration_paddle_input_channel,
+                self.regeneration_paddle_input_range,
+            ),
+            'thermistor_input': (
+                self.thermistor_input_channel,
+                self.thermistor_input_range,
+            ),
+        }
         self.boolean_momentary_switch_gpios = {
             # Motor
             'direction_input': self.direction_switch_gpio,
@@ -146,6 +179,10 @@ class SteeringWheel(Application):
         for field_ in fields(Context):
             field_names.add(field_.name)
 
+        for attribute_name in self.conversions.keys():
+            if attribute_name not in field_names:
+                raise ValueError('unknown attribute name')
+
         for attribute_name, switch_gpio in chain(
                 self.boolean_momentary_switch_gpios.items(),
                 self.boolean_toggle_switch_gpios.items(),
@@ -168,14 +205,32 @@ class SteeringWheel(Application):
     def _setup(self) -> None:
         super()._setup()
 
+        self._worker_pool.add(self.__update_converter)
         self._worker_pool.add(self.__update_momentary_switches)
         self._worker_pool.add(self.__update_toggle_switches)
-        self._worker_pool.add(self.__update_converter)
+
+    def __update_converter(self) -> None:
+        while self._status:
+            voltages = self.converter.voltages
+            values = {}
+
+            for (input_channel, input_range) in self.conversions.values():
+                voltage = voltages[input_channel]
+                values[input_channel] \
+                    = interpolate(voltage, *input_range, 0, 1)
+
+            for attribute_name, (input_channel, _) in self.conversions.items():
+                value = values[input_channel]
+
+                with self.environment.write() as data:
+                    setattr(data, attribute_name, value)
+
+            sleep(self.timeout)
 
     def __update_momentary_switches(self) -> None:
         while self._status:
-            for attribute_name, momentary_switch_gpio in \
-                    self.boolean_momentary_switch_gpios.items():
+            for attribute_name, momentary_switch_gpio \
+                    in self.boolean_momentary_switch_gpios.items():
                 value = momentary_switch_gpio.read()
 
                 with self.environment.write() as data:
@@ -201,8 +256,8 @@ class SteeringWheel(Application):
 
                 values[toggle_switch_gpio] = value
 
-            for attribute_name, toggle_switch_gpio in \
-                    self.additive_toggle_switch_gpios.items():
+            for attribute_name, toggle_switch_gpio \
+                    in self.additive_toggle_switch_gpios.items():
                 value = toggle_switch_gpio.read()
 
                 if value and not values.get(toggle_switch_gpio, False):
@@ -215,8 +270,4 @@ class SteeringWheel(Application):
 
                 values[toggle_switch_gpio] = value
 
-            sleep(self.timeout)
-
-    def __update_converter(self) -> None:
-        while self._status:
             sleep(self.timeout)

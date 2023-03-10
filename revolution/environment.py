@@ -38,8 +38,10 @@ class Direction(IntEnum):
 @dataclass
 class Context:
     # Motor
-    acceleration_input: float = 0
-    regeneration_input: float = 0
+    acceleration_pedal_input: float = 0
+    regeneration_pedal_input: float = 0
+    acceleration_paddle_input: float = 0
+    regeneration_paddle_input: float = 0
     motor_status_input: bool = False
     direction_input: Direction = Direction.FORWARD
     economical_mode_input: bool = True
@@ -71,6 +73,7 @@ class Context:
 
     # Unclassified
     brake_status_input: bool = False
+    debug: Any = None
 
 
 @dataclass
