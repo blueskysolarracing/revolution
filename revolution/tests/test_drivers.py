@@ -4,12 +4,79 @@ from typing import Any, cast
 from unittest import TestCase, main
 from unittest.mock import DEFAULT, MagicMock, call
 
-from revolution.drivers import M2096
+from revolution.drivers import ADC78H89, M2096
 from revolution.environment import Direction
 
 
 class ADC78H89TestCase(TestCase):
-    pass  # TODO
+    def test_post_init(self) -> None:
+        spi = MagicMock()
+        spi.mode = 3
+        spi.max_speed = 1e6
+        spi.bit_order = 'msb'
+        spi.bits_per_word = 8
+        spi.extra_flags = 0
+
+        ADC78H89(spi)
+
+        spi.mode = 1
+
+        self.assertRaises(ValueError, ADC78H89, spi)
+
+        spi.mode = 3
+        spi.max_speed = 0
+
+        self.assertRaises(ValueError, ADC78H89, spi)
+
+        spi.max_speed = inf
+
+        self.assertRaises(ValueError, ADC78H89, spi)
+
+        spi.max_speed = 1e6
+        spi.bit_order = 'lsb'
+
+        self.assertRaises(ValueError, ADC78H89, spi)
+
+        spi.bit_order = 'msb'
+        spi.bits_per_word = 7
+
+        self.assertRaises(ValueError, ADC78H89, spi)
+
+        spi.bits_per_word = 8
+        spi.extra_flags = 1
+
+        self.assertWarns(UserWarning, ADC78H89, spi)
+
+    def test_voltages(self) -> None:
+        spi = MagicMock()
+        spi.mode = 3
+        spi.max_speed = 1e6
+        spi.bit_order = 'msb'
+        spi.bits_per_word = 8
+        spi.extra_flags = 0
+        spi.transfer.side_effect = ([0, i] for i in range(8))
+        converter = ADC78H89(spi)
+        voltages = converter.voltages
+        expected_voltages = {}
+
+        for i, input_channel in enumerate(converter.InputChannel):
+            expected_voltages[input_channel] \
+                = converter.reference_voltage * i / converter.divisor
+
+        self.assertDictEqual(voltages, expected_voltages)
+        self.assertEqual(spi.transfer.call_count, 8)
+        spi.transfer.assert_has_calls(
+            (
+                call([0b0001000, 0]),
+                call([0b0010000, 0]),
+                call([0b0011000, 0]),
+                call([0b0100000, 0]),
+                call([0b0101000, 0]),
+                call([0b0110000, 0]),
+                call([0b0111000, 0]),
+                call([0b0000000, 0]),
+            ),
+        )
 
 
 class M2096TestCase(TestCase):
