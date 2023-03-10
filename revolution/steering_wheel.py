@@ -1,14 +1,14 @@
-from dataclasses import dataclass, field, fields
+from dataclasses import dataclass, field
 from functools import partial
-from itertools import chain
 from logging import getLogger
-from periphery import GPIO, SPI
 from time import sleep
 from typing import ClassVar
 
+from periphery import GPIO, SPI
+
 from revolution.application import Application
 from revolution.drivers import ADC78H89
-from revolution.environment import Context, Endpoint
+from revolution.environment import Endpoint
 from revolution.utilities import interpolate
 
 _logger = getLogger(__name__)
@@ -139,8 +139,10 @@ class SteeringWheel(Application):
             # Display
             'steering_wheel_in_place_status_input':
                 self.steering_wheel_in_place_switch_gpio,
-            'left_directional_pad_input': self.left_indicator_switch_gpio,
-            'right_directional_pad_input': self.right_indicator_switch_gpio,
+            'left_directional_pad_input':
+                self.left_directional_pad_switch_gpio,
+            'right_directional_pad_input':
+                self.right_directional_pad_switch_gpio,
             'up_directional_pad_input': self.up_directional_pad_switch_gpio,
             'down_directional_pad_input':
                 self.down_directional_pad_switch_gpio,
@@ -171,36 +173,6 @@ class SteeringWheel(Application):
             'variable_field_magnet_down_input':
                 self.variable_field_magnet_down_switch_gpio,
         }
-
-        field_names = set[str]()
-        attribute_names = set[str]()
-        switch_gpios = set[GPIO]()
-
-        for field_ in fields(Context):
-            field_names.add(field_.name)
-
-        for attribute_name in self.conversions.keys():
-            if attribute_name not in field_names:
-                raise ValueError('unknown attribute name')
-
-        for attribute_name, switch_gpio in chain(
-                self.boolean_momentary_switch_gpios.items(),
-                self.boolean_toggle_switch_gpios.items(),
-                self.additive_toggle_switch_gpios.items(),
-        ):
-            if attribute_name in attribute_names:
-                raise ValueError('duplicate attribute names')
-            elif switch_gpio in switch_gpios:
-                raise ValueError('duplicate switch gpios')
-            elif attribute_name not in field_names:
-                raise ValueError('unknown attribute name')
-
-        for field_ in fields(self):
-            if field_.type is GPIO:
-                attribute = getattr(self, field_.name)
-
-                if attribute not in switch_gpios:
-                    raise ValueError('unclassified switch gpio')
 
     def _setup(self) -> None:
         super()._setup()

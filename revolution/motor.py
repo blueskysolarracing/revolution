@@ -1,10 +1,11 @@
 from dataclasses import dataclass, field
 from functools import partial
 from logging import getLogger
-from periphery import GPIO, SPI
 from threading import Event
 from time import sleep
 from typing import ClassVar
+
+from periphery import GPIO, SPI
 
 from revolution.application import Application
 from revolution.drivers import M2096

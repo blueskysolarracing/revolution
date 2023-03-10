@@ -2,10 +2,11 @@ from dataclasses import dataclass
 from enum import IntEnum
 from logging import getLogger
 from math import inf
-from periphery import GPIO, SPI
 from time import sleep, time
 from typing import ClassVar
 from warnings import warn
+
+from periphery import GPIO, SPI
 
 from revolution.environment import Direction
 
