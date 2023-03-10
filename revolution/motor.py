@@ -1,41 +1,22 @@
 from dataclasses import dataclass, field
 from functools import partial
 from logging import getLogger
-from math import inf
 from periphery import GPIO, SPI
 from threading import Event
-from time import sleep, time
+from time import sleep
 from typing import ClassVar
 
 from revolution.application import Application
-from revolution.environment import Direction, Endpoint
+from revolution.drivers import M2096
+from revolution.environment import Endpoint
 
 _logger = getLogger(__name__)
 
 
 @dataclass
-class MotorController:
-    @staticmethod
-    def __position_potentiometer(
-            spi: SPI,
-            position: float,
-            eeprom: bool,
-    ) -> None:
-        if not 0 <= position <= 1:
-            raise ValueError('position not between 0 and 1')
-
-        raw_data = round(256 * position)
-
-        if eeprom:
-            raw_data |= 1 << 13
-
-        data = [raw_data >> 8, raw_data & ((1 << 8) - 1)]
-
-        spi.transfer(data)
-
-    main_switch_timeout: ClassVar[float] = 5
-    variable_field_magnet_switch_timeout: ClassVar[float] = 0.2
-    revolution_timeout: ClassVar[float] = 5
+class Motor(Application):
+    endpoint: ClassVar[Endpoint] = Endpoint.MOTOR
+    timeout: ClassVar[float] = 0.01
     acceleration_potentiometer_spi: SPI \
         = field(default_factory=partial(SPI, '', 0, 1))  # TODO
     regeneration_potentiometer_spi: SPI \
@@ -53,77 +34,20 @@ class MotorController:
         = field(default_factory=partial(GPIO, '', 0, 'out'))  # TODO
     revolution_gpio: GPIO \
         = field(default_factory=partial(GPIO, '', 0, 'in', 'both'))  # TODO
+    controller: M2096 = field(init=False)
+    __usage: Event = field(default_factory=Event, init=False)
 
     def __post_init__(self) -> None:
-        self.accelerate(0, True)
-        self.regenerate(0, True)
-        self.main_switch_gpio.write(False)
-        self.forward_or_reverse_switch_gpio.write(False)
-        self.power_or_economical_switch_gpio.write(False)
-        self.variable_field_magnet_up_switch_gpio.write(False)
-        self.variable_field_magnet_down_switch_gpio.write(False)
-
-    @property
-    def revolution_period(self) -> float:
-        if not self.revolution_gpio.poll(self.revolution_timeout):
-            return inf
-
-        timestamp = time()
-
-        if not self.revolution_gpio.poll(self.revolution_timeout):
-            return inf
-
-        return 2 * (time() - timestamp)
-
-    @property
-    def status(self) -> bool:
-        return self.main_switch_gpio.read()
-
-    def accelerate(self, acceleration: float, eeprom: bool = False) -> None:
-        self.__position_potentiometer(
+        self.controller = M2096(
             self.acceleration_potentiometer_spi,
-            acceleration,
-            eeprom,
-        )
-
-    def regenerate(self, regeneration: float, eeprom: bool = False) -> None:
-        self.__position_potentiometer(
             self.regeneration_potentiometer_spi,
-            regeneration,
-            eeprom,
+            self.main_switch_gpio,
+            self.forward_or_reverse_switch_gpio,
+            self.power_or_economical_switch_gpio,
+            self.variable_field_magnet_up_switch_gpio,
+            self.variable_field_magnet_down_switch_gpio,
+            self.revolution_gpio,
         )
-
-    def state(self, status: bool) -> None:
-        wait = status and not self.status
-
-        self.main_switch_gpio.write(status)
-
-        if wait:
-            sleep(self.main_switch_timeout)
-
-    def direct(self, direction: Direction) -> None:
-        self.forward_or_reverse_switch_gpio.write(bool(direction))
-
-    def economize(self, mode: bool) -> None:
-        self.power_or_economical_switch_gpio.write(mode)
-
-    def variable_field_magnet_up(self) -> None:
-        self.variable_field_magnet_up_switch_gpio.write(True)
-        sleep(self.variable_field_magnet_switch_timeout)
-        self.variable_field_magnet_up_switch_gpio.write(False)
-
-    def variable_field_magnet_down(self) -> None:
-        self.variable_field_magnet_down_switch_gpio.write(True)
-        sleep(self.variable_field_magnet_switch_timeout)
-        self.variable_field_magnet_down_switch_gpio.write(False)
-
-
-@dataclass
-class Motor(Application):
-    endpoint: ClassVar[Endpoint] = Endpoint.MOTOR
-    timeout: ClassVar[float] = 0.01
-    controller: MotorController = field(default_factory=MotorController)
-    __usage: Event = field(default_factory=Event, init=False)
 
     @property
     def _controller_status(self) -> bool:

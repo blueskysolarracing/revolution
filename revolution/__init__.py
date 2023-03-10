@@ -10,9 +10,9 @@ __all__ = (
     'Endpoint',
     'Environment',
     'Header',
+    'M2096',
     'Message',
     'Motor',
-    'MotorController',
     'SteeringWheel',
     'WorkerPool',
     'main',
@@ -22,7 +22,7 @@ __all__ = (
 from revolution.application import Application
 from revolution.data import DataAccessor, DataManager
 from revolution.display import Display
-from revolution.drivers import ADC78H89
+from revolution.drivers import ADC78H89, M2096
 from revolution.environment import (
     Context,
     Direction,
@@ -32,7 +32,7 @@ from revolution.environment import (
     Header,
     Message,
 )
-from revolution.motor import Motor, MotorController
+from revolution.motor import Motor
 from revolution.steering_wheel import SteeringWheel
 from revolution.utilities import main, parse_arguments
 from revolution.worker_pool import WorkerPool

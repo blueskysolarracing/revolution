@@ -35,11 +35,6 @@ class SteeringWheel(Application):
     regeneration_paddle_input_channel: ClassVar[ADC78H89.InputChannel] \
         = ADC78H89.InputChannel.AIN4  # TODO
 
-    # Display
-    thermistor_input_channel: ClassVar[ADC78H89.InputChannel] \
-        = ADC78H89.InputChannel.AIN5  # TODO
-
-    # Motor
     direction_switch_gpio: GPIO \
         = field(default_factory=partial(GPIO, '', 0, 'in'))  # TODO
     variable_field_magnet_up_switch_gpio: GPIO \
@@ -68,6 +63,9 @@ class SteeringWheel(Application):
         = field(default_factory=partial(GPIO, '', 0, 'in'))  # TODO
 
     # Display
+    thermistor_input_channel: ClassVar[ADC78H89.InputChannel] \
+        = ADC78H89.InputChannel.AIN5  # TODO
+
     backup_camera_control_switch_gpio: GPIO \
         = field(default_factory=partial(GPIO, '', 0, 'in'))  # TODO
     steering_wheel_in_place_switch_gpio: GPIO \
@@ -87,13 +85,14 @@ class SteeringWheel(Application):
     brake_pedal_switch_gpio: GPIO \
         = field(default_factory=partial(GPIO, '', 0, 'in'))  # TODO
 
-    adc78h89_spi: SPI = field(default_factory=partial(SPI, '', 3, 1e6))
+    converter_spi: SPI = field(default_factory=partial(SPI, '', 3, 1e6))
+    converter: ADC78H89 = field(init=False)
     boolean_momentary_switch_gpios: dict[str, GPIO] = field(init=False)
     boolean_toggle_switch_gpios: dict[str, GPIO] = field(init=False)
     additive_toggle_switch_gpios: dict[str, GPIO] = field(init=False)
-    adc78h89: ADC78H89 = field(init=False)
 
     def __post_init__(self) -> None:
+        self.converter = ADC78H89(self.converter_spi)
         self.boolean_momentary_switch_gpios = {
             # Motor
             'direction_input': self.direction_switch_gpio,
@@ -139,7 +138,6 @@ class SteeringWheel(Application):
             'variable_field_magnet_down_input':
                 self.variable_field_magnet_down_switch_gpio,
         }
-        self.adc78h89 = ADC78H89(self.adc78h89_spi)
 
         field_names = set[str]()
         attribute_names = set[str]()
@@ -172,7 +170,7 @@ class SteeringWheel(Application):
 
         self._worker_pool.add(self.__update_momentary_switches)
         self._worker_pool.add(self.__update_toggle_switches)
-        self._worker_pool.add(self.__update_adc)
+        self._worker_pool.add(self.__update_converter)
 
     def __update_momentary_switches(self) -> None:
         while self._status:
@@ -219,6 +217,6 @@ class SteeringWheel(Application):
 
             sleep(self.timeout)
 
-    def __update_adc(self) -> None:
+    def __update_converter(self) -> None:
         while self._status:
             sleep(self.timeout)
