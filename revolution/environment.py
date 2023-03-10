@@ -1,13 +1,13 @@
-from __future__ import annotations
-
 from dataclasses import dataclass, field
-from enum import Enum, auto
-from multiprocessing import Queue, get_logger
+from enum import Enum, IntEnum, auto
+from math import inf
+from logging import getLogger
+from queue import Queue
 from typing import Any
 
 from revolution.data import DataManager
 
-_logger = get_logger()
+_logger = getLogger(__name__)
 
 
 class Header(Enum):
@@ -15,23 +15,60 @@ class Header(Enum):
     DEBUG = auto()
 
 
-@dataclass
-class Message:
-    header: Header
-    args: list[Any] = field(default_factory=list)
-    kwargs: dict[str, Any] = field(default_factory=dict)
-
-
-@dataclass
-class Context:
-    pass
-
-
 class Endpoint(Enum):
     DISPLAY = auto()
     MOTOR = auto()
     STEERING_WHEEL = auto()
     DEBUGGER = auto()
+
+
+class Direction(IntEnum):
+    UP = 2
+    DOWN = 3
+    LEFT = 5
+    RIGHT = 7
+    FORWARD = 11
+    BACKWARD = 13
+
+
+@dataclass
+class Context:
+    # Motor
+    motor_acceleration_input: float = 0
+    motor_regeneration_input: float = 0
+    motor_status_input: bool = False
+    motor_direction_input: Direction = Direction.FORWARD
+    motor_economical_mode_input: bool = True
+    motor_gear_input: int = 0
+    motor_revolution_period: float = inf
+
+    # Miscellaneous
+    horn_status_input: bool = False
+    left_indicator_status_input: bool = False
+    right_indicator_status_input: bool = False
+    hazard_lights_status_input: bool = False
+    daytime_running_light_status_input: bool = False
+    display_backlight_status_input: bool = False
+
+    # Battery
+    battery_relay_status_input: bool = False
+    array_relay_status_input: bool = False
+
+    # Unclassified
+    brake_status_input: float = 0
+    backup_camera_control_status_input: int = 0
+    fan_status_input: int = 0
+    directional_pad_input: Direction | None = None
+    radio_status_input: bool = False
+    steering_wheel_in_place_status_input: bool = False
+    thermistor_status_input: int = False
+
+
+@dataclass
+class Message:
+    header: Header
+    args: tuple[Any, ...] = field(default_factory=tuple)
+    kwargs: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -43,7 +80,7 @@ class Environment(DataManager[Context]):
         for endpoint in Endpoint:
             self.__queues[endpoint] = Queue()
 
-    def receive(
+    def receive_message(
             self,
             endpoint: Endpoint,
             block: bool = True,
@@ -51,7 +88,7 @@ class Environment(DataManager[Context]):
     ) -> Message:
         return self.__queues[endpoint].get(block, timeout)
 
-    def send(
+    def send_message(
             self,
             endpoint: Endpoint,
             message: Message,

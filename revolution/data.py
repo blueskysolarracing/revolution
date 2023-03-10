@@ -1,17 +1,17 @@
 from collections.abc import Iterator
 from contextlib import closing, contextmanager
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from enum import Flag, auto
-from multiprocessing import Lock, get_logger
-from multiprocessing.synchronize import Lock as _Lock  # FIXME
+from logging import getLogger
+from threading import Lock
 from typing import Any, Generic, TypeVar, cast
 
-_logger = get_logger()
+_logger = getLogger(__name__)
 _T = TypeVar('_T')
 
 
 @dataclass
-class DataWrapper(Generic[_T]):
+class DataAccessor(Generic[_T]):
     class Mode(Flag):
         READ = auto()
         WRITE = auto()
@@ -47,8 +47,8 @@ class DataWrapper(Generic[_T]):
 class DataManager(Generic[_T]):
     __data: _T
     __reader_count: int = field(default=0, init=False)
-    __reader_lock: _Lock = field(default_factory=Lock, init=False)
-    __writer_lock: _Lock = field(default_factory=Lock, init=False)
+    __reader_lock: Lock = field(default_factory=Lock, init=False)
+    __writer_lock: Lock = field(default_factory=Lock, init=False)
 
     @contextmanager
     def read(self) -> Iterator[_T]:
@@ -59,10 +59,10 @@ class DataManager(Generic[_T]):
             self.__reader_count += 1
 
         try:
-            data_wrapper = DataWrapper(self.__data, DataWrapper.Mode.READ)
+            data_accessor = DataAccessor(self.__data, DataAccessor.Mode.READ)
 
-            with closing(data_wrapper):
-                yield cast(_T, data_wrapper)
+            with closing(data_accessor):
+                yield cast(_T, data_accessor)
         finally:
             with self.__reader_lock:
                 self.__reader_count -= 1
@@ -72,17 +72,24 @@ class DataManager(Generic[_T]):
 
     @contextmanager
     def write(self) -> Iterator[_T]:
-        data_wrapper = DataWrapper(self.__data, DataWrapper.Mode.WRITE)
+        data_accessor = DataAccessor(self.__data, DataAccessor.Mode.WRITE)
 
-        with self.__writer_lock, closing(data_wrapper):
-            yield cast(_T, data_wrapper)
+        with self.__writer_lock, closing(data_accessor):
+            yield cast(_T, data_accessor)
 
     @contextmanager
     def read_and_write(self) -> Iterator[_T]:
-        data_wrapper = DataWrapper(
+        data_accessor = DataAccessor(
             self.__data,
-            DataWrapper.Mode.READ | DataWrapper.Mode.WRITE,
+            DataAccessor.Mode.READ | DataAccessor.Mode.WRITE,
         )
 
-        with self.__writer_lock, closing(data_wrapper):
-            yield cast(_T, data_wrapper)
+        with self.__writer_lock, closing(data_accessor):
+            yield cast(_T, data_accessor)
+
+    @contextmanager
+    def copy(self) -> Iterator[_T]:
+        with self.read():
+            data = replace(self.__data)
+
+        yield data

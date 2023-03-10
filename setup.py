@@ -35,10 +35,6 @@ setup(
         'Source': 'https://github.com/blueskysolarracing/revolution',
         'Tracker': 'https://github.com/blueskysolarracing/revolution/issues',
     },
-    install_requires=[
-        'gpiod~=1.5.3',
-        'spidev~=3.6',
-        'python-periphery~=2.3.0',
-    ],
+    install_requires=['python-periphery~=2.3.0'],
     python_requires='>=3.10',
 )

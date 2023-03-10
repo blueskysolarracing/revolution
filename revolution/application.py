@@ -1,13 +1,14 @@
 from abc import ABC
-from concurrent.futures import ThreadPoolExecutor
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from multiprocessing import get_logger
+from logging import getLogger
+from threading import Event
 from typing import ClassVar
 
-from revolution.environment import Endpoint, Environment, Header, Message
+from revolution.environment import Endpoint, Environment, Header
+from revolution.worker_pool import WorkerPool
 
-_logger = get_logger()
+_logger = getLogger(__name__)
 
 
 @dataclass
@@ -18,38 +19,37 @@ class Application(ABC):
         application.mainloop()
 
     endpoint: ClassVar[Endpoint]
-    _environment: Environment
-    _thread_pool_executor: ThreadPoolExecutor \
-        = field(default_factory=ThreadPoolExecutor, init=False)
+    environment: Environment
     _handlers: dict[Header, Callable[..., None]] \
         = field(default_factory=dict, init=False)
-    __status: bool = field(default=False, init=False)
+    _worker_pool: WorkerPool = field(default_factory=WorkerPool, init=False)
+    __stoppage: Event = field(default_factory=Event, init=False)
 
     def mainloop(self) -> None:
-        _logger.info('Starting...')
-
-        self.__status = True
-
         self._setup()
-        self.__run()
+        self._run()
+        self._teardown()
+
+    @property
+    def _status(self) -> bool:
+        return not self.__stoppage.is_set()
 
     def _setup(self) -> None:
-        _logger.info('Setting up...')
-
+        self.__stoppage.clear()
         self._handlers[Header.STOP] = self.__handle_stop
 
-    def __run(self) -> None:
-        _logger.info('Running...')
+    def _run(self) -> None:
+        while self._status:
+            message = self.environment.receive_message(self.endpoint)
+            handler = self._handlers.get(message.header)
 
-        while self.__status:
-            message = self._environment.receive(self.endpoint)
+            if handler is None:
+                _logger.error(f'Unable to handle message {message}')
+            else:
+                handler(*message.args, **message.kwargs)
 
-            self.__handle(message)
-
-    def __handle(self, message: Message) -> None:
-        self._handlers[message.header](*message.args, **message.kwargs)
+    def _teardown(self) -> None:
+        self._worker_pool.join()
 
     def __handle_stop(self) -> None:
-        _logger.info('Stopping...')
-
-        self.__status = False
+        self.__stoppage.set()
