@@ -19,10 +19,10 @@ class SteeringWheelTestCase(TestCase):
         spi.bit_order = 'msb'
         spi.bits_per_word = 8
         spi.extra_flags = 0
-        steering_wheel = SteeringWheel(  # type: ignore
+        steering_wheel = SteeringWheel(
             environment,
-            *(MagicMock() for _ in range(19)),
             spi,
+            *(MagicMock() for _ in range(19)),
         )
         field_names = set()
 

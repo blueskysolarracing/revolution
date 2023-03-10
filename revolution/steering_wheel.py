@@ -46,6 +46,8 @@ class SteeringWheel(Application):
         = (0, 0)  # TODO
     thermistor_input_range: ClassVar[tuple[float, float]] = (0, 0)  # TODO
 
+    converter_spi: SPI = field(default_factory=partial(SPI, '', 3, 1e6))
+
     # Motor
     direction_switch_gpio: GPIO \
         = field(default_factory=partial(GPIO, '', 0, 'in'))  # TODO
@@ -94,7 +96,6 @@ class SteeringWheel(Application):
     brake_pedal_switch_gpio: GPIO \
         = field(default_factory=partial(GPIO, '', 0, 'in'))  # TODO
 
-    converter_spi: SPI = field(default_factory=partial(SPI, '', 3, 1e6))
     converter: ADC78H89 = field(init=False)
     conversions: dict[str, tuple[ADC78H89.InputChannel, tuple[float, float]]] \
         = field(init=False)
