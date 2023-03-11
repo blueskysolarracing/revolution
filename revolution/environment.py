@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from enum import Enum, IntEnum, auto
-from math import inf
 from logging import getLogger
+from math import inf
 from queue import Queue
 from typing import Any
 
