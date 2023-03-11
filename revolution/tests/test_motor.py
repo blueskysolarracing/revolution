@@ -11,7 +11,7 @@ from revolution.environment import (
     Header,
     Message,
 )
-from revolution import Motor
+from revolution.motor import Motor
 
 
 class MotorTestCase(TestCase):
