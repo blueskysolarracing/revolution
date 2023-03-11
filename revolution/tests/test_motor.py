@@ -178,9 +178,9 @@ class MotorTestCase(TestCase):
         context = Context()
         environment = Environment(context)
         controller = MagicMock()
+        controller.revolution_period = inf
         motor = Motor(environment, *(MagicMock() for _ in range(8)))
         motor.controller = controller
-        controller.revolution_period = inf
         thread = Thread(target=motor.mainloop)
 
         thread.start()

@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from functools import partial
 from logging import getLogger
 from time import sleep
-from typing import ClassVar
+from typing import ClassVar, TypeAlias
 
 from periphery import GPIO, SPI
 
@@ -22,10 +22,11 @@ class SteeringWheel(Application):
     versions:
     - cruise mode
     """
+    InputRange: ClassVar[TypeAlias] = tuple[float, float]
+    Input: ClassVar[TypeAlias] = tuple[ADC78H89.InputChannel, InputRange]
 
     endpoint: ClassVar[Endpoint] = Endpoint.STEERING_WHEEL
     timeout: ClassVar[float] = 0.01
-
     acceleration_pedal_input_channel: ClassVar[ADC78H89.InputChannel] \
         = ADC78H89.InputChannel.AIN1  # TODO
     regeneration_pedal_input_channel: ClassVar[ADC78H89.InputChannel] \
@@ -36,15 +37,33 @@ class SteeringWheel(Application):
         = ADC78H89.InputChannel.AIN4  # TODO
     thermistor_input_channel: ClassVar[ADC78H89.InputChannel] \
         = ADC78H89.InputChannel.AIN5  # TODO
-    acceleration_pedal_input_range: ClassVar[tuple[float, float]] \
-        = (0, 0)  # TODO
-    regeneration_pedal_input_range: ClassVar[tuple[float, float]] \
-        = (0, 0)  # TODO
-    acceleration_paddle_input_range: ClassVar[tuple[float, float]] \
-        = (0, 0)  # TODO
-    regeneration_paddle_input_range: ClassVar[tuple[float, float]] \
-        = (0, 0)  # TODO
-    thermistor_input_range: ClassVar[tuple[float, float]] = (0, 0)  # TODO
+    acceleration_pedal_input_range: ClassVar[InputRange] = 0, 1  # TODO
+    regeneration_pedal_input_range: ClassVar[InputRange] = 0, 1  # TODO
+    acceleration_paddle_input_range: ClassVar[InputRange] = 0, 1  # TODO
+    regeneration_paddle_input_range: ClassVar[InputRange] = 0, 1  # TODO
+    thermistor_input_range: ClassVar[InputRange] = 0, 1  # TODO
+    conversions: ClassVar[dict[str, Input]] = {
+        'acceleration_pedal_input': (
+            acceleration_pedal_input_channel,
+            acceleration_pedal_input_range,
+        ),
+        'regeneration_pedal_input': (
+            regeneration_pedal_input_channel,
+            regeneration_pedal_input_range,
+        ),
+        'acceleration_paddle_input': (
+            acceleration_paddle_input_channel,
+            acceleration_paddle_input_range,
+        ),
+        'regeneration_paddle_input': (
+            regeneration_paddle_input_channel,
+            regeneration_paddle_input_range,
+        ),
+        'thermistor_input': (
+            thermistor_input_channel,
+            thermistor_input_range,
+        ),
+    }
 
     converter_spi: SPI = field(default_factory=partial(SPI, '', 3, 1e6))
 
@@ -97,36 +116,12 @@ class SteeringWheel(Application):
         = field(default_factory=partial(GPIO, '', 0, 'in'))  # TODO
 
     converter: ADC78H89 = field(init=False)
-    conversions: dict[str, tuple[ADC78H89.InputChannel, tuple[float, float]]] \
-        = field(init=False)
     boolean_momentary_switch_gpios: dict[str, GPIO] = field(init=False)
     boolean_toggle_switch_gpios: dict[str, GPIO] = field(init=False)
     additive_toggle_switch_gpios: dict[str, GPIO] = field(init=False)
 
     def __post_init__(self) -> None:
         self.converter = ADC78H89(self.converter_spi)
-        self.conversions = {
-            'acceleration_pedal_input': (
-                self.acceleration_pedal_input_channel,
-                self.acceleration_pedal_input_range,
-            ),
-            'regeneration_pedal_input': (
-                self.regeneration_pedal_input_channel,
-                self.regeneration_pedal_input_range,
-            ),
-            'acceleration_paddle_input': (
-                self.acceleration_paddle_input_channel,
-                self.acceleration_paddle_input_range,
-            ),
-            'regeneration_paddle_input': (
-                self.regeneration_paddle_input_channel,
-                self.regeneration_paddle_input_range,
-            ),
-            'thermistor_input': (
-                self.thermistor_input_channel,
-                self.thermistor_input_range,
-            ),
-        }
         self.boolean_momentary_switch_gpios = {
             # Motor
             'direction_input': self.direction_switch_gpio,
@@ -187,10 +182,11 @@ class SteeringWheel(Application):
             voltages = self.converter.voltages
             values = {}
 
-            for (input_channel, input_range) in self.conversions.values():
+            for (input_channel, (min_input, max_input)) \
+                    in self.conversions.values():
                 voltage = voltages[input_channel]
                 values[input_channel] \
-                    = interpolate(voltage, *input_range, 0, 1)
+                    = interpolate(voltage, min_input, max_input, 0, 1)
 
             for attribute_name, (input_channel, _) in self.conversions.items():
                 value = values[input_channel]
