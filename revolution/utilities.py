@@ -57,3 +57,14 @@ def main() -> None:
 
     for thread in threads:
         thread.join()
+
+
+def interpolate(
+        value: float,
+        from_lower_bound: float,
+        from_upper_bound: float,
+        to_lower_bound: float,
+        to_upper_bound: float,
+) -> float:
+    return to_lower_bound + (to_upper_bound - to_lower_bound) \
+        * (value - from_lower_bound) / (from_upper_bound - from_lower_bound)

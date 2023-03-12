@@ -79,7 +79,7 @@ class ApplicationTestCase(TestCase):
         thread = Thread(target=debugger.mainloop)
 
         self.assertFalse(debugger.debug_flag)
-        self.assertSequenceEqual(debugger.debug_args, ())
+        self.assertTupleEqual(debugger.debug_args, ())
         self.assertDictEqual(debugger.debug_kwargs, {})
         thread.start()
         environment.send_message(
@@ -93,7 +93,7 @@ class ApplicationTestCase(TestCase):
         environment.send_message(debugger.endpoint, Message(Header.STOP))
         thread.join()
         self.assertTrue(debugger.debug_flag)
-        self.assertSequenceEqual(debugger.debug_args, (0, 1, 2))
+        self.assertTupleEqual(debugger.debug_args, (0, 1, 2))
         self.assertDictEqual(debugger.debug_kwargs, {'hello': 'world'})
 
 
