@@ -96,7 +96,7 @@ container in detached mode.
 
 .. code-block:: sh
 
-   docker run -d -v /dev:/dev blueskysolarracing/revolution:<version>
+   docker run -d -v /dev:/dev -v /sys/class/pwm:/sys/class/pwm blueskysolarracing/revolution:<version>
 
 Debugging
 =========
@@ -115,4 +115,4 @@ Run the debug docker image.
 
 .. code-block:: sh
 
-   docker run -i -v /dev:/dev -v .:/usr/src/revolution blueskysolarracing/revolution:debug
+   docker run -i -v /dev:/dev -v /sys/class/pwm:/sys/class/pwm -v .:/usr/src/revolution blueskysolarracing/revolution:debug
