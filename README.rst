@@ -1,102 +1,118 @@
+==========
 Revolution
 ==========
 
-Software for the Blue Sky Solar Racing Gen 12 electrical system 
+Revolution is the software for the next generation electrical system
+for Blue Sky Solar Racing.
 
-**Setup virtual environment**
------------------------------
-``python -m venv venv``
+Project Setup
+=============
 
-Linux:: 
+In project root directory, create a Python virtual environment.
 
-    source venv/bin/activate
+.. code-block:: sh
 
-Windows CMD:: 
+   python -m venv venv
 
-    venv\Scripts\activate
+Activate the Python virtual environment.
 
-**Install requirements:** 
--------------------------
-``pip install -r requirements.txt``
+.. code-block:: sh
 
+   source venv/bin/activate
 
-**How to work with static type checking:**
-------------------------------------------
-``mypy --strict revolution``
+Install the project requirements.
 
-flake8 pep 8 conformity check:: 
+.. code-block:: sh
 
-    flake8 revolution
+   pip install -r requirements.txt
 
-**unit testing:**
------------------
-``python -m unittest``
+Code Style and Static Type Checking
+===================================
 
-**Deployment to PyPI**
-----------------------
+Run style checker.
 
-deployment to PyPI (step 0):: 
+.. code-block:: sh
 
-    replace all occurrences of version and update
+   flake8 revolution
 
-deployment to PyPI (step 1):: 
+Run static type checker.
 
-    python -m build
+.. code-block:: sh
 
-deployment to PyPI (step 2):: 
+   mypy --strict revolution
 
-    twine upload dist/*
+Unit and Documentation Testing
+==============================
 
-**Docker**
-----------
+Run unit tests.
 
-Build dockerfile into image:: 
-    
-    cd <directory_containing_dockerfile>
+.. code-block:: sh
 
-    docker build --tag <image_name>:<tag> .
-    
-    Ex: docker build --tag blueskysolarracing/revolution:0.0.0.dev1 .
+   python -m unittest
 
+Run documentation tests.
 
-deployment to docker:: 
+.. code-block:: sh
 
-    docker push <image_name>:<tag>
+   python -m doctest revolution/*.py
 
-    Ex: docker push blueskysolarracing/revolution:0.0.0.dev1
-	
-Create and start docker container::
+Project Deployment
+==================
 
-	docker run --name <container_name> <image_name>:<tag>
-	
-Create and start docker container in detached mode::
+Make sure all version occurrences have been updated.
 
-	docker run --name <container_name> -d <image_name>:<tag>
-    
-Create and start docker container with persisted data between file system and container::
+Tag the release version.
 
-    cd <revolution_repo_path>
-    
-    docker run --name <container_name> -v ${pwd}/revolution:/usr/local/lib/python3.10/site-packages/revolution <image_name>:<tag>
-    
-Stop a started container::
+.. code-block:: sh
 
-	docker stop <container_name_or_ID>
-	
-Start a stopped container::
+   git tag v<version>
 
-	docker start <container_name_or_ID>
-	
+Build the project.
 
-Explore a running container. This command runs a new process inside a running container and lets you visit the file system::
-    
-    docker exec -t -i <container_name_or_ID> /bin/bash
+.. code-block:: sh
 
-**git tag**
------------
+   python -m build
 
-add git tag:: 
-    
-    git tag <tag>
+Upload the packages.
 
-    Ex: git tag 0.0.0.dev1
+.. code-block:: sh
+
+   twine upload dist/*
+
+Build the docker image.
+
+.. code-block:: sh
+
+   docker build -t blueskysolarracing/revolution:<version> .
+
+Push the docker image.
+
+.. code-block:: sh
+
+   docker push blueskysolarracing/revolution:<version>
+
+In deployment platform, pull the docker image and run as a docker
+container in detached mode.
+
+.. code-block:: sh
+
+   docker run -d -v /dev:/dev blueskysolarracing/revolution:<version>
+
+Debugging
+=========
+
+The debug Dockerfile is different from the production Dockerfile as it
+utilizes the code from the host machine through bind mount and runs
+Revolution with debug and interactive mode enabled.
+
+Build the debug docker image.
+
+.. code-block:: sh
+
+   docker build -f debug.Dockerfile -t blueskysolarracing/revolution:debug .
+
+Run the debug docker image.
+
+.. code-block:: sh
+
+   docker run -i -v /dev:/dev -v .:/usr/src/revolution blueskysolarracing/revolution:debug
