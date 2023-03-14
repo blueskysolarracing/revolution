@@ -76,13 +76,13 @@ class SteeringWheel(Application):
         = field(default_factory=partial(GPIO, '', 0, 'in'))  # TODO
 
     # Miscellaneous
-    left_indicator_switch_gpio: GPIO \
+    left_indicator_light_switch_gpio: GPIO \
         = field(default_factory=partial(GPIO, '', 0, 'in'))  # TODO
-    right_indicator_switch_gpio: GPIO \
+    right_indicator_light_switch_gpio: GPIO \
         = field(default_factory=partial(GPIO, '', 0, 'in'))  # TODO
     hazard_lights_switch_gpio: GPIO \
         = field(default_factory=partial(GPIO, '', 0, 'in'))  # TODO
-    daytime_running_light_switch_gpio: GPIO \
+    daytime_running_lights_switch_gpio: GPIO \
         = field(default_factory=partial(GPIO, '', 0, 'in'))  # TODO
     horn_switch_gpio: GPIO \
         = field(default_factory=partial(GPIO, '', 0, 'in'))  # TODO
@@ -127,8 +127,10 @@ class SteeringWheel(Application):
             'direction_input': self.direction_switch_gpio,
 
             # Miscellaneous
-            'left_indicator_status_input': self.left_indicator_switch_gpio,
-            'right_indicator_status_input': self.right_indicator_switch_gpio,
+            'left_indicator_light_status_input':
+                self.left_indicator_light_switch_gpio,
+            'right_indicator_light_status_input':
+                self.right_indicator_light_switch_gpio,
             'hazard_lights_status_input': self.hazard_lights_switch_gpio,
             'horn_status_input': self.horn_switch_gpio,
 
@@ -150,8 +152,8 @@ class SteeringWheel(Application):
         }
         self.boolean_toggle_switch_gpios = {
             # Miscellaneous
-            'daytime_running_light_status_input':
-                self.daytime_running_light_switch_gpio,
+            'daytime_running_lights_status_input':
+                self.daytime_running_lights_switch_gpio,
             'fan_status_input': self.fan_switch_gpio,
 
             # Power

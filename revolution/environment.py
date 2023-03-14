@@ -17,6 +17,7 @@ class Header(Enum):
 
 class Endpoint(Enum):
     DISPLAY = auto()
+    MISCELLANEOUS = auto()
     MOTOR = auto()
     STEERING_WHEEL = auto()
     DEBUGGER = auto()
@@ -50,10 +51,10 @@ class Context:
     revolution_period: float = inf
 
     # Miscellaneous
-    left_indicator_status_input: bool = False
-    right_indicator_status_input: bool = False
+    left_indicator_light_status_input: bool = False
+    right_indicator_light_status_input: bool = False
     hazard_lights_status_input: bool = False
-    daytime_running_light_status_input: bool = False
+    daytime_running_lights_status_input: bool = False
     horn_status_input: bool = False
     fan_status_input: bool = False
 

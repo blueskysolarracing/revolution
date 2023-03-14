@@ -12,6 +12,7 @@ __all__ = (
     'Header',
     'M2096',
     'Message',
+    'Miscellaneous',
     'Motor',
     'SteeringWheel',
     'WorkerPool',
@@ -32,6 +33,7 @@ from revolution.environment import (
     Header,
     Message,
 )
+from revolution.miscellaneous import Miscellaneous
 from revolution.motor import Motor
 from revolution.steering_wheel import SteeringWheel
 from revolution.utilities import main, parse_arguments
