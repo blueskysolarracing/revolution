@@ -83,7 +83,7 @@ from revolution.steering_wheel import SteeringWheel
 from revolution.utilities import main, parse_arguments
 from revolution.worker_pool import WorkerPool
 
-__title__ str = 'blueskysolarracing-revolution'
+__title__: str = 'blueskysolarracing-revolution'
 __version__: str = '0.0.0.dev1'
 __description__: str \
     = 'Software for the Blue Sky Solar Racing Gen 12 electrical system'

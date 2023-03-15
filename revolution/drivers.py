@@ -1,3 +1,7 @@
+""":mod:`revolution.drivers` contain various classes that allow
+for the interactions with various peripheral devices much easier.
+"""
+
 from dataclasses import dataclass
 from enum import IntEnum
 from logging import getLogger

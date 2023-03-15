@@ -1,3 +1,7 @@
+""":mod:`revolution.application` defines the abstract base class
+:cls:`Application` from which all applications are inherited.
+"""
+
 from abc import ABC
 from collections.abc import Callable
 from dataclasses import dataclass, field
@@ -13,19 +17,31 @@ _logger = getLogger(__name__)
 
 @dataclass
 class Application(ABC):
+    """The abstract base class for applications in ``revolution``."""
+
     @classmethod
     def main(cls, environment: Environment) -> None:
+        """Launch the application with the supplied environment."""
         application = cls(environment)
         application.mainloop()
 
     endpoint: ClassVar[Endpoint]
+    """The application endpoint."""
     environment: Environment
+    """The application environment."""
     _handlers: dict[Header, Callable[..., Any]] \
         = field(default_factory=dict, init=False)
     _worker_pool: WorkerPool = field(default_factory=WorkerPool, init=False)
     __stoppage: Event = field(default_factory=Event, init=False)
 
     def mainloop(self) -> None:
+        """Run the application.
+
+        This is a blocking call. To stop an application, one must send a
+        stop message to the application in a separate thread.
+
+        :return: ``None``.
+        """
         self._setup()
         self._run()
         self._teardown()
