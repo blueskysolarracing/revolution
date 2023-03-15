@@ -1,7 +1,7 @@
 from periphery.gpio import (
-    GPIO as GPIO,
     CdevGPIO as CdevGPIO,
     EdgeEvent as EdgeEvent,
+    GPIO as GPIO,
     GPIOError as GPIOError,
     SysfsGPIO as SysfsGPIO,
 )
