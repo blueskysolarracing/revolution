@@ -2,39 +2,40 @@
 
 from distutils.core import setup
 
-with open('README.rst', 'r') as file:
-    long_description = file.read()
+from revolution import (
+    __author__,
+    __author_email__,
+    __classifiers__,
+    __description__,
+    __install_requires__,
+    __keywords__,
+    __license__,
+    __long_description__,
+    __long_description_content_type__,
+    __package_data__,
+    __packages__,
+    __project_urls__,
+    __python_requires__,
+    __title__,
+    __url__,
+    __version__,
+)
 
 setup(
-    name='blueskysolarracing-revolution',
-    version='0.0.0.dev0',
-    description='Software for the Blue Sky Solar Racing Gen 12 electrical '
-                'system',
-    long_description=long_description,
-    long_description_content_type='text/x-rst',
-    author='Blue Sky Solar Racing',
-    author_email='juho-kim@outlook.com',
-    url='https://github.com/blueskysolarracing/revolution',
-    packages=['revolution'],
-    package_data={'revolution': ['py.typed']},
-    classifiers=[
-        'Topic :: Education',
-        'License :: OSI Approved :: GNU Affero General Public License v3',
-        'Operating System :: OS Independent',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3 :: Only',
-        'Programming Language :: Python :: 3.10',
-        'Programming Language :: Python :: 3.11',
-        'Programming Language :: Python :: 3.12',
-    ],
-    license='AGPLv3',
-    keywords=['blueskysolarracing', 'solar', 'car', 'toradex'],
-    project_urls={
-        'Documentation': 'https://bssr-revolution.readthedocs.io/en/latest/',
-        'Source': 'https://github.com/blueskysolarracing/revolution',
-        'Tracker': 'https://github.com/blueskysolarracing/revolution/issues',
-    },
-    install_requires=['python-periphery~=2.3.0'],
-    python_requires='>=3.10',
+    __name__=__title__,
+    __version__=__version__,
+    __description__=__description__,
+    __long_description__=__long_description__,
+    __long_description_content_type__=__long_description_content_type__,
+    __author__=__author__,
+    __author_email__=__author_email__,
+    __url__=__url__,
+    __packages__=__packages__,
+    __package_data__=__package_data__,
+    __classifiers__=__classifiers__,
+    __license__=__license__,
+    __keywords__=__keywords__,
+    __project_urls__=__project_urls__,
+    __install_requires__=__install_requires__,
+    __python_requires__=__python_requires__,
 )
