@@ -8,7 +8,7 @@ for Blue Sky Solar Racing.
 Project Setup
 =============
 
-In project root directory, create a Python virtual environment.
+In project root directory, create a Python virtual environment using python version 3.10.
 
 .. code-block:: sh
 
