@@ -209,3 +209,25 @@ class ADC78H89:
                 = self.reference_voltage * raw_data / self.divisor
 
         return voltages
+
+
+@dataclass
+class RelayController:
+    high_side_gpio: GPIO
+    low_side_gpio: GPIO
+    precharge_gpio: GPIO
+
+    precharge_delay: ClassVar[float] = 2.5
+    actuation_delay: ClassVar[float] = 1.0
+
+    def __post_init__(self) -> None:
+        # TODO: set default GPIO state
+        pass
+
+    def open_relays(self):
+        # TODO
+        pass
+
+    def close_relays(self):
+        # TODO
+        pass
