@@ -10,7 +10,7 @@ from warnings import warn
 from periphery import GPIO, SPI
 
 from revolution.environment import Direction
-from revolution.battery import BATTERY_NUM_TEMPERATURES, BATTERY_NUM_VOLTAGES
+from revolution.battery import BMS_MODULE_NUM_TEMPERATURES, BMS_MODULE_NUM_VOLTAGES
 
 
 _logger = getLogger(__name__)
@@ -474,7 +474,7 @@ class LTC6810:
         output_temperature = [0.0] * 3
         temp_correction_multiplier = 1.0
         temp_correction_offset = 0.0
-        for i in range(BATTERY_NUM_TEMPERATURES):
+        for i in range(BMS_MODULE_NUM_TEMPERATURES):
             corrected_voltage = temp_correction_multiplier * (input_voltage[i] / 10000.0 - temp_correction_offset)
             thermistor_resistance = 10.0 / ((2.8 / corrected_voltage) - 1.0)
             output_temperature[i] = 1.0 / (0.003356 + 0.0002532 * math.log(thermistor_resistance / 10.0))
@@ -497,7 +497,7 @@ class LTC6810:
         :param dcc_1: DCC1 pin
         :return: list of temperature values
         """
-        temp_array = [0.0] * BATTERY_NUM_TEMPERATURES
+        temp_array = [0.0] * BMS_MODULE_NUM_TEMPERATURES
         data_to_send = [0] * 16
         for cycle in range(3):
             if cycle == 0:
@@ -526,7 +526,7 @@ class LTC6810:
         Read voltage from LTC6810
         :return: array of voltage readings
         """
-        volt_array = [0.0] * BATTERY_NUM_VOLTAGES
+        volt_array = [0.0] * BMS_MODULE_NUM_VOLTAGES
         data_to_send = [0] * 4  # data organized by LTC6810.generate_command()
         data_to_receive = [0] * 8  # voltage data from LTC6810 via SPI
 
