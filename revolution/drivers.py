@@ -221,13 +221,28 @@ class RelayController:
     actuation_delay: ClassVar[float] = 1.0
 
     def __post_init__(self) -> None:
-        # TODO: set default GPIO state
-        pass
+        self.high_side_gpio.write(False)
+        self.low_side_gpio.write(False)
+        self.precharge_gpio.write(False)
 
     def open_relays(self):
-        # TODO
-        pass
+        self.precharge_gpio.write(False)
+        sleep(self.actuation_delay)
+
+        self.high_side_gpio.write(False)
+        sleep(self.actuation_delay)
+
+        self.low_side_gpio.write(False)
+        sleep(self.actuation_delay)
 
     def close_relays(self):
-        # TODO
-        pass
+        self.low_side_gpio.write(True)
+        sleep(self.actuation_delay)
+
+        self.precharge_gpio.write(True)
+        sleep(self.precharge_delay)
+
+        self.high_side_gpio.write(True)
+        sleep(self.actuation_delay + 0.5) #500ms added to prevent inrush current from tripping PSM measurements
+        
+        self.precharge_gpio.write(True)
