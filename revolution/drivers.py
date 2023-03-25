@@ -12,7 +12,6 @@ from periphery import GPIO, SPI
 from revolution.environment import Direction
 from revolution.battery import BMS_MODULE_NUM_TEMPERATURES, BMS_MODULE_NUM_VOLTAGES
 
-
 _logger = getLogger(__name__)
 
 
@@ -207,7 +206,7 @@ class ADC78H89:
             assert len(received_data) == 2
 
             raw_data = received_data[0] << self.spi_word_bit_count \
-                | received_data[1]
+                       | received_data[1]
             voltages[input_channel] \
                 = self.reference_voltage * raw_data / self.divisor
 
@@ -216,9 +215,9 @@ class ADC78H89:
 
 @dataclass
 class LTC6810:
-    spi_mode: ClassVar[int] = 3
+    spi_mode: ClassVar[int] = 3  # TODO: read document
     """The supported spi mode."""
-    max_spi_max_speed: ClassVar[float] = 1e6    # TODO: read document
+    max_spi_max_speed: ClassVar[float] = 1e6  # TODO: read document
     """The supported maximum spi maximum speed."""
     spi_bit_order: ClassVar[str] = 'msb'
     """The supported spi bit order."""
@@ -521,23 +520,23 @@ class LTC6810:
 
         return temp_array
 
-    def read_voltage(self):
+    def read_voltage(self) -> list[float]:
         """
         Read voltage from LTC6810
         :return: array of voltage readings
         """
         volt_array = [0.0] * BMS_MODULE_NUM_VOLTAGES
         data_to_send = [0] * 4  # data organized by LTC6810.generate_command()
-        data_to_receive = [0] * 8  # voltage data from LTC6810 via SPI
+        # data_to_receive = [0] * 8  # voltage data from LTC6810 via SPI
 
         # read first half of data
         vmessage_in_binary = 0b01101110000  # adcv discharge enable,7Hz
         LTC6810.generate_command(vmessage_in_binary, data_to_send)  # generate the "check voltage command"
-        data_to_receive = self.spi.transfer(data_to_send[:4])
+        data_to_receive = self.spi.transfer(data_to_send)
 
         vmessage_in_binary = 0b100  # read cell voltage reg group 1
         LTC6810.generate_command(vmessage_in_binary, data_to_send)
-        data_to_receive = self.spi.transfer(data_to_send[:4])
+        data_to_receive = self.spi.transfer(data_to_send)
 
         volt_array[0] = LTC6810.data_to_voltage(data_to_receive[0], data_to_receive[1]) / 10000.0
         volt_array[1] = LTC6810.data_to_voltage(data_to_receive[2], data_to_receive[3]) / 10000.0
@@ -545,7 +544,7 @@ class LTC6810:
 
         vmessage_in_binary = 0b110  # read cell voltage reg group 2
         LTC6810.generate_command(vmessage_in_binary, data_to_send)
-        data_to_receive = self.spi.transfer(data_to_send[:4])
+        data_to_receive = self.spi.transfer(data_to_send)
         self.gpio_b.write(True)  # TODO: check if this is still needed
 
         volt_array[3] = LTC6810.data_to_voltage(data_to_receive[0], data_to_receive[1]) / 10000.0

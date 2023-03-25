@@ -2,12 +2,12 @@ from multiprocessing import get_logger
 from queue import Queue
 from enum import Enum, auto
 from dataclasses import dataclass, field
+from functools import partial
 
 from periphery import GPIO, SPI
 
 from revolution.drivers import LTC6810
 from revolution.application import Application
-
 
 _logger = get_logger()
 
@@ -20,13 +20,6 @@ BMS_MODULE_NUM_TEMPERATURE_SENSOR = 3
 BMS_MODULE_NUM_TEMPERATURES = BMS_MODULE_NUM_TEMPERATURE_SENSOR
 
 
-def init_queue_from_arr(input_arr: list[float]) -> Queue[float]:
-    queue: Queue[float] = Queue()
-    for element in input_arr:
-        queue.put(element)
-    return queue
-
-
 def get_queue_average(queue: Queue[float]) -> float:
     total = 0.0
     for element in queue.queue:
@@ -34,26 +27,36 @@ def get_queue_average(queue: Queue[float]) -> float:
     return 0.0 if queue.qsize() == 0 else total / queue.qsize()
 
 
+@dataclass
 class BMSModule:
     spi: SPI
     gpio_b: GPIO
+    bms_module_id: int
+
+    ltc6810: LTC6810 = field(init=False)
+    voltage_arr: list[float] = field(init=False)
+    temperature_arr: list[float] = field(init=False)
+    past_voltage_arr: list[Queue[float]] = field(default_factory=list)
+    past_temp_arr: list[Queue[float]] = field(default_factory=list)
+    state_of_charge_arr: list[float] = field(default_factory=lambda: [0.0] * BMS_MODULE_NUM_STATE_OF_CHARGES)
+    current: float = 0.0
 
     class GetMode(Enum):
         GET_MOST_RECENT = auto()
         GET_PAST_AVERAGE = auto()
         GET_FILTERED_RESULT = auto()
 
-    def __init__(self, battery_id: int) -> None:
-        self.ltc6810 = LTC6810(spi=self.spi, gpio_b=self.gpio_b)
+    def __post_init__(self) -> None:
+        self.ltc6810 = LTC6810(self.spi, self.gpio_b)
+        self.voltage_arr = self.ltc6810.read_voltage()  # voltage of each cell
+        self.temperature_arr = self.ltc6810.read_temp(0, 0, 0, 0, 0)
 
-        self.battery_id = battery_id
-        self._current = 0.0
-        self._state_of_charge_arr = [0.0] * BMS_MODULE_NUM_STATE_OF_CHARGES
+        for i in range(BMS_MODULE_NUM_VOLTAGES):
+            self.past_voltage_arr.append(Queue())
+            self.past_voltage_arr[i].put(self.voltage_arr[i])
 
-        self._voltage_arr = self.ltc6810.read_voltage()  # voltage of each cell
-        self._past_voltage_queue = init_queue_from_arr(self._voltage_arr)
-        self._temperature_arr = self.ltc6810.read_temp(0, 0, 0, 0, 0)
-        self._past_temp_queue = init_queue_from_arr(self._temperature_arr)
+            self.past_temp_arr.append(Queue())
+            self.past_temp_arr[i].put(self.temperature_arr[i])
 
         # TODO: initialize battery algo using EKF
 
@@ -61,9 +64,9 @@ class BMSModule:
 
         for i in range(BMS_MODULE_NUM_TEMPERATURES):
             if get_mode == BMSModule.GetMode.GET_MOST_RECENT:
-                temperatures[i] = self._temperature_arr[i]
+                temperatures[i] = self.temperature_arr[i]
             elif get_mode == BMSModule.GetMode.GET_PAST_AVERAGE:
-                temperatures[i] = get_queue_average(self._past_temp_queue)
+                temperatures[i] = get_queue_average(self.past_temp_arr[i])
             elif get_mode == BMSModule.GetMode.GET_FILTERED_RESULT:
                 pass
 
@@ -71,29 +74,29 @@ class BMSModule:
 
         for i in range(BMS_MODULE_NUM_VOLTAGES):
             if get_mode == BMSModule.GetMode.GET_MOST_RECENT:
-                voltages[i] = self._voltage_arr[i]
+                voltages[i] = self.voltage_arr[i]
             elif get_mode == BMSModule.GetMode.GET_PAST_AVERAGE:
-                voltages[i] = get_queue_average(self._past_voltage_queue)
+                voltages[i] = get_queue_average(self.past_voltage_arr[i])
             elif get_mode == BMSModule.GetMode.GET_FILTERED_RESULT:
                 pass
 
     def get_state_of_charge(self, state_of_charges: list[float]) -> None:
         for i in range(BMS_MODULE_NUM_STATE_OF_CHARGES):
-            state_of_charges[i] = self._state_of_charge_arr[i]
+            state_of_charges[i] = self.state_of_charge_arr[i]
 
     def measure_temperature(self) -> None:
         # Note: the following function reads voltage
-        local_temp_arr = self.ltc6810.read_temp(0, 0, 0, 0, 0)
-        local_temp_arr = self.ltc6810.voltage_to_temp(local_temp_arr)
+        local_volt_arr = self.ltc6810.read_temp(0, 0, 0, 0, 0)
+        local_temp_arr = self.ltc6810.voltage_to_temp(local_volt_arr)
         for i in range(BMS_MODULE_NUM_TEMPERATURES):
-            self._temperature_arr[i] = local_temp_arr[i]
-            self._past_temp_queue.put(local_temp_arr[i])
+            self.temperature_arr[i] = local_temp_arr[i]
+            self.past_temp_arr[i].put(local_temp_arr[i])
 
     def measure_voltage(self) -> None:
         local_voltage_arr = self.ltc6810.read_voltage()
         for i in range(BMS_MODULE_NUM_VOLTAGES):
-            self._voltage_arr[i] = local_voltage_arr[i]
-            self._past_voltage_queue.put(local_voltage_arr[i])
+            self.voltage_arr[i] = local_voltage_arr[i]
+            self.past_voltage_arr[i].put(local_voltage_arr[i])
 
     def compute_soc(self) -> None:
         local_soc_arr = [0.0] * BMS_MODULE_NUM_STATE_OF_CHARGES
@@ -101,14 +104,17 @@ class BMSModule:
         # TODO: compute algorithm with EKF_models
 
         for i in range(BMS_MODULE_NUM_STATE_OF_CHARGES):
-            self._state_of_charge_arr[i] = local_soc_arr[i]
+            self.state_of_charge_arr[i] = local_soc_arr[i]
 
     def set_current(self, current: float) -> None:
-        self._current = current
+        self.current = current
 
 
 @dataclass
 class Battery(Application):
-    bms_modules: list[BMSModule] = field(default_factory=lambda: [BMSModule(i) for i in range(5)])
+    bms_modules: list[BMSModule] = field(init=False)
+    battery_spi: SPI = field(default_factory=partial(SPI, '', 3, 1e6))    # TODO
+    gpio_b: GPIO = field(default_factory=partial(GPIO, 0, 0))    # TODO
 
-
+    def __post_init__(self):
+        self.bms_modules = [BMSModule(spi=self.battery_spi, gpio_b=self.gpio_b, bms_module_id=i) for i in range(5)]
