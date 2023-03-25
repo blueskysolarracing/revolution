@@ -4,7 +4,7 @@ from typing import Any, cast
 from unittest import TestCase, main
 from unittest.mock import DEFAULT, MagicMock, call
 
-from revolution.drivers import ADC78H89, M2096
+from revolution.drivers import ADC78H89, M2096, INA229
 from revolution.environment import Direction
 
 
@@ -279,6 +279,22 @@ class M2096TestCase(TestCase):
             .write \
             .assert_has_calls((call(True), call(False)))
 
+
+class ADC78H89TestCase(TestCase):
+    def test_post_init(self) -> None:
+        spi = MagicMock()
+        spi.mode = 3
+        spi.max_speed = 1e6
+        spi.bit_order = 'msb'
+        spi.bits_per_word = 8
+        spi.extra_flags = 0
+
+        INA229(spi)
+    
+    def test_conversion_times(self):
+        self.assertEqual(self.voltage_conversion_time, 1052)
+        self.assertEqual(self.current_conversion_time, 1052)
+        self.assertEqual(self.temperature_conversion_time, 1052)
 
 if __name__ == '__main__':
     main()

@@ -5,6 +5,8 @@ from math import inf
 from time import sleep, time
 from typing import ClassVar
 from warnings import warn
+import numpy as np
+import collections
 
 from periphery import GPIO, SPI
 
@@ -209,3 +211,172 @@ class ADC78H89:
                 = self.reference_voltage * raw_data / self.divisor
 
         return voltages
+
+
+@dataclass
+class INA229:
+    """
+    The wrapper class for Texas Instruments INA229 20-Bit ADC. Used to accurately measure HV and LV power.
+
+    Datasheet for this device is included in the documentation of
+    ``revolution``.
+
+    Summary of specifications:
+    -Max. input voltage: 85V, max. shunt voltage: +-163.84mV
+    -Max. SPI clock: 10MHz, SPI mode 1
+    -Integrated temperature sensor
+    -Can fire alert interrupts with dedicated signal
+    -Configurable parameters
+        -Full scale range of shunt voltage (±40.96mv or ±163.84mV)
+        -ADC conversion period (50us to 4120us)
+        -Number of averages (1 to 1024)
+        -External shunt calibrated resistance
+    """
+    
+    _register_map = {
+        # name      :       [addr,         size (B), read/write,        data]
+        "CONFIG":           {"addr":0x00, "size":2, "permission":"RW", "data":0x0000},
+        "ADC_CONFIG":       {"addr":0x01, "size":2, "permission":"RW", "data":0xFB68},
+        "SHUNT_CAL":        {"addr":0x02, "size":2, "permission":"RW", "data":0x1000},
+        "SHUNT_TEMPCO":     {"addr":0x03, "size":2, "permission":"RW", "data":0x0000},
+        "VSHUNT":           {"addr":0x04, "size":3, "permission":"RO", "data":0x000000},
+        "VBUS":             {"addr":0x05, "size":3, "permission":"RO", "data":0x000000},
+        "DIETEMP":          {"addr":0x06, "size":2, "permission":"RO", "data":0x0000},
+        "CURRENT":          {"addr":0x07, "size":3, "permission":"RO", "data":0x000000},
+        "POWER":            {"addr":0x08, "size":3, "permission":"RO", "data":0x000000},
+        "ENERGY":           {"addr":0x09, "size":5, "permission":"RO", "data":0x0000000000},
+        "CHARGE":           {"addr":0x0A, "size":5, "permission":"RO", "data":0x0000000000},
+        "DIAG_ALRT":        {"addr":0x0B, "size":2, "permission":"NA", "data":0x0001}, #This register has different read/write permissions per bit; must be handled individually
+        "SOVL":             {"addr":0x0C, "size":2, "permission":"RW", "data":0x7FFF},
+        "SUVL":             {"addr":0x0D, "size":2, "permission":"RW", "data":0x8000},
+        "BOVL":             {"addr":0x0E, "size":2, "permission":"RW", "data":0x7FFF},
+        "BUVL":             {"addr":0x0F, "size":2, "permission":"RW", "data":0x0000},
+        "TEMP_LIMIT":       {"addr":0x10, "size":2, "permission":"RW", "data":0x7FFF},
+        "PWR_LIMIT":        {"addr":0x11, "size":2, "permission":"RW", "data":0xFFFF},
+        "MANUFACTURER_ID":  {"addr":0x3E, "size":2, "permission":"RO", "data":0x5449},
+        "DEVICE_ID":        {"addr":0x3F, "size":2, "permission":"RO", "data":0x2291},
+    }
+    _conversion_time_bin_to_us = {0:50, 1:84, 2:150, 3:280, 4:540, 5:1052, 6:2074, 7:4120}
+    _conversion_time_us_to_bin = {50:0, 84:1, 150:2, 280:3, 540:4, 1052:5, 2074:6, 4120:7}
+    _measurement_to_bin_mask = {"temperature":3, "voltage":6, "current":9}
+
+    spi_mode: ClassVar[int] = 1
+    min_spi_max_speed: ClassVar[float] = 1e7
+    max_spi_max_speed: ClassVar[float] = 0e1
+    spi_bit_order: ClassVar[str] = 'msb'
+    spi_word_bit_count: ClassVar[int] = 8
+    reference_voltage: ClassVar[float] = 3.3
+    divisor: ClassVar[float] = 1048576 #20-bit
+    spi: SPI
+
+    # CONSTANTS
+    _max_queue_size = 1000
+
+    def __post_init__(self, nbr_avg_voltage:int=10, nbr_avg_current:int=10, nbr_avg_temperature:int=20) -> None:
+        self._voltage_queue = collections.deque(maxlen=nbr_avg_voltage)
+        self._current_queue = collections.deque(maxlen=nbr_avg_current)
+        self._temperature_queue = collections.deque(maxlen=nbr_avg_temperature)
+        pass
+
+    def run10ms(self):
+        pass
+
+# # # # # # # # # # # # # # # # # # # # # # # #
+#             P R O P E R T I E S             #
+# # # # # # # # # # # # # # # # # # # # # # # #
+
+    @property
+    def voltage_filtered(self) -> float:
+        if len(self._voltage_queue) == 0: return 0
+        else: return sum(self._voltage_queue)/len(self._voltage_queue)
+
+    @property
+    def voltage_raw(self) -> float:
+        if len(self._voltage_queue) == 0: return 0
+        else: return self._voltage_queue[-1]
+
+    @property
+    def current_filtered(self) -> float:
+        if len(self._current_queue) == 0: return 0
+        else: return sum(self._current_queue)/len(self._current_queue)
+
+    @property
+    def current_raw(self) -> float:
+        if len(self._current_queue) == 0: return 0
+        else: return self._current_queue[-1]
+
+    @property
+    def temperature_filtered(self) -> float:
+        if len(self._temperature_queue) == 0: return 0
+        else: return sum(self._temperature_queue)/len(self._temperature_queue)
+
+    @property
+    def temperature_raw(self) -> float:
+        if len(self._temperature_queue) == 0: return 0
+        else: return self._temperature_queue[-1]
+
+    @property
+    def mode(self) -> None:
+        pass
+
+    @property
+    def averaging_count(self) -> None:
+        pass
+
+    @property
+    def voltage_conversion_time(self) -> int:
+        mask = self._measurement_to_bin_mask["voltage"]
+        masked_data = self._register_map["ADC_CONFIG"]["data"] & (0b111 << mask)
+        return self._conversion_time_bin_to_us(masked_data >> mask)
+
+    @voltage_conversion_time.setter
+    def voltage_conversion_time(self, conversion_time: int) -> None:        
+        self._write_conversion_time(measurement="voltage", conversion_time=conversion_time)
+
+    @property
+    def current_conversion_time(self) -> int:
+        mask = self._measurement_to_bin_mask["current"]
+        masked_data = self._register_map["ADC_CONFIG"]["data"] & (0b111 << mask)
+        return self._conversion_time_bin_to_us(masked_data >> mask)
+
+    @current_conversion_time.setter
+    def current_conversion_time(self, conversion_time: int) -> None:        
+        self._write_conversion_time(measurement="current", conversion_time=conversion_time)
+
+    @property
+    def temperature_conversion_time(self) -> int:
+        mask = self._measurement_to_bin_mask["temperature"]
+        masked_data = self._register_map["ADC_CONFIG"]["data"] & (0b111 << mask)
+        return self._conversion_time_bin_to_us(masked_data >> mask)
+
+    @temperature_conversion_time.setter
+    def temperature_conversion_time(self, conversion_time: int) -> None:        
+        self._write_conversion_time(measurement="temperature", conversion_time=conversion_time)
+
+# # # # # # # # # # # # # # # # # # # # # # # #
+#               H E L P E R S                 #
+# # # # # # # # # # # # # # # # # # # # # # # #
+
+    def _write_to_SPI(self, addr: str, data: (bytes | bytearray | list[int])) -> None:
+        if addr not in self._register_map.keys(): raise Exception(f"Register '{addr}' does not exist on the INA229")
+        self.spi.transfer(addr << 2 + data) #TODO: Check byte order
+    
+    def _read_from_SPI(self, addr:str) -> (bytes | bytearray | list[int]):
+        if addr not in self._register_map.keys(): raise Exception(f"Register 0x{addr} not supported on the INA229")
+        data_received = self.spi.transfer(addr << 2 | 0x1) #TODO: Check byte order
+        self._register_map[addr]["data"] = data_received
+        return data_received
+
+    def _write_conversion_time(self, measurement: str, conversion_time: int) -> None:
+        if measurement not in self._measurement_to_bin_mask.keys(): raise Exception(f"Measurement {measurement} is invalid. Must be one of 'temperature', 'voltage' or 'current'.")
+        if conversion_time not in self._conversion_time_us_to_bin.keys(): raise Exception(f"Conversion time {conversion_time}us is invalid; must be one of 50us, 84us, 150us, 280us, 540us, 1052us, 2074us or 4120us.")
+
+        address = self._register_map["ADC_CONFIG"]["addr"]
+        mask = self._measurement_to_bin_mask[measurement]
+        conversion_time_bin = self._conversion_time_us_to_bin[conversion_time]
+        existing_data = self._read_from_SPI(self._register_map["ADC_CONFIG"]["addr"])
+
+        data_to_send = np.bitwise_or( np.bitwise_and(existing_data, ~mask) , np.bitwise_and(conversion_time_bin, mask))
+        self.spi._write_to_SPI(address, data_to_send)
+        self._register_map["ADC_CONFIG"][3] = data_to_send
+        
