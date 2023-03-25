@@ -246,3 +246,44 @@ class RelayController:
         sleep(self.actuation_delay + 0.5) #500ms added to prevent inrush current from tripping PSM measurements
         
         self.precharge_gpio.write(True)
+
+@dataclass
+class MaximumPowerPointTrackersController:
+    mppts_12v_enable_gpio: GPIO
+
+    def __post_init__(self) -> None:
+        self.turn_off_mppts()
+
+    def turn_off_mppts(self) -> None:
+        self.mppts_12v_enable_gpio.write(True) # TODO: check if High to turn off
+
+    def turn_on_mppts(self) -> None:
+        self.mppts_12v_enable_gpio.write(False)
+
+
+@dataclass
+class HighVoltageDischargeController:
+    high_voltage_discharge_control_gpio: GPIO
+
+    def __post_init__(self) -> None:
+        self.stop_discharge()
+
+    def start_discharge(self) -> None:
+        self.high_voltage_discharge_control_gpio.write(True) 
+
+    def stop_discharge(self) -> None:
+        self.high_voltage_discharge_control_gpio.write(False)
+
+
+@dataclass
+class SafeStateController:
+    safe_state_trigger_gpio: GPIO
+
+    def __post_init__(self) -> None:
+        self.exit_safe_state()
+
+    def enter_safe_state(self) -> None:
+        self.safe_state_trigger_gpio.write(False) # Logic low to enter safe state
+
+    def exit_safe_state(self) -> None:
+        self.safe_state_trigger_gpio.write(True)

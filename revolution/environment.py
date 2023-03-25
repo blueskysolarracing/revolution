@@ -21,6 +21,7 @@ class Endpoint(Enum):
     MOTOR = auto()
     STEERING_WHEEL = auto()
     DEBUGGER = auto()
+    POWER = auto()
 
 
 class DirectionalPad(Enum):
@@ -34,6 +35,11 @@ class DirectionalPad(Enum):
 class Direction(IntEnum):
     FORWARD = 0
     BACKWARD = 1
+
+
+class BatteryStatus(Enum):
+    HEALTHY = auto()
+    FAULTED = auto()
 
 
 @dataclass
@@ -58,10 +64,6 @@ class Context:
     horn_status_input: bool = False
     fan_status_input: bool = False
 
-    # Power
-    array_relay_status_input: bool = False
-    battery_relay_status_input: bool = False
-
     # Display
     thermistor_input: float = 0
     backup_camera_control_status_input: bool = False
@@ -75,6 +77,16 @@ class Context:
     # Unclassified
     brake_status_input: bool = False
     debug: Any = None
+
+    # High Voltage System
+    battery_status: bool = BatteryStatus.HEALTHY
+    array_relay_status_input: bool = False
+    battery_relay_status_input: bool = False
+    array_relay_status: bool = False
+    battery_relay_status: bool = False
+    maximum_power_point_tracker_status: bool = False
+    high_voltage_discharge_status: bool = False
+    safe_state_status: bool = False
 
 
 @dataclass
