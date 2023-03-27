@@ -58,7 +58,7 @@ class Context:
     horn_status_input: bool = False
     fan_status_input: bool = False
 
-    # Power
+    # Relays
     array_relay_status_input: bool = False
     battery_relay_status_input: bool = False
 
@@ -71,6 +71,16 @@ class Context:
     up_directional_pad_input: bool = False
     down_directional_pad_input: bool = False
     center_directional_pad_input: bool = False
+
+    # PSMs
+    motor_voltage: float = 0
+    motor_current: float = 0
+    array_voltage: float = 0
+    array_current: float = 0
+    battery_voltage: float = 0
+    battery_current: float = 0
+    LV_voltage: float = 0
+    LV_current: float = 0
 
     # Unclassified
     brake_status_input: bool = False

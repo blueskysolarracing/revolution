@@ -5,7 +5,7 @@ from math import inf
 from time import sleep, time
 from typing import ClassVar
 from warnings import warn
-import numpy as np
+from bidict import bidict
 import collections
 
 from periphery import GPIO, SPI
@@ -256,9 +256,26 @@ class INA229:
         "MANUFACTURER_ID":  {"addr":0x3E, "size":2, "permission":"RO", "data":0x5449},
         "DEVICE_ID":        {"addr":0x3F, "size":2, "permission":"RO", "data":0x2291},
     }
-    _conversion_time_bin_to_us = {0:50, 1:84, 2:150, 3:280, 4:540, 5:1052, 6:2074, 7:4120}
-    _conversion_time_us_to_bin = {50:0, 84:1, 150:2, 280:3, 540:4, 1052:5, 2074:6, 4120:7}
-    _measurement_to_bin_mask = {"temperature":3, "voltage":6, "current":9}
+    _conversion_time_us_to_bin = bidict({50:0, 84:1, 150:2, 280:3, 540:4, 1052:5, 2074:6, 4120:7})
+    _mode_str_to_bin = bidict({
+        "SHUTDOWN": 0x0,
+        "TRG_VOLT_ONLY": 0x1, #Triggered bus voltage, single shot
+        "TRG_CURR_ONLY": 0x2, #Triggered shunt voltage, single shot
+        "TRG_VOLT_CURR": 0x3, #Triggered shunt voltage and bus voltage, single shot
+        "TRG_TEMP_ONLY": 0x4, #Triggered temperature, single shot
+        "TRG_VOLT_TEMP": 0x5, #Triggered temperature and bus voltage, single shot
+        "TRG_CURR_TEMP": 0x6, #Triggered temperature and shunt voltage, single shot
+        "TRG_VOLT_CURR_TEMP": 0x7, #Triggered bus voltage, shunt voltage and temperature, single shot
+        "SHUTDOWN": 0x8, #Shutdown
+        "CONT_VOLT_ONLY": 0x9, #Continuous bus voltage only
+        "CONT_CURR_ONLY": 0xA, #Continuous shunt voltage only
+        "CONT_VOLT_CURR": 0xB, #Continuous shunt and bus voltage
+        "CONT_TEMP_ONLY": 0xC, #Continuous temperature only
+        "CONT_VOLT_TEMP": 0xD, #Continuous bus voltage and temperature
+        "CONT_CURR_TEMP": 0xE, #Continuous temperature and shunt voltage
+        "CONT_VOLT_CURR_TEMP": 0xF, #Continuous bus voltage, shunt voltage and temperature
+    })
+    _adc_config_to_bin_mask = {"averaging_count": 0, "temperature":3, "current":6, "voltage":9, "mode": 13}
 
     spi_mode: ClassVar[int] = 1
     min_spi_max_speed: ClassVar[float] = 1e7
@@ -316,18 +333,26 @@ class INA229:
         else: return self._temperature_queue[-1]
 
     @property
-    def mode(self) -> None:
-        pass
+    def mode(self) -> str:
+        masked_data = self._register_map["ADC_CONFIG"][3] & (0b111 << self._adc_config_to_bin_mask["mode"])
+        return self._mode_str_to_bin.inverse[masked_data >> self._adc_config_to_bin_mask["mode"]]
 
-    @property
-    def averaging_count(self) -> None:
-        pass
+    @mode.setter
+    def mode(self, desired_mode:str) -> None:
+        if desired_mode not in self._mode_str_to_bin.keys(): raise Exception(f"Mode {desired_mode} unavailable on INA229.")
+
+        mode_bin = self._mode_str_to_bin[desired_mode]
+        mask = 0b111 << self._adc_config_to_bin_mask["mode"]
+        data:int = (self._register_map["ADC_CONFIG"][3] & ~mask) | (mode_bin << self._adc_config_to_bin_mask["mode"])
+        length = self._register_map["ADC_CONFIG"][1]
+        self._write_to_SPI("ADC_CONFIG", data=data.to_bytes(length, "big"))
+        self._register_map["ADC_CONFIG"]["data"] = data
 
     @property
     def voltage_conversion_time(self) -> int:
-        mask = self._measurement_to_bin_mask["voltage"]
+        mask = self._adc_config_to_bin_mask["voltage"]
         masked_data = self._register_map["ADC_CONFIG"]["data"] & (0b111 << mask)
-        return self._conversion_time_bin_to_us(masked_data >> mask)
+        return self._conversion_time_us_to_bin.inverse[masked_data >> mask]
 
     @voltage_conversion_time.setter
     def voltage_conversion_time(self, conversion_time: int) -> None:        
@@ -335,9 +360,9 @@ class INA229:
 
     @property
     def current_conversion_time(self) -> int:
-        mask = self._measurement_to_bin_mask["current"]
+        mask = self._adc_config_to_bin_mask["current"]
         masked_data = self._register_map["ADC_CONFIG"]["data"] & (0b111 << mask)
-        return self._conversion_time_bin_to_us(masked_data >> mask)
+        return self._conversion_time_us_to_bin.inverse[masked_data >> mask]
 
     @current_conversion_time.setter
     def current_conversion_time(self, conversion_time: int) -> None:        
@@ -345,38 +370,70 @@ class INA229:
 
     @property
     def temperature_conversion_time(self) -> int:
-        mask = self._measurement_to_bin_mask["temperature"]
+        mask = self._adc_config_to_bin_mask["temperature"]
         masked_data = self._register_map["ADC_CONFIG"]["data"] & (0b111 << mask)
-        return self._conversion_time_bin_to_us(masked_data >> mask)
+        return self._conversion_time_us_to_bin.inverse[masked_data >> mask]
 
     @temperature_conversion_time.setter
     def temperature_conversion_time(self, conversion_time: int) -> None:        
         self._write_conversion_time(measurement="temperature", conversion_time=conversion_time)
 
+    #Not implemented
+    @property
+    def diagnostics_alert(self) -> float:
+        raise NotImplementedError("Access to 'DIAG_ALRT' register not yet implemented.")
+    @property
+    def overcurrent_threshold(self) -> float:
+        raise NotImplementedError("Access to 'SOVL' register not yet implemented.")
+    @property
+    def undercurrent_threshold(self) -> float:
+        raise NotImplementedError("Access to 'SUVL' register not yet implemented.")
+    @property
+    def overvoltage_threshold(self) -> float:
+        raise NotImplementedError("Access to 'BOVL' register not yet implemented.")
+    @property
+    def undervoltage_threshold(self) -> float:
+        raise NotImplementedError("Access to 'BUVL' register not yet implemented.")
+    @property
+    def temperature_limit(self) -> float:
+        raise NotImplementedError("Access to 'TEMP_LIMIT' register not yet implemented.")
+    @property
+    def power_limit(self) -> float:
+        raise NotImplementedError("Access to 'PWR_LIMIT' register not yet implemented.")
+    @property
+    def manufacturer_id(self) -> float:
+        raise NotImplementedError("Access to 'MANUFACTURER_ID' register not yet implemented.")
+    @property
+    def device_id(self) -> float:
+        raise NotImplementedError("Access to 'DEVICE_ID' register not yet implemented.")
+
 # # # # # # # # # # # # # # # # # # # # # # # #
 #               H E L P E R S                 #
 # # # # # # # # # # # # # # # # # # # # # # # #
 
-    def _write_to_SPI(self, addr: str, data: (bytes | bytearray | list[int])) -> None:
-        if addr not in self._register_map.keys(): raise Exception(f"Register '{addr}' does not exist on the INA229")
+    def _write_to_SPI(self, register: str, data: (bytes | bytearray | list[int])) -> None:
+        if register not in self._register_map.keys(): raise Exception(f"Register '{register}' not supported on the INA229.")
+        if self._register_map[register]["permission"] != "RW": raise PermissionError(f"Write to register '{register}' is not permitted.")
+        addr = self._register_map[register]["addr"]
         self.spi.transfer(addr << 2 + data) #TODO: Check byte order
     
-    def _read_from_SPI(self, addr:str) -> (bytes | bytearray | list[int]):
-        if addr not in self._register_map.keys(): raise Exception(f"Register 0x{addr} not supported on the INA229")
+    def _read_from_SPI(self, register: str) -> (bytes | bytearray | list[int]):
+        if register not in self._register_map.keys(): raise Exception(f"Register '{register}' not supported on the INA229.")
+        addr = self._register_map[register]["addr"]
         data_received = self.spi.transfer(addr << 2 | 0x1) #TODO: Check byte order
-        self._register_map[addr]["data"] = data_received
+        self._register_map[register]["data"] = data_received
         return data_received
 
     def _write_conversion_time(self, measurement: str, conversion_time: int) -> None:
-        if measurement not in self._measurement_to_bin_mask.keys(): raise Exception(f"Measurement {measurement} is invalid. Must be one of 'temperature', 'voltage' or 'current'.")
+        if measurement not in self._adc_config_to_bin_mask.keys(): raise Exception(f"Measurement {measurement} is invalid. Must be one of 'temperature', 'voltage' or 'current'.")
         if conversion_time not in self._conversion_time_us_to_bin.keys(): raise Exception(f"Conversion time {conversion_time}us is invalid; must be one of 50us, 84us, 150us, 280us, 540us, 1052us, 2074us or 4120us.")
 
-        address = self._register_map["ADC_CONFIG"]["addr"]
-        mask = self._measurement_to_bin_mask[measurement]
+        mask = self._adc_config_to_bin_mask[measurement]
         conversion_time_bin = self._conversion_time_us_to_bin[conversion_time]
-        existing_data = self._read_from_SPI(self._register_map["ADC_CONFIG"]["addr"])
 
-        data_to_send = np.bitwise_or( np.bitwise_and(existing_data, ~mask) , np.bitwise_and(conversion_time_bin, mask))
-        self.spi._write_to_SPI(address, data_to_send)
-        self._register_map["ADC_CONFIG"][3] = data_to_send
-        
+        existing_data = int.from_bytes(self._read_from_SPI("ADC_CONFIG"), "big")
+
+        data_to_send = (existing_data & ~(0b111 << mask)) | (conversion_time_bin << mask)
+
+        self.spi._write_to_SPI("ADC_CONFIG", data_to_send)
+        self._register_map["ADC_CONFIG"]["data"] = data_to_send

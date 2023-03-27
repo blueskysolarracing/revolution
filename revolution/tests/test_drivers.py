@@ -7,7 +7,6 @@ from unittest.mock import DEFAULT, MagicMock, call
 from revolution.drivers import ADC78H89, M2096, INA229
 from revolution.environment import Direction
 
-
 class ADC78H89TestCase(TestCase):
     def test_post_init(self) -> None:
         spi = MagicMock()
@@ -292,9 +291,32 @@ class ADC78H89TestCase(TestCase):
         INA229(spi)
     
     def test_conversion_times(self):
-        self.assertEqual(self.voltage_conversion_time, 1052)
-        self.assertEqual(self.current_conversion_time, 1052)
-        self.assertEqual(self.temperature_conversion_time, 1052)
+        spi = MagicMock()
+        spi.mode = 3
+        spi.max_speed = 1e6
+        spi.bit_order = 'msb'
+        spi.bits_per_word = 8
+        spi.extra_flags = 0
+
+        psm = INA229(spi)
+
+        #Test chip defaults
+        self.assertEqual(psm.voltage_conversion_time, 1052)
+        self.assertEqual(psm.current_conversion_time, 1052)
+        self.assertEqual(psm.temperature_conversion_time, 1052)
+
+        #Test writing and reading back
+        spi.transfer.side_effect = [(0x0000 | (0b101 << 9) | (0b101 << 6) | (0b101 << 3)).to_bytes(2, "big")]
+        psm.voltage_conversion_time = 84
+        spi.transfer.side_effect = [(0x0000 | (0b001 << 9) | (0b101 << 6) | (0b101 << 3)).to_bytes(2, "big")]
+        psm.current_conversion_time = 84
+        spi.transfer.side_effect = [(0x0000 | (0b001 << 9) | (0b001 << 6) | (0b101 << 3)).to_bytes(2, "big")]
+        psm.temperature_conversion_time = 84
+
+        self.assertEqual(psm.voltage_conversion_time, 84)
+        self.assertEqual(psm.current_conversion_time, 84)
+        self.assertEqual(psm.temperature_conversion_time, 84)
+
 
 if __name__ == '__main__':
     main()
