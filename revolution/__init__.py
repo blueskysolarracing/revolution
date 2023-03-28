@@ -15,6 +15,7 @@ __all__ = (
     'Miscellaneous',
     'Motor',
     'SteeringWheel',
+    'Telemeter',
     'WorkerPool',
     'main',
     'parse_arguments',
@@ -36,5 +37,6 @@ from revolution.environment import (
 from revolution.miscellaneous import Miscellaneous
 from revolution.motor import Motor
 from revolution.steering_wheel import SteeringWheel
+from revolution.telemeter import Telemeter
 from revolution.utilities import main, parse_arguments
 from revolution.worker_pool import WorkerPool
