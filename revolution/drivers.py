@@ -3,7 +3,7 @@ from enum import IntEnum
 from logging import getLogger
 from math import inf
 from time import sleep, time
-from typing import ClassVar
+from typing import ClassVar, Dict, Union
 from warnings import warn
 from bidict import bidict
 import collections
@@ -233,70 +233,101 @@ class INA229:
         -External shunt calibrated resistance
     """
     
+    #Arguments to fill in
+    spi: SPI
+    voltage_step_down_ratio:float
+    shunt_resistance:float
+    desired_ADC_range: bool
+
     _register_map = {
-        # name      :       [addr,         size (B), read/write,        data]
-        "CONFIG":           {"addr":0x00, "size":2, "permission":"RW", "data":0x0000},
-        "ADC_CONFIG":       {"addr":0x01, "size":2, "permission":"RW", "data":0xFB68},
-        "SHUNT_CAL":        {"addr":0x02, "size":2, "permission":"RW", "data":0x1000},
-        "SHUNT_TEMPCO":     {"addr":0x03, "size":2, "permission":"RW", "data":0x0000},
-        "VSHUNT":           {"addr":0x04, "size":3, "permission":"RO", "data":0x000000},
-        "VBUS":             {"addr":0x05, "size":3, "permission":"RO", "data":0x000000},
-        "DIETEMP":          {"addr":0x06, "size":2, "permission":"RO", "data":0x0000},
-        "CURRENT":          {"addr":0x07, "size":3, "permission":"RO", "data":0x000000},
-        "POWER":            {"addr":0x08, "size":3, "permission":"RO", "data":0x000000},
-        "ENERGY":           {"addr":0x09, "size":5, "permission":"RO", "data":0x0000000000},
-        "CHARGE":           {"addr":0x0A, "size":5, "permission":"RO", "data":0x0000000000},
-        "DIAG_ALRT":        {"addr":0x0B, "size":2, "permission":"NA", "data":0x0001}, #This register has different read/write permissions per bit; must be handled individually
-        "SOVL":             {"addr":0x0C, "size":2, "permission":"RW", "data":0x7FFF},
-        "SUVL":             {"addr":0x0D, "size":2, "permission":"RW", "data":0x8000},
-        "BOVL":             {"addr":0x0E, "size":2, "permission":"RW", "data":0x7FFF},
-        "BUVL":             {"addr":0x0F, "size":2, "permission":"RW", "data":0x0000},
-        "TEMP_LIMIT":       {"addr":0x10, "size":2, "permission":"RW", "data":0x7FFF},
-        "PWR_LIMIT":        {"addr":0x11, "size":2, "permission":"RW", "data":0xFFFF},
-        "MANUFACTURER_ID":  {"addr":0x3E, "size":2, "permission":"RO", "data":0x5449},
-        "DEVICE_ID":        {"addr":0x3F, "size":2, "permission":"RO", "data":0x2291},
+        # name      :       [addr,         size (B),read/write,        signedness,      data]
+        "CONFIG":           {"addr":0x00, "size":2, "permission":"RW", "signed": False, "data":0x0000},
+        "ADC_CONFIG":       {"addr":0x01, "size":2, "permission":"RW", "signed": False, "data":0xFB68},
+        "SHUNT_CAL":        {"addr":0x02, "size":2, "permission":"RW", "signed": False, "data":0x1000},
+        "SHUNT_TEMPCO":     {"addr":0x03, "size":2, "permission":"RW", "signed": False, "data":0x0000},
+        "VSHUNT":           {"addr":0x04, "size":3, "permission":"RO", "signed": True, "data":0x000000},
+        "VBUS":             {"addr":0x05, "size":3, "permission":"RO", "signed": True, "data":0x000000},
+        "DIETEMP":          {"addr":0x06, "size":2, "permission":"RO", "signed": True, "data":0x0000},
+        "CURRENT":          {"addr":0x07, "size":3, "permission":"RO", "signed": True, "data":0x000000},
+        "POWER":            {"addr":0x08, "size":3, "permission":"RO", "signed": False, "data":0x000000},
+        "ENERGY":           {"addr":0x09, "size":5, "permission":"RO", "signed": False, "data":0x0000000000},
+        "CHARGE":           {"addr":0x0A, "size":5, "permission":"RO", "signed": True, "data":0x0000000000},
+        "DIAG_ALRT":        {"addr":0x0B, "size":2, "permission":"NA", "signed": False, "data":0x0001}, #This register has different read/write permissions per bit; must be handled individually
+        "SOVL":             {"addr":0x0C, "size":2, "permission":"RW", "signed": True, "data":0x7FFF},
+        "SUVL":             {"addr":0x0D, "size":2, "permission":"RW", "signed": True, "data":0x8000},
+        "BOVL":             {"addr":0x0E, "size":2, "permission":"RW", "signed": False, "data":0x7FFF},
+        "BUVL":             {"addr":0x0F, "size":2, "permission":"RW", "signed": False, "data":0x0000},
+        "TEMP_LIMIT":       {"addr":0x10, "size":2, "permission":"RW", "signed": True, "data":0x7FFF},
+        "PWR_LIMIT":        {"addr":0x11, "size":2, "permission":"RW", "signed": False, "data":0xFFFF},
+        "MANUFACTURER_ID":  {"addr":0x3E, "size":2, "permission":"RO", "signed": False, "data":0x5449},
+        "DEVICE_ID":        {"addr":0x3F, "size":2, "permission":"RO", "signed": False, "data":0x2291},
     }
     _conversion_time_us_to_bin = bidict({50:0, 84:1, 150:2, 280:3, 540:4, 1052:5, 2074:6, 4120:7})
     _mode_str_to_bin = bidict({
-        "SHUTDOWN": 0x0,
-        "TRG_VOLT_ONLY": 0x1, #Triggered bus voltage, single shot
-        "TRG_CURR_ONLY": 0x2, #Triggered shunt voltage, single shot
-        "TRG_VOLT_CURR": 0x3, #Triggered shunt voltage and bus voltage, single shot
-        "TRG_TEMP_ONLY": 0x4, #Triggered temperature, single shot
-        "TRG_VOLT_TEMP": 0x5, #Triggered temperature and bus voltage, single shot
-        "TRG_CURR_TEMP": 0x6, #Triggered temperature and shunt voltage, single shot
-        "TRG_VOLT_CURR_TEMP": 0x7, #Triggered bus voltage, shunt voltage and temperature, single shot
-        "SHUTDOWN": 0x8, #Shutdown
-        "CONT_VOLT_ONLY": 0x9, #Continuous bus voltage only
-        "CONT_CURR_ONLY": 0xA, #Continuous shunt voltage only
-        "CONT_VOLT_CURR": 0xB, #Continuous shunt and bus voltage
-        "CONT_TEMP_ONLY": 0xC, #Continuous temperature only
-        "CONT_VOLT_TEMP": 0xD, #Continuous bus voltage and temperature
-        "CONT_CURR_TEMP": 0xE, #Continuous temperature and shunt voltage
-        "CONT_VOLT_CURR_TEMP": 0xF, #Continuous bus voltage, shunt voltage and temperature
+        "SHUTDOWN":             0x0, #Shutdown
+        "TRG_VOLT_ONLY":        0x1, #Triggered bus voltage, single shot
+        "TRG_CURR_ONLY":        0x2, #Triggered shunt voltage, single shot
+        "TRG_VOLT_CURR":        0x3, #Triggered shunt voltage and bus voltage, single shot
+        "TRG_TEMP_ONLY":        0x4, #Triggered temperature, single shot
+        "TRG_VOLT_TEMP":        0x5, #Triggered temperature and bus voltage, single shot
+        "TRG_CURR_TEMP":        0x6, #Triggered temperature and shunt voltage, single shot
+        "TRG_VOLT_CURR_TEMP":   0x7, #Triggered bus voltage, shunt voltage and temperature, single shot
+        "SHUTDOWN":             0x8, #Shutdown
+        "CONT_VOLT_ONLY":       0x9, #Continuous bus voltage only
+        "CONT_CURR_ONLY":       0xA, #Continuous shunt voltage only
+        "CONT_VOLT_CURR":       0xB, #Continuous shunt and bus voltage
+        "CONT_TEMP_ONLY":       0xC, #Continuous temperature only
+        "CONT_VOLT_TEMP":       0xD, #Continuous bus voltage and temperature
+        "CONT_CURR_TEMP":       0xE, #Continuous temperature and shunt voltage
+        "CONT_VOLT_CURR_TEMP":  0xF, #Continuous bus voltage, shunt voltage and temperature
     })
-    _adc_config_to_bin_mask = {"averaging_count": 0, "temperature":3, "current":6, "voltage":9, "mode": 13}
+    _adc_config_to_bin_mask = {"averaging_count": 0, "temperature":3, "current":6, "voltage":9, "mode": 12}
 
+    #SPI interface constants
     spi_mode: ClassVar[int] = 1
     min_spi_max_speed: ClassVar[float] = 1e7
     max_spi_max_speed: ClassVar[float] = 0e1
     spi_bit_order: ClassVar[str] = 'msb'
     spi_word_bit_count: ClassVar[int] = 8
+
+    #ADC constants
     reference_voltage: ClassVar[float] = 3.3
-    divisor: ClassVar[float] = 1048576 #20-bit
-    spi: SPI
-
-    # CONSTANTS
     _max_queue_size = 1000
+    _voltage_conversion_factor: ClassVar[float] = 195.3125e-6 #195.3125 uV/LSB (2's complement)
+    _current_conversion_factor: ClassVar[float] = 0 #To be computed at init (known as 'CURRENT_LSB' in datasheet)
+    _temperature_conversion_factor: ClassVar[float] = 7.8125e-3 #7.8125 mC/LSB (2's complement)
+    _max_expected_current = 80 #Absolute maximum current (transient) needed to be measured
 
-    def __post_init__(self, nbr_avg_voltage:int=10, nbr_avg_current:int=10, nbr_avg_temperature:int=20) -> None:
+    def __post_init__(self, nbr_avg_voltage:int=10, nbr_avg_current:int=10, nbr_avg_temperature:int=10) -> None:
+        self._write_ADC_range(self.desired_ADC_range)
+
+        #Datasheet pgs. 29-30 for current computation 
+        self.current_conversion_factor = (self._max_expected_current * 2**-19)
+        effective_shunt_resistance = 4*self.shunt_resistance if self.desired_ADC_range else self.shunt_resistance
+        shunt_cal:int = int(round(13107.2e6 * self.current_conversion_factor * effective_shunt_resistance))
+        length = self._register_map["SHUNT_CAL"]["size"]
+        self._write_to_SPI("SHUNT_CAL", shunt_cal.to_bytes(length, "big"))
+
         self._voltage_queue = collections.deque(maxlen=nbr_avg_voltage)
         self._current_queue = collections.deque(maxlen=nbr_avg_current)
         self._temperature_queue = collections.deque(maxlen=nbr_avg_temperature)
-        pass
 
     def run10ms(self):
-        pass
+        self._read_from_SPI("VBUS")
+        self._read_from_SPI("CURRENT")
+        self._read_from_SPI("DIETEMP")
+
+        voltage_data = self._register_map["VBUS"]["data"]
+        current_data = self._register_map["CURRENT"]["data"]
+        temperature_data = self._register_map["DIETEMP"]["data"]
+
+        voltage = self.voltage_step_down_ratio * (voltage_data >> 4) * self._voltage_conversion_factor
+        current = (current_data >> 4) * self.current_conversion_factor
+        temperature = (temperature_data >> 4) * self._temperature_conversion_factor
+
+        self._voltage_queue.append(voltage)
+        self._current_queue.append(current)
+        self._temperature_queue.append(temperature)
 
 # # # # # # # # # # # # # # # # # # # # # # # #
 #             P R O P E R T I E S             #
@@ -334,7 +365,7 @@ class INA229:
 
     @property
     def mode(self) -> str:
-        masked_data = self._register_map["ADC_CONFIG"][3] & (0b111 << self._adc_config_to_bin_mask["mode"])
+        masked_data = self._register_map["ADC_CONFIG"]["data"] & (0b1111 << self._adc_config_to_bin_mask["mode"])
         return self._mode_str_to_bin.inverse[masked_data >> self._adc_config_to_bin_mask["mode"]]
 
     @mode.setter
@@ -342,9 +373,9 @@ class INA229:
         if desired_mode not in self._mode_str_to_bin.keys(): raise Exception(f"Mode {desired_mode} unavailable on INA229.")
 
         mode_bin = self._mode_str_to_bin[desired_mode]
-        mask = 0b111 << self._adc_config_to_bin_mask["mode"]
-        data:int = (self._register_map["ADC_CONFIG"][3] & ~mask) | (mode_bin << self._adc_config_to_bin_mask["mode"])
-        length = self._register_map["ADC_CONFIG"][1]
+        mask = 0b1111 << self._adc_config_to_bin_mask["mode"]
+        data:int = (self._register_map["ADC_CONFIG"]["data"] & ~mask) | (mode_bin << self._adc_config_to_bin_mask["mode"])
+        length = self._register_map["ADC_CONFIG"]["size"]
         self._write_to_SPI("ADC_CONFIG", data=data.to_bytes(length, "big"))
         self._register_map["ADC_CONFIG"]["data"] = data
 
@@ -355,7 +386,7 @@ class INA229:
         return self._conversion_time_us_to_bin.inverse[masked_data >> mask]
 
     @voltage_conversion_time.setter
-    def voltage_conversion_time(self, conversion_time: int) -> None:        
+    def voltage_conversion_time(self, conversion_time: int) -> None:
         self._write_conversion_time(measurement="voltage", conversion_time=conversion_time)
 
     @property
@@ -365,7 +396,7 @@ class INA229:
         return self._conversion_time_us_to_bin.inverse[masked_data >> mask]
 
     @current_conversion_time.setter
-    def current_conversion_time(self, conversion_time: int) -> None:        
+    def current_conversion_time(self, conversion_time: int) -> None:
         self._write_conversion_time(measurement="current", conversion_time=conversion_time)
 
     @property
@@ -375,7 +406,7 @@ class INA229:
         return self._conversion_time_us_to_bin.inverse[masked_data >> mask]
 
     @temperature_conversion_time.setter
-    def temperature_conversion_time(self, conversion_time: int) -> None:        
+    def temperature_conversion_time(self, conversion_time: int) -> None:
         self._write_conversion_time(measurement="temperature", conversion_time=conversion_time)
 
     #Not implemented
@@ -415,13 +446,17 @@ class INA229:
         if register not in self._register_map.keys(): raise Exception(f"Register '{register}' not supported on the INA229.")
         if self._register_map[register]["permission"] != "RW": raise PermissionError(f"Write to register '{register}' is not permitted.")
         addr = self._register_map[register]["addr"]
-        self.spi.transfer(addr << 2 + data) #TODO: Check byte order
-    
+        self.spi.transfer((addr << 2).to_bytes(1, "big") + data) #TODO: Check byte order
+
     def _read_from_SPI(self, register: str) -> (bytes | bytearray | list[int]):
         if register not in self._register_map.keys(): raise Exception(f"Register '{register}' not supported on the INA229.")
         addr = self._register_map[register]["addr"]
-        data_received = self.spi.transfer(addr << 2 | 0x1) #TODO: Check byte order
-        self._register_map[register]["data"] = data_received
+        addr_content_request = (addr << 2 | 0x1).to_bytes(1, "big")
+        padded_message = addr_content_request + self._register_map[register]["size"]*bytes(1)
+        data_received = self.spi.transfer(padded_message) #TODO: Check byte order
+
+        signed = self._register_map[register]["signed"]
+        self._register_map[register]["data"] = int.from_bytes(data_received, "big", signed=signed)
         return data_received
 
     def _write_conversion_time(self, measurement: str, conversion_time: int) -> None:
@@ -430,10 +465,13 @@ class INA229:
 
         mask = self._adc_config_to_bin_mask[measurement]
         conversion_time_bin = self._conversion_time_us_to_bin[conversion_time]
-
+        length = self._register_map["ADC_CONFIG"]["size"]
         existing_data = int.from_bytes(self._read_from_SPI("ADC_CONFIG"), "big")
 
         data_to_send = (existing_data & ~(0b111 << mask)) | (conversion_time_bin << mask)
 
-        self.spi._write_to_SPI("ADC_CONFIG", data_to_send)
+        self.spi._write_to_SPI("ADC_CONFIG", data_to_send.to_bytes(length, "big"))
         self._register_map["ADC_CONFIG"]["data"] = data_to_send
+
+    def _write_ADC_range(self, desired_ADC_range:bool) -> None:
+        pass

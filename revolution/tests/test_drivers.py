@@ -1,6 +1,6 @@
-from math import inf
+from math import inf, sin, tan
 from time import sleep, time
-from typing import Any, cast
+from typing import Any, cast, List
 from unittest import TestCase, main
 from unittest.mock import DEFAULT, MagicMock, call
 
@@ -280,25 +280,36 @@ class M2096TestCase(TestCase):
 
 
 class ADC78H89TestCase(TestCase):
+    _random_half_byte = 0b1010
+    _random_byte = 0b10101010
+
+# # # # # # # # # # # # # # # # # # # # # # # #
+#                H E L P E R S                #
+# # # # # # # # # # # # # # # # # # # # # # # #
+    def init_SPI_PSM(self) -> None:
+        spi = MagicMock()
+        spi.mode = 3
+        spi.max_speed = 1e6
+        spi.bit_order = 'msb'
+        spi.bits_per_word = 8
+        spi.extra_flags = 0
+        psm = INA229(spi, voltage_step_down_ratio=2.0, shunt_resistance=2e-3, desired_ADC_range=True)
+
+        return (spi, psm)
+
     def test_post_init(self) -> None:
-        spi = MagicMock()
-        spi.mode = 3
-        spi.max_speed = 1e6
-        spi.bit_order = 'msb'
-        spi.bits_per_word = 8
-        spi.extra_flags = 0
+        pass
 
-        INA229(spi)
+    def moving_average(self, list:List[float], num_of_elements:int):
+        if len(list) == 0: return 0
+        elif len(list) <= num_of_elements: return sum(list)/len(list)
+        else: return sum(list[-num_of_elements:])/num_of_elements
     
+# # # # # # # # # # # # # # # # # # # # # # # #
+#                  T E S T S                  #
+# # # # # # # # # # # # # # # # # # # # # # # #
     def test_conversion_times(self):
-        spi = MagicMock()
-        spi.mode = 3
-        spi.max_speed = 1e6
-        spi.bit_order = 'msb'
-        spi.bits_per_word = 8
-        spi.extra_flags = 0
-
-        psm = INA229(spi)
+        (spi, psm) = self.init_SPI_PSM()
 
         #Test chip defaults
         self.assertEqual(psm.voltage_conversion_time, 1052)
@@ -306,17 +317,58 @@ class ADC78H89TestCase(TestCase):
         self.assertEqual(psm.temperature_conversion_time, 1052)
 
         #Test writing and reading back
-        spi.transfer.side_effect = [(0x0000 | (0b101 << 9) | (0b101 << 6) | (0b101 << 3)).to_bytes(2, "big")]
+        spi.transfer.side_effect = [(self._random_half_byte | (0b101 << 9) | (0b101 << 6) | (0b101 << 3)).to_bytes(2, "big")]
         psm.voltage_conversion_time = 84
-        spi.transfer.side_effect = [(0x0000 | (0b001 << 9) | (0b101 << 6) | (0b101 << 3)).to_bytes(2, "big")]
+        spi.transfer.side_effect = [(self._random_half_byte | (0b001 << 9) | (0b101 << 6) | (0b101 << 3)).to_bytes(2, "big")]
         psm.current_conversion_time = 84
-        spi.transfer.side_effect = [(0x0000 | (0b001 << 9) | (0b001 << 6) | (0b101 << 3)).to_bytes(2, "big")]
+        spi.transfer.side_effect = [(self._random_half_byte | (0b001 << 9) | (0b001 << 6) | (0b101 << 3)).to_bytes(2, "big")]
         psm.temperature_conversion_time = 84
 
         self.assertEqual(psm.voltage_conversion_time, 84)
         self.assertEqual(psm.current_conversion_time, 84)
         self.assertEqual(psm.temperature_conversion_time, 84)
+    
+    def test_mode(self) -> None:
+        (spi, psm) = self.init_SPI_PSM()
 
+        #Test chip defaults
+        self.assertEqual(psm.mode, "CONT_VOLT_CURR_TEMP")
+
+        #Test writing and reading back
+        psm.mode = "CONT_VOLT_CURR"
+        spi.transfer.side_effect = [(self._random_byte << 8 | self._random_byte).to_bytes(2, "big")]
+        self.assertEqual(psm.mode, "CONT_VOLT_CURR")
+
+    def test_measurements(self) -> None:
+        (spi, psm) = self.init_SPI_PSM()
+        half_voltage_data = list()
+        current_data = list()
+        temperature_data = list()
+
+        for x in range(-30, 30):
+            half_voltage = 4*sin(x/10)
+            half_voltage_data.append(psm.voltage_step_down_ratio*half_voltage)
+            half_voltage_ADC = round(half_voltage / 195.3125e-6)
+
+            current = x
+            current_data.append(current)
+            current_ADC = round(current / psm.current_conversion_factor)
+
+            temperature = tan(x/10)
+            temperature_data.append(temperature)
+            temperature_ADC = round(temperature / 7.8125e-3)
+
+            spi.transfer.side_effect = [(half_voltage_ADC << 4).to_bytes(3, "big", signed=True),
+                                        (current_ADC << 4).to_bytes(3, "big", signed=True),
+                                        (temperature_ADC << 4).to_bytes(3, "big", signed=True)]
+            
+            psm.run10ms()
+            self.assertAlmostEqual(psm.voltage_raw, psm.voltage_step_down_ratio*half_voltage, 2)
+            self.assertAlmostEqual(psm.voltage_filtered, self.moving_average(half_voltage_data, 10), 2)
+            self.assertAlmostEqual(psm.current_raw, current, 2)
+            self.assertAlmostEqual(psm.current_filtered, self.moving_average(current_data, 10), 2)
+            self.assertAlmostEqual(psm.temperature_raw, temperature, 2)
+            self.assertAlmostEqual(psm.temperature_filtered, self.moving_average(temperature_data, 10), 2)
 
 if __name__ == '__main__':
     main()
