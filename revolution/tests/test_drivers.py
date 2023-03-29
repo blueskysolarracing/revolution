@@ -279,7 +279,7 @@ class M2096TestCase(TestCase):
             .assert_has_calls((call(True), call(False)))
 
 
-class ADC78H89TestCase(TestCase):
+class INA229TestCase(TestCase):
     _random_half_byte = 0b1010
     _random_byte = 0b10101010
 
@@ -293,7 +293,7 @@ class ADC78H89TestCase(TestCase):
         spi.bit_order = 'msb'
         spi.bits_per_word = 8
         spi.extra_flags = 0
-        psm = INA229(spi, voltage_step_down_ratio=2.0, shunt_resistance=2e-3, desired_ADC_range=True)
+        psm = INA229(spi, voltage_step_down_ratio=2.0, shunt_resistance=2e-3)
 
         return (spi, psm)
 
@@ -308,7 +308,7 @@ class ADC78H89TestCase(TestCase):
 # # # # # # # # # # # # # # # # # # # # # # # #
 #                  T E S T S                  #
 # # # # # # # # # # # # # # # # # # # # # # # #
-    def test_conversion_times(self):
+    def test_conversion_times(self) -> None:
         (spi, psm) = self.init_SPI_PSM()
 
         #Test chip defaults
@@ -328,6 +328,28 @@ class ADC78H89TestCase(TestCase):
         self.assertEqual(psm.current_conversion_time, 84)
         self.assertEqual(psm.temperature_conversion_time, 84)
     
+    def test_averaging_count(self) -> None:
+        (spi, psm) = self.init_SPI_PSM()
+
+        #Test chip defaults
+        self.assertEqual(psm.ADC_averaging_count, 1)
+
+        #Test writing and reading back
+        psm.ADC_averaging_count = 64
+        spi.transfer.side_effect = [(self._random_byte << 8 | self._random_byte).to_bytes(2, "big")]
+        self.assertEqual(psm.ADC_averaging_count, 64)
+
+    def test_ADC_range(self) -> None:
+        (spi, psm) = self.init_SPI_PSM()
+
+        #Test chip defaults
+        self.assertEqual(psm.ADC_range, psm.ADC_range_enum.LOW_PRECISION)
+
+        #Test writing and reading back
+        psm.ADC_range = psm.ADC_range_enum.HIGH_PRECISION
+        spi.transfer.side_effect = [(self._random_byte << 8 | self._random_byte).to_bytes(2, "big")]
+        self.assertEqual(psm.ADC_range, psm.ADC_range_enum.HIGH_PRECISION)
+
     def test_mode(self) -> None:
         (spi, psm) = self.init_SPI_PSM()
 
@@ -369,6 +391,17 @@ class ADC78H89TestCase(TestCase):
             self.assertAlmostEqual(psm.current_filtered, self.moving_average(current_data, 10), 2)
             self.assertAlmostEqual(psm.temperature_raw, temperature, 2)
             self.assertAlmostEqual(psm.temperature_filtered, self.moving_average(temperature_data, 10), 2)
+
+    def test_shunt_temperature_coefficient(self) -> None:
+        (spi, psm) = self.init_SPI_PSM()
+
+        #Test chip defaults
+        self.assertEqual(psm.shunt_temperature_coefficient, 0)
+    
+        #Test writing and reading back
+        psm.shunt_temperature_coefficient = 12345
+        spi.transfer.side_effect = [(self._random_byte << 8 | self._random_byte).to_bytes(2, "big")]
+        self.assertEqual(psm.shunt_temperature_coefficient, 12345)
 
 if __name__ == '__main__':
     main()

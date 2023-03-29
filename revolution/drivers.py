@@ -233,11 +233,14 @@ class INA229:
         -External shunt calibrated resistance
     """
     
+    class ADC_range_enum(IntEnum):
+        LOW_PRECISION: bool = 0 #Shunt voltage range of ±163.84 mV
+        HIGH_PRECISION: bool = 1 #Shunt voltage range of ±40.96 mV
+
     #Arguments to fill in
     spi: SPI
     voltage_step_down_ratio:float
     shunt_resistance:float
-    desired_ADC_range: bool
 
     _register_map = {
         # name      :       [addr,         size (B),read/write,        signedness,      data]
@@ -262,6 +265,7 @@ class INA229:
         "MANUFACTURER_ID":  {"addr":0x3E, "size":2, "permission":"RO", "signed": False, "data":0x5449},
         "DEVICE_ID":        {"addr":0x3F, "size":2, "permission":"RO", "signed": False, "data":0x2291},
     }
+    _adc_averaging_count_to_bin = bidict({1:0, 4:1, 16:2, 64:3, 128:4, 256:5, 512:6, 1024:7})
     _conversion_time_us_to_bin = bidict({50:0, 84:1, 150:2, 280:3, 540:4, 1052:5, 2074:6, 4120:7})
     _mode_str_to_bin = bidict({
         "SHUTDOWN":             0x0, #Shutdown
@@ -299,11 +303,9 @@ class INA229:
     _max_expected_current = 80 #Absolute maximum current (transient) needed to be measured
 
     def __post_init__(self, nbr_avg_voltage:int=10, nbr_avg_current:int=10, nbr_avg_temperature:int=10) -> None:
-        self._write_ADC_range(self.desired_ADC_range)
-
         #Datasheet pgs. 29-30 for current computation 
         self.current_conversion_factor = (self._max_expected_current * 2**-19)
-        effective_shunt_resistance = 4*self.shunt_resistance if self.desired_ADC_range else self.shunt_resistance
+        effective_shunt_resistance = 4*self.shunt_resistance if self.ADC_range.value else self.shunt_resistance
         shunt_cal:int = int(round(13107.2e6 * self.current_conversion_factor * effective_shunt_resistance))
         length = self._register_map["SHUNT_CAL"]["size"]
         self._write_to_SPI("SHUNT_CAL", shunt_cal.to_bytes(length, "big"))
@@ -332,6 +334,18 @@ class INA229:
 # # # # # # # # # # # # # # # # # # # # # # # #
 #             P R O P E R T I E S             #
 # # # # # # # # # # # # # # # # # # # # # # # #
+    @property
+    def ADC_range(self) -> IntEnum:
+        masked_data = self._register_map["CONFIG"]["data"] & (0b1 << 4)
+        if masked_data >> 4: return self.ADC_range_enum.HIGH_PRECISION
+        else: return self.ADC_range_enum.LOW_PRECISION
+
+    @ADC_range.setter
+    def ADC_range(self, desired_ADC_range:IntEnum) -> None:
+        data = (desired_ADC_range.value << 4) | (self._register_map["CONFIG"]["data"] & ~(0b1 << 4))
+        length = self._register_map["CONFIG"]["size"]
+        self._write_to_SPI("CONFIG", data.to_bytes(length, "big"))
+        self._register_map["CONFIG"]["data"] = data
 
     @property
     def voltage_filtered(self) -> float:
@@ -370,7 +384,7 @@ class INA229:
 
     @mode.setter
     def mode(self, desired_mode:str) -> None:
-        if desired_mode not in self._mode_str_to_bin.keys(): raise Exception(f"Mode {desired_mode} unavailable on INA229.")
+        if desired_mode not in self._mode_str_to_bin.keys(): raise ValueError(f"Mode {desired_mode} unavailable on INA229.")
 
         mode_bin = self._mode_str_to_bin[desired_mode]
         mask = 0b1111 << self._adc_config_to_bin_mask["mode"]
@@ -409,7 +423,54 @@ class INA229:
     def temperature_conversion_time(self, conversion_time: int) -> None:
         self._write_conversion_time(measurement="temperature", conversion_time=conversion_time)
 
+    @property
+    def ADC_averaging_count(self) -> int:
+        mask = self._adc_config_to_bin_mask["averaging_count"]
+        masked_data = self._register_map["ADC_CONFIG"]["data"] & (0b111 << mask)
+        return self._adc_averaging_count_to_bin.inverse[masked_data]
+
+    @ADC_averaging_count.setter
+    def ADC_averaging_count(self, averaging_count: int) -> None:
+        if averaging_count not in self._adc_averaging_count_to_bin.keys(): raise ValueError(f"Averaging count of {averaging_count} is invalid; must be one of 1, 4, 16, 64, 128, 256, 512 or 1024.")
+
+        averaging_count_bin = self._adc_averaging_count_to_bin[averaging_count]
+        mask = 0b111 << self._adc_config_to_bin_mask["averaging_count"]
+        data:int = averaging_count_bin | (self._register_map["ADC_CONFIG"]["data"] & ~mask)
+        length = self._register_map["ADC_CONFIG"]["size"]
+        self._write_to_SPI("ADC_CONFIG", data.to_bytes(length, "big"))
+        self._register_map["ADC_CONFIG"]["data"] = data
+
+    @property
+    def shunt_temperature_coefficient(self) -> int:
+        return self._register_map["SHUNT_TEMPCO"]["data"]
+
+    @shunt_temperature_coefficient.setter
+    def shunt_temperature_coefficient(self, shunt_tempco: int) -> None:
+        if shunt_tempco > 16383: raise ValueError(f"Shunt resistance temperature coefficient of {shunt_tempco}ppm/C is too large for the INA229. Maximum is 16383ppm/C.")
+        length = self._register_map["SHUNT_TEMPCO"]["size"]
+        self._write_to_SPI("SHUNT_TEMPCO", shunt_tempco.to_bytes(length, "big"))
+        self._register_map["SHUNT_TEMPCO"]["data"] = shunt_tempco
+
+        #Enable shunt temperature compensation
+        config_data = self._register_map["CONFIG"]["data"]
+        temp_comp_data = (0b1 << 5) | (config_data & ~(0b1 << 5))
+        length = self._register_map["CONFIG"]["size"]
+        self._write_to_SPI("CONFIG", temp_comp_data.to_bytes(length, "big"))
+        self._register_map["CONFIG"]["data"] = temp_comp_data
+
     #Not implemented
+    @property
+    def shunt_voltage(self) -> float:
+        raise NotImplementedError("Access to 'VSHUNT' register not yet implemented.")
+    @property
+    def power(self) -> float:
+        raise NotImplementedError("Access to 'POWER' register not yet implemented.")
+    @property
+    def energy(self) -> float:
+        raise NotImplementedError("Access to 'ENERGY' register not yet implemented.")
+    @property
+    def charge(self) -> float:
+        raise NotImplementedError("Access to 'CHARGE' register not yet implemented.")
     @property
     def diagnostics_alert(self) -> float:
         raise NotImplementedError("Access to 'DIAG_ALRT' register not yet implemented.")
@@ -443,13 +504,13 @@ class INA229:
 # # # # # # # # # # # # # # # # # # # # # # # #
 
     def _write_to_SPI(self, register: str, data: (bytes | bytearray | list[int])) -> None:
-        if register not in self._register_map.keys(): raise Exception(f"Register '{register}' not supported on the INA229.")
+        if register not in self._register_map.keys(): raise ValueError(f"Register '{register}' not supported on the INA229.")
         if self._register_map[register]["permission"] != "RW": raise PermissionError(f"Write to register '{register}' is not permitted.")
         addr = self._register_map[register]["addr"]
         self.spi.transfer((addr << 2).to_bytes(1, "big") + data) #TODO: Check byte order
 
     def _read_from_SPI(self, register: str) -> (bytes | bytearray | list[int]):
-        if register not in self._register_map.keys(): raise Exception(f"Register '{register}' not supported on the INA229.")
+        if register not in self._register_map.keys(): raise ValueError(f"Register '{register}' not supported on the INA229.")
         addr = self._register_map[register]["addr"]
         addr_content_request = (addr << 2 | 0x1).to_bytes(1, "big")
         padded_message = addr_content_request + self._register_map[register]["size"]*bytes(1)
@@ -460,8 +521,8 @@ class INA229:
         return data_received
 
     def _write_conversion_time(self, measurement: str, conversion_time: int) -> None:
-        if measurement not in self._adc_config_to_bin_mask.keys(): raise Exception(f"Measurement {measurement} is invalid. Must be one of 'temperature', 'voltage' or 'current'.")
-        if conversion_time not in self._conversion_time_us_to_bin.keys(): raise Exception(f"Conversion time {conversion_time}us is invalid; must be one of 50us, 84us, 150us, 280us, 540us, 1052us, 2074us or 4120us.")
+        if measurement not in self._adc_config_to_bin_mask.keys(): raise ValueError(f"Measurement {measurement} is invalid. Must be one of 'temperature', 'voltage' or 'current'.")
+        if conversion_time not in self._conversion_time_us_to_bin.keys(): raise ValueError(f"Conversion time {conversion_time}us is invalid; must be one of 50us, 84us, 150us, 280us, 540us, 1052us, 2074us or 4120us.")
 
         mask = self._adc_config_to_bin_mask[measurement]
         conversion_time_bin = self._conversion_time_us_to_bin[conversion_time]
@@ -473,5 +534,7 @@ class INA229:
         self.spi._write_to_SPI("ADC_CONFIG", data_to_send.to_bytes(length, "big"))
         self._register_map["ADC_CONFIG"]["data"] = data_to_send
 
-    def _write_ADC_range(self, desired_ADC_range:bool) -> None:
-        pass
+    def ADC_reset(self) -> None:
+        data = (0b1 << 15) | (self._register_map["CONFIG"]["data"] & ~(0b1 << 15))
+        length = self._register_map["CONFIG"]["size"]
+        self._write_to_SPI("CONFIG", data.to_bytes(length, "big"))
