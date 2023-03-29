@@ -538,3 +538,7 @@ class INA229:
         data = (0b1 << 15) | (self._register_map["CONFIG"]["data"] & ~(0b1 << 15))
         length = self._register_map["CONFIG"]["size"]
         self._write_to_SPI("CONFIG", data.to_bytes(length, "big"))
+
+        #Read back all register to update map
+        for register in self._register_map.keys():
+            self._read_from_SPI(register)
