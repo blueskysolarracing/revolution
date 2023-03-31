@@ -20,6 +20,7 @@ class Endpoint(Enum):
     MISCELLANEOUS = auto()
     MOTOR = auto()
     STEERING_WHEEL = auto()
+    PSM = auto()
     DEBUGGER = auto()
 
 
@@ -73,14 +74,14 @@ class Context:
     center_directional_pad_input: bool = False
 
     # PSMs
-    motor_voltage: float = 0
-    motor_current: float = 0
-    array_voltage: float = 0
-    array_current: float = 0
     battery_voltage: float = 0
     battery_current: float = 0
-    LV_voltage: float = 0
-    LV_current: float = 0
+    array_voltage: float = 0
+    array_current: float = 0
+    motor_voltage: float = 0
+    motor_current: float = 0
+    lv_voltage: float = 0
+    lv_current: float = 0
 
     # Unclassified
     brake_status_input: bool = False

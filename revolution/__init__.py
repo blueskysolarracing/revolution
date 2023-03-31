@@ -11,6 +11,7 @@ __all__ = (
     'Environment',
     'Header',
     'M2096',
+    'INA229',
     'Message',
     'Miscellaneous',
     'Motor',
@@ -23,7 +24,7 @@ __all__ = (
 from revolution.application import Application
 from revolution.data import DataAccessor, DataManager
 from revolution.display import Display
-from revolution.drivers import ADC78H89, M2096
+from revolution.drivers import ADC78H89, M2096, INA229
 from revolution.environment import (
     Context,
     Direction,
