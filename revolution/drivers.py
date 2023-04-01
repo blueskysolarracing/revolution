@@ -10,7 +10,6 @@ from warnings import warn
 from periphery import GPIO, SPI
 
 from revolution.environment import Direction
-from revolution.battery import BMS_MODULE_NUM_TEMPERATURES, BMS_MODULE_NUM_VOLTAGES
 
 _logger = getLogger(__name__)
 
@@ -229,6 +228,8 @@ class LTC6810:
     """The SPI for the device."""
     gpio_b: GPIO
     """The GPIO for the device."""
+    NUM_TEMP_SENSORS: ClassVar[int] = 3
+    NUM_VOLTAGES: ClassVar[int] = 5
 
     def __post_init__(self) -> None:
         if self.spi.mode != self.spi_mode:
@@ -463,8 +464,7 @@ class LTC6810:
         """
         return low_byte + high_byte * 256
 
-    @staticmethod
-    def voltage_to_temp(input_voltage: list[float]) -> list[float]:
+    def voltage_to_temp(self, input_voltage: list[float]) -> list[float]:
         """
         Convert raw ADC code to temperature
         :param input_voltage: list of voltage values
@@ -473,7 +473,7 @@ class LTC6810:
         output_temperature = [0.0] * 3
         temp_correction_multiplier = 1.0
         temp_correction_offset = 0.0
-        for i in range(BMS_MODULE_NUM_TEMPERATURES):
+        for i in range(self.NUM_TEMP_SENSORS):
             corrected_voltage = temp_correction_multiplier * (input_voltage[i] / 10000.0 - temp_correction_offset)
             thermistor_resistance = 10.0 / ((2.8 / corrected_voltage) - 1.0)
             output_temperature[i] = 1.0 / (0.003356 + 0.0002532 * math.log(thermistor_resistance / 10.0))
@@ -496,7 +496,7 @@ class LTC6810:
         :param dcc_1: DCC1 pin
         :return: list of temperature values
         """
-        temp_array = [0.0] * BMS_MODULE_NUM_TEMPERATURES
+        temp_array = [0.0] * self.NUM_TEMP_SENSORS
         data_to_send = [0] * 16
         for cycle in range(3):
             if cycle == 0:
@@ -525,7 +525,7 @@ class LTC6810:
         Read voltage from LTC6810
         :return: array of voltage readings
         """
-        volt_array = [0.0] * BMS_MODULE_NUM_VOLTAGES
+        volt_array = [0.0] * self.NUM_VOLTAGES
         data_to_send = [0] * 4  # data organized by LTC6810.generate_command()
         # data_to_receive = [0] * 8  # voltage data from LTC6810 via SPI
 
