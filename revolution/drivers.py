@@ -409,7 +409,7 @@ class LTC6810:
         :return: 8-bit unsigned integer
         """
         # note: [7] is MSB, [0] is LSB
-        bit_str = "".join(str(bit) for bit in in_array)
+        bit_str = "".join(str(bit) for bit in in_array[::-1])
         return int(bit_str, 2)
 
     @staticmethod
