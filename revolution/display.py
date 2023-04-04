@@ -197,10 +197,23 @@ class Display(Application):
     def bmsFault(self) -> None:
         pass  # TODO
 
+    # debug by drawing pixel by pixel and then clearing once finish drawing
+    # should draw from top left downwards column by column to bottom right
     def debug(self) -> None:
-        pass  # TODO
+        self.d1.clear_back_buffer()
+        self.d1.flip()
+        self.d2.clear_back_buffer()
+        self.d2.flip()
+        for x in range(128):
+            for y in range(64):
+                self.d1.draw_point(x, y, 1)
+                self.d2.draw_point(x, y, 1)
+                self.d1.flip()
+                self.d2.flip()
+        self.d1.clear_back_buffer()
+        self.d1.flip()
+        self.d2.clear_back_buffer()
+        self.d2.flip()
 
     def youFuckedUp(self) -> None:
-        pass  # TODO
-
-    pass  # TODO
+        exit()  # replace with something
