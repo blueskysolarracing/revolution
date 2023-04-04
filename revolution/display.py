@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from logging import getLogger
 from typing import ClassVar
+from time import sleep
 
 from revolution.application import Application
 from revolution.environment import Endpoint
@@ -20,6 +21,7 @@ class Display(Application):
     JetBrains13x21: font.XglcdFont = field(init=False)
     Font5x7: font.XglcdFont = field(init=False)
     Liberation_Sans20x28: font.XglcdFont = field(init=False)
+    current_cruise: bool
 
     # display design based on google slides that you can find here
     # https://docs.google.com/presentation/d/1P_kAPFkVbpgUW_R5nXAC8cFNGyiidCfmwuXg6XJ8BWc/edit?usp=sharing
@@ -38,32 +40,122 @@ class Display(Application):
 
     # draw blue sky logo, wait for a while, then draw the default screen
     def startup(self) -> None:
-        pass  # TODO
+        self.d1.draw_symbol("logo", 0, 0)
+        self.d2.draw_symbol("logo", 0, 0)
+        self.d1.flip()
+        self.d1.flip()
+        sleep(3)
+        self.draw(0, False)
 
     # draw display
-    def draw(self, choice: int, flags: int, debug: bool) -> None:
+    def draw(self, choice: int = 0, debug: bool = False) -> None:
+        with self.environment.read() as data:
+            if data.bms_fault:
+                flag = 4
+            elif data.ignition:
+                flag = 3
+            elif data.cruise != self.current_cruise:
+                if data.cruise:
+                    flag = 1
+                else:
+                    flag = 0
+                self.current_cruise = data.cruise
+            else:
+                flag = 0
+
         if debug:
             self.debug()
         else:
             self.drawD1()
-            self.drawD2(choice, flags)
+            self.drawD2(choice, flag)
 
     # D1 only needs one cause it always show the same thing
     def drawD1(self) -> None:
-        pass  # TODO
+        with self.environment.read() as data:
+            solar = data.solar_power
+            motor = data.motor_power
+            battery = data.battery_power
+            speed = data.speed_kph
+            eco = data.eco_mode
+            direction = data.direction
+            headlight = data.headlight
+            battery_warning = data.battery_warning
+            hazard = data.hazard
+            indicatorR = data.indicatorR
+            indicatorL = data.indicatorL
+
+        # clear buffer
+        self.d1.clear_back_buffer()
+
+        # draw labels
+        if solar >= 0:
+            solarS = "Solar: +%4dW" % int(solar)
+        else:
+            solarS = "Solar: -%4dW" % abs(int(solar))
+        if motor >= 0:
+            motorS = "Motor: +%4dW" % int(motor)
+        else:
+            motorS = "Motor: -%4dW" % abs(int(motor))
+        if battery >= 0:
+            batteryS = "Batt:  +%4dW" % int(battery)
+        else:
+            batteryS = "Batt:  -%4dW" % abs(int(battery))
+
+        self.d1.draw_string(solarS, self.Font5x7, x=0, y=5, spacing=1)
+        self.d1.draw_string(motorS, self.Font5x7, x=0, y=15, spacing=1)
+        self.d1.draw_string(batteryS, self.Font5x7, x=0, y=30, spacing=1)
+
+        # draw leaf symbol
+        if eco:
+            self.d1.draw_symbol(symbol="leaf", x=10, y=52)
+        # draw forward or backward indicator
+        if direction:
+            self.d1.draw_string("F", self.Font5x7, x=36, y=53, invert=True)
+        else:
+            self.d1.draw_string("R", self.Font5x7, x=36, y=53, invert=True)
+        # draw headlight symbol
+        if headlight:
+            self.d1.draw_symbol(symbol="headlight", x=54, y=52)
+        # draw battery warning
+        if battery_warning:
+            self.d1.draw_symbol(symbol="batt", x=84, y=0)
+        # draw hazard
+        if hazard:
+            self.d1.draw_symbol(symbol="hazard", x=106, y=0)
+        # draw direction indicator
+        if indicatorR:
+            self.d1.draw_string("->", self.Font5x7, x=116, y=50)
+        if indicatorL:
+            self.d1.draw_string("<-", self.Font5x7, x=80, y=50)
+
+        # draw divider line
+        self.d1.draw_line(x1=79, y1=0, x2=79, y2=0, color=1)
+
+        # draw speed
+        self.d1.draw_string("km/h", self.Font5x7, x=91, y=50)
+        speedS = "%3d" % int(speed)
+        if speed < 100:
+            self.d1.draw_string(speedS[1:], self.Liberation_Sans20x28,
+                                x=85, y=16, spacing=0)
+        else:
+            self.d1.draw_string(speedS, self.JetBrains13x21,
+                                x=85, y=19, spacing=0)
+
+        # write to display
+        self.d1.flip()
 
     # D2 will choose what to draw depending on driver choices (choice)
-    # or the fault screens (flags)
-    def drawD2(self, choice: int, flags: int) -> None:
-        if flags:
-            match flags:
-                case 0:
-                    self.cruiseActivate()
+    # or the fault screens (flag)
+    def drawD2(self, choice: int, flag: int) -> None:
+        if flag != 0:
+            match flag:
                 case 1:
-                    self.cruiseDeactivate()
+                    self.cruiseActivate()
                 case 2:
-                    self.ignitionOff()
+                    self.cruiseDeactivate()
                 case 3:
+                    self.ignitionOff()
+                case 4:
                     self.bmsFault()
                 case _:
                     self.youFuckedUp()

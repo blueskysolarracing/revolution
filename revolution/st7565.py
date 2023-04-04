@@ -502,7 +502,7 @@ class Glcd(object):
             self.back_buffer[y, x] = color
 
     def draw_symbol(self, symbol, x=0, y=0):
-        toDraw = self.bssr_logo
+        toDraw = [[]]
         if symbol == "logo":
             toDraw = self.bssr_logo
         elif symbol == "leaf":
