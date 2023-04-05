@@ -33,6 +33,7 @@ class Display(Application):
         self.d2 = st7565.Glcd()
         self.d1.init()
         self.d2.init()
+        # TODO generate new JetBrains13x21 font to have all characters
         self.JetBrains13x20 = font.XglcdFont("display_data/JetBrains_Mono13x20.c", 13, 20, 97)  # noqa: E501
         self.JetBrains13x21 = font.XglcdFont("display_data/JetBrains_Mono13x21_Symbol.c", 13, 21, 32)  # noqa: E501
         self.Liberation_Sans20x28 = font.XglcdFont("revolution/display_data/Liberation_Sans20x28_Numbers.c", 20, 28, 46)  # noqa: E501
@@ -80,9 +81,9 @@ class Display(Application):
             direction = data.direction
             headlight = data.headlight
             battery_warning = data.battery_warning
-            hazard = data.hazard
-            indicatorR = data.indicatorR
-            indicatorL = data.indicatorL
+            hazard = data.hazard_lights_status
+            indicatorR = data.right_indicator_light_status
+            indicatorL = data.left_indicator_light_status
 
         # clear buffer
         self.d1.clear_back_buffer()
@@ -129,7 +130,7 @@ class Display(Application):
             self.d1.draw_string("<-", self.Font5x7, x=80, y=50)
 
         # draw divider line
-        self.d1.draw_line(x1=79, y1=0, x2=79, y2=0, color=1)
+        self.d1.draw_line(x1=79, y1=0, x2=79, y2=63, color=1)
 
         # draw speed
         self.d1.draw_string("km/h", self.Font5x7, x=91, y=50)
@@ -147,6 +148,7 @@ class Display(Application):
     # D2 will choose what to draw depending on driver choices (choice)
     # or the fault screens (flag)
     def drawD2(self, choice: int, flag: int) -> None:
+        self.d2.clear_back_buffer()
         if flag != 0:
             match flag:
                 case 1:
@@ -171,10 +173,47 @@ class Display(Application):
                     self.status()
                 case _:
                     self.youFuckedUp()
+        self.d2.flip()
 
     # drawing funcions for D2
     def default(self) -> None:
-        pass  # TODO
+        with self.environment.read() as data:
+            motor_state = data.motor_state
+            vfm = data.vfm
+            battery = data.battery_soc
+
+        # to make formating easier
+        if battery > 99:
+            battery = 99
+
+        match motor_state:
+            case 0:
+                motor_stateS = "OFF"
+            case 1:
+                motor_stateS = "PEDAL"
+            case 2:
+                motor_stateS = "CRUISE"
+            case 3:
+                motor_stateS = "REGEN"
+            case _:
+                motor_stateS = "OFF"
+
+        # draw motor state
+        self.d2.draw_string(motor_stateS, self.JetBrains13x20,
+                            x=49, y=25, spacing=0)
+        # draw vfm
+        self.d2.draw_string("VFM", self.JetBrains13x20, x=49, y=45, spacing=0)
+        # draw colons with rectangle cause font doesnt include them
+        self.d2.fill_rectangle(x1=90, y1=48, w=2, h=3, color=1)
+        self.d2.fill_rectangle(x1=90, y1=54, w=2, h=3, color=1)
+        self.d2.draw_string(("%d" % vfm), self.JetBrains13x21,
+                            x=98, y=44, spacing=0)
+        # draw battery state of charge
+        self.d2.draw_string(("%2d" % int(battery)), self.Liberation_Sans20x28,
+                            x=0, y=16, spacing=1)
+        self.d2.draw_string("%", self.Font5x7, x=19, y=52)
+        # draw divider line
+        self.d1.draw_line(x1=44, y1=0, x2=44, y2=63, color=1)
 
     def lowVolt(self) -> None:
         pass  # TODO
@@ -216,4 +255,4 @@ class Display(Application):
         self.d2.flip()
 
     def youFuckedUp(self) -> None:
-        exit()  # replace with something
+        exit()  # TODO

@@ -71,28 +71,27 @@ class Context:
     up_directional_pad_input: bool = False
     down_directional_pad_input: bool = False
     center_directional_pad_input: bool = False
-
     # Display data placeholders
     solar_power: float = 0
     motor_power: float = 0
     battery_power: float = 0
+    battery_soc: float = 0
     speed_kph: float = 0
-
+    motor_state: int = 0  # 0=OFF, 1=PEDAL, 2=CRUISE, 3=REGEN
+    vfm: int = 0
     # Display flags placeholders
     cruise: bool = False
     ignition: bool = False
     bms_fault: bool = False
     battery_warning: bool = False
-
     # less important display flags
     eco_mode: bool = False  # eco mode that draws leaf symbol on d1
     direction: bool = True  # direction of the car, True is forward, else rev
     headlight: bool = False  # whether headlights are on
-
     # might have replacement but for display
-    hazard: bool = False
-    indicatorL: bool = False
-    indicatorR: bool = False
+    hazard_lights_status: bool = False
+    left_indicator_light_status: bool = False
+    right_indicator_light_status: bool = False
 
     # Unclassified
     brake_status_input: bool = False
