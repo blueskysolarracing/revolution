@@ -55,12 +55,14 @@ class Display(Application):
                 flag = 4
             elif data.ignition:
                 flag = 3
-            elif data.cruise != self.current_cruise:
+            elif data.cruise != self.current_cruise:  # TODO how long to keep
                 if data.cruise:
                     flag = 1
                 else:
                     flag = 0
                 self.current_cruise = data.cruise
+            elif data.battery_low_volt:
+                flag = 5
             else:
                 flag = 0
 
@@ -159,6 +161,8 @@ class Display(Application):
                     self.ignitionOff()
                 case 4:
                     self.bmsFault()
+                case 5:
+                    self.lowVolt()
                 case _:
                     self.youFuckedUp()
         else:
@@ -166,10 +170,8 @@ class Display(Application):
                 case 0:
                     self.default()
                 case 1:
-                    self.lowVolt()
-                case 2:
                     self.detailed()
-                case 3:
+                case 2:
                     self.status()
                 case _:
                     self.youFuckedUp()
@@ -213,28 +215,147 @@ class Display(Application):
                             x=0, y=16, spacing=1)
         self.d2.draw_string("%", self.Font5x7, x=19, y=52)
         # draw divider line
-        self.d1.draw_line(x1=44, y1=0, x2=44, y2=63, color=1)
+        self.d2.draw_line(x1=44, y1=0, x2=44, y2=63, color=1)
 
     def lowVolt(self) -> None:
-        pass  # TODO
+        with self.environment.read() as data:
+            battery = data.battery_soc
+            voltage = data.battery_low_volt
+
+        # draw battery state of charge
+        self.d2.draw_string(("%2d" % int(battery)), self.Liberation_Sans20x28,
+                            x=0, y=16, spacing=1)
+        self.d2.draw_string("%", self.Font5x7, x=19, y=52)
+        # draw divider line
+        self.d2.draw_line(x1=44, y1=0, x2=44, y2=63, color=1)
+        # draw warning and voltage
+        self.d2.draw_string("LOW SUPP", self.Font5x7, x=59, y=41)
+        self.d2.draw_string("VOLTAGE", self.Font5x7, x=65, y=52)
+        self.d2.draw_symbol("attention", x=44, y=5)
+        self.d2.draw_string(("%2.1f" % voltage),
+                            self.JetBrains13x21, x=75, y=9, spacing=0)
+        self.d2.draw_string("V", self.JetBrains13x20, x=115, y=9, spacing=0)
 
     def detailed(self) -> None:
-        pass  # TODO
+        with self.environment.read() as data:
+            solar_power = int(data.solar_power)
+            solar_voltage = abs(int(data.solar_voltage))
+            solar_current = abs(int(data.solar_current))
+            motor_power = int(data.motor_power)
+            motor_voltage = abs(int(data.motor_voltage))
+            motor_current = abs(int(data.motor_current))
+            batt_power = int(data.battery_power)
+            batt_voltage = abs(int(data.battery_voltage))
+            batt_current = abs(int(data.battery_current))
+
+        if solar_power >= 0:
+            self.d2.draw_string("Solar:+%4dW(%3dV,%2dA)" %
+                                (solar_power, solar_voltage, solar_current),
+                                self.Font5x7, x=0, y=5)
+        else:
+            self.d2.draw_string("Solar:-%4dW(%3dV,%2dA)" %
+                                (abs(solar_power), solar_voltage, solar_current),  # noqa: E501
+                                self.Font5x7, x=0, y=5)
+        if motor_power >= 0:
+            self.d2.draw_string("Motor:+%4dW(%3dV,%2dA)" %
+                                (motor_power, motor_voltage, motor_current),
+                                self.Font5x7, x=0, y=28)
+        else:
+            self.d2.draw_string("Motor:-%4dW(%3dV,%2dA)" %
+                                (abs(motor_power), motor_voltage, motor_current),  # noqa: E501
+                                self.Font5x7, x=0, y=28)
+        if batt_power >= 0:
+            self.d2.draw_string("Batt: +%4dW(%3dV,%2dA)" %
+                                (batt_power, batt_voltage, batt_current),
+                                self.Font5x7, x=0, y=51)
+        else:
+            self.d2.draw_string("Batt: -%4dW(%3dV,%2dA)" %
+                                (abs(batt_power), batt_voltage, batt_current),
+                                self.Font5x7, x=0, y=51)
 
     def status(self) -> None:
-        pass  # TODO
+        with self.environment.read() as data:
+            lv_power = data.battery_low_volt_power
+            lv_voltage = abs(data.battery_low_volt_voltage)
+            lv_current = abs(data.battery_low_volt_current)
+            temp = data.max_package_temp
+            bb = data.bb_status
+            mc = data.mc_status
+            bms = data.bms_status
+            ppt = data.ppt_status
+            rad = data.rad_status
+
+        if lv_power >= 0:
+            self.d2.draw_string("LV: +%2.1fW(%2.1fV,%1.2fA)" %
+                                (lv_power, lv_voltage, lv_current),
+                                self.Font5x7, x=0, y=5, spacing=0)
+        else:
+            self.d2.draw_string("LV: -%2.1fW(%2.1fV,%1.2fA)" %
+                                (lv_power, lv_voltage, lv_current),
+                                self.Font5x7, x=0, y=5)
+
+        self.d2.draw_string("Max pack temp: %3.1fC" % temp,
+                            self.Font5x7, x=0, y=28)
+
+        if bb:
+            self.d2.draw_string("BB", self.Font5x7, x=8, y=51, invert=True)
+        if mc:
+            self.d2.draw_string("MC", self.Font5x7, x=28, y=51, invert=True)
+        if bms:
+            self.d2.draw_string("BMS", self.Font5x7, x=48, y=51, invert=True)
+        if ppt:
+            self.d2.draw_string("PPT", self.Font5x7, x=74, y=51, invert=True)
+        if rad:
+            self.d2.draw_string("RAD", self.Font5x7, x=100, y=51, invert=True)
 
     def cruiseActivate(self) -> None:
-        pass  # TODO
+        self.d2.draw_string("CRUISE CONTROL", self.Font5x7, x=22, y=17)
+        self.d2.draw_string("ACTIVATED", self.Font5x7, x=37, y=40, invert=True)  # noqa: E501
 
     def cruiseDeactivate(self) -> None:
-        pass  # TODO
+        self.d2.draw_string("CRUISE CONTROL", self.Font5x7, x=22, y=17)
+        self.d2.draw_string("DEACTIVATED", self.Font5x7, x=31, y=40, invert=True)  # noqa: E501
 
     def ignitionOff(self) -> None:
-        pass  # TODO
+        with self.environment.read() as data:
+            hv = int(data.battery_high_volt_voltage)
+            lv_voltage = data.battery_low_volt_voltage
+            lv_power = int(data.battery_low_volt_power)
+            battery_soc = int(data.battery_soc)
+
+        self.d2.draw_string("HV: %dV" % hv, self.Font5x7, x=0, y=5)
+        self.d2.draw_string("LV: %2.1f (%dW)" % (lv_voltage, lv_power),
+                            self.Font5x7, x=0, y=28)
+        self.d2.draw_string("Battery: %d%%" % battery_soc,
+                            self.Font5x7, x=0, y=51)
+        self.d2.draw_string("SLEEPING", self.Font5x7, x=75, y=5)
 
     def bmsFault(self) -> None:
-        pass  # TODO
+        with self.environment.read() as data:
+            bms_fault_type = data.bms_fault_type
+            fault_therm = data.fault_therm
+            fault_cell = data.fault_cell
+
+        # 0=OVERTEMP, 1=OVERVOLT, 2=UNDERVOLT, 3=OVERCUR
+        match bms_fault_type:
+            case 0:
+                self.d2.draw_string("OVERTEMP (THERM %2d)" % fault_therm,
+                                    self.Font5x7, x=22, y=51)
+            case 1:
+                self.d2.draw_string("OVERVOTE (CELL %2d)" % fault_cell,
+                                    self.Font5x7, x=22, y=51)
+            case 2:
+                self.d2.draw_string("UNDERVOLT (CELL %2d)" % fault_cell,
+                                    self.Font5x7, x=16, y=51)
+            case 3:
+                self.d2.draw_string("OVERCURRENT",
+                                    self.Font5x7, x=4, y=51)
+            case _:
+                self.youFuckedUp()
+
+        self.d2.draw_string("BMS FAULT DETECTED", self.Font5x7, x=10, y=5)
+        self.d2.draw_string("CAR", self.Font5x7, x=43, y=28)
+        self.d2.draw_string("OFF", self.Font5x7, x=67, y=28, invert=True)
 
     # debug by drawing pixel by pixel and then clearing once finish drawing
     # should draw from top left downwards column by column to bottom right

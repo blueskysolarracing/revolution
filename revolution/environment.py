@@ -73,17 +73,38 @@ class Context:
     center_directional_pad_input: bool = False
     # Display data placeholders
     solar_power: float = 0
+    solar_voltage: float = 0
+    solar_current: float = 0
     motor_power: float = 0
+    motor_voltage: float = 0
+    motor_current: float = 0
     battery_power: float = 0
+    battery_voltage: float = 0
+    battery_current: float = 0
     battery_soc: float = 0
     speed_kph: float = 0
     motor_state: int = 0  # 0=OFF, 1=PEDAL, 2=CRUISE, 3=REGEN
     vfm: int = 0
+    battery_volt: float = 0
+    battery_low_volt_power: float = 0
+    battery_low_volt_voltage: float = 0
+    battery_low_volt_current: float = 0
+    battery_high_volt_voltage: float = 0
+    max_package_temp: float = 0
+    bms_fault_type: int = 0  # 0=OVERTEMP, 1=OVERVOLT, 2=UNDERVOLT, 3=OVERCUR
+    fault_therm: int = 0
+    fault_cell: int = 0
     # Display flags placeholders
     cruise: bool = False
     ignition: bool = False
     bms_fault: bool = False
     battery_warning: bool = False
+    battery_low_volt: bool = False
+    bb_status: bool = True
+    mc_status: bool = True
+    bms_status: bool = True
+    ppt_status: bool = True
+    rad_status: bool = True
     # less important display flags
     eco_mode: bool = False  # eco mode that draws leaf symbol on d1
     direction: bool = True  # direction of the car, True is forward, else rev
