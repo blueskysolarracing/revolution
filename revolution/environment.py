@@ -20,6 +20,7 @@ class Endpoint(Enum):
     MISCELLANEOUS = auto()
     MOTOR = auto()
     STEERING_WHEEL = auto()
+    TELEMETER = auto()
     DEBUGGER = auto()
 
 
