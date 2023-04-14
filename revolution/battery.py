@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from functools import partial
 from typing import ClassVar
 
-from periphery import GPIO, SPI
+from periphery import SPI
 
 from revolution.drivers import LTC6810
 from revolution.application import Application
@@ -22,8 +22,8 @@ def get_queue_avg(queue: deque[float]) -> float:
 @dataclass
 class BMSModule:
     spi: SPI
-    gpio_b: GPIO
     bms_module_id: int
+    address_mode: bool = True
 
     NUM_CELLS: ClassVar[int] = LTC6810.NUM_VOLTAGES
     NUM_VOLTAGES: ClassVar[int] = NUM_CELLS
@@ -46,7 +46,7 @@ class BMSModule:
         GET_FILTERED_RESULT = auto()
 
     def __post_init__(self) -> None:
-        self.ltc6810 = LTC6810(spi=self.spi, gpio_b=self.gpio_b, address_mode_id=self.bms_module_id)
+        self.ltc6810 = LTC6810(spi=self.spi, address_mode_id=self.bms_module_id) if self.address_mode else LTC6810(spi=self.spi)
         self.voltage_arr = self.ltc6810.read_voltage()  # voltage of each cell
         self.temperature_arr = self.ltc6810.read_temp(0, 0, 0, 0, 0)
 
@@ -113,8 +113,7 @@ class BMSModule:
 class Battery(Application):
     bms_modules: list[BMSModule] = field(init=False)
     battery_spi: SPI = field(default_factory=partial(SPI, '', 3, 1e6))    # TODO
-    gpio_b: GPIO = field(default_factory=partial(GPIO, 0, 0))    # TODO
     NUM_BMS_MODULES: ClassVar[int] = 5
 
     def __post_init__(self):
-        self.bms_modules = [BMSModule(spi=self.battery_spi, gpio_b=self.gpio_b, bms_module_id=i) for i in range(self.NUM_BMS_MODULES)]
+        self.bms_modules = [BMSModule(spi=self.battery_spi, bms_module_id=i) for i in range(self.NUM_BMS_MODULES)]

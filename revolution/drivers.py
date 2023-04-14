@@ -226,8 +226,6 @@ class LTC6810:
     """The reference voltage value (in volts)."""
     spi: SPI
     """The SPI for the device."""
-    gpio_b: GPIO
-    """The GPIO for the device."""
     NUM_TEMP_SENSORS: ClassVar[int] = 3
     NUM_VOLTAGES: ClassVar[int] = 5
     address_mode_id: Optional[int] = None
@@ -491,7 +489,7 @@ class LTC6810:
         :param input_voltage: list of voltage values
         :return: list of temperature values
         """
-        output_temperature = [0.0] * 3
+        output_temperature = [0.0] * self.NUM_TEMP_SENSORS
         temp_correction_multiplier = 1.0
         temp_correction_offset = 0.0
         for i in range(self.NUM_TEMP_SENSORS):
@@ -537,7 +535,7 @@ class LTC6810:
             data_to_receive = self.spi.transfer(data_to_send)  # receive temp data from LTC6810 via SPI
 
             # write value into array
-            temp_array[cycle] = 256 * data_to_receive[3] + data_to_receive[2]
+            temp_array[cycle] = 256.0 * data_to_receive[3] + data_to_receive[2]
 
         return temp_array
 
@@ -548,7 +546,6 @@ class LTC6810:
         """
         volt_array = [0.0] * self.NUM_VOLTAGES
         data_to_send = [0] * 4  # data organized by LTC6810.generate_command()
-        # data_to_receive = [0] * 8  # voltage data from LTC6810 via SPI
 
         # read first half of data
         vmessage_in_binary = 0b01101110000  # adcv discharge enable,7Hz
@@ -558,7 +555,6 @@ class LTC6810:
         vmessage_in_binary = 0b100  # read cell voltage reg group 1
         self.generate_command_address_mode(vmessage_in_binary, data_to_send)
         data_to_receive = self.spi.transfer(data_to_send)
-
         volt_array[0] = self.data_to_voltage(data_to_receive[0], data_to_receive[1]) / 10000.0
         volt_array[1] = self.data_to_voltage(data_to_receive[2], data_to_receive[3]) / 10000.0
         volt_array[2] = self.data_to_voltage(data_to_receive[4], data_to_receive[5]) / 10000.0
@@ -566,8 +562,6 @@ class LTC6810:
         vmessage_in_binary = 0b110  # read cell voltage reg group 2
         self.generate_command_address_mode(vmessage_in_binary, data_to_send)
         data_to_receive = self.spi.transfer(data_to_send)
-        self.gpio_b.write(True)  # TODO: check if this is still needed
-
         volt_array[3] = self.data_to_voltage(data_to_receive[0], data_to_receive[1]) / 10000.0
         volt_array[4] = self.data_to_voltage(data_to_receive[2], data_to_receive[3]) / 10000.0
 
