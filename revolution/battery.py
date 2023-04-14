@@ -46,7 +46,7 @@ class BMSModule:
         GET_FILTERED_RESULT = auto()
 
     def __post_init__(self) -> None:
-        self.ltc6810 = LTC6810(self.spi, self.gpio_b)
+        self.ltc6810 = LTC6810(spi=self.spi, gpio_b=self.gpio_b, address_mode_id=self.bms_module_id)
         self.voltage_arr = self.ltc6810.read_voltage()  # voltage of each cell
         self.temperature_arr = self.ltc6810.read_temp(0, 0, 0, 0, 0)
 

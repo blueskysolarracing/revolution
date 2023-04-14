@@ -230,6 +230,7 @@ class LTC6810:
     """The GPIO for the device."""
     NUM_TEMP_SENSORS: ClassVar[int] = 3
     NUM_VOLTAGES: ClassVar[int] = 5
+    address_mode_id: Optional[int] = None
 
     def __post_init__(self) -> None:
         if self.spi.mode != self.spi_mode:
@@ -270,11 +271,10 @@ class LTC6810:
          GPIO1 shall always be set to 1 to avoid internal pull-down, as its the voltage reading pin.
          A2 is MSB and A0 is MSB, if want channel 2 -> do A2=0, A1=1, A0=0
         """
-        data_to_send = LTC6810.generate_data_to_send(gpio_4, gpio_3, gpio_2, dcc_5, dcc_4, dcc_3, dcc_2, dcc_1)
+        data_to_send = self.generate_data_to_send(gpio_4, gpio_3, gpio_2, dcc_5, dcc_4, dcc_3, dcc_2, dcc_1)
         self.spi.transfer(data_to_send)
 
-    @staticmethod
-    def generate_data_to_send(gpio_4: int, gpio_3: int, gpio_2: int, dcc_5: int, dcc_4: int, dcc_3: int, dcc_2: int, dcc_1: int) -> list[int]:
+    def generate_data_to_send(self, gpio_4: int, gpio_3: int, gpio_2: int, dcc_5: int, dcc_4: int, dcc_3: int, dcc_2: int, dcc_1: int) -> list[int]:
         """
         Generate the data to send to the LTC6810 chip based on pin configuration
         :return: array of data to send to the chip
@@ -285,7 +285,7 @@ class LTC6810:
 
         # write configure command
         message_in_binary = 0b1
-        LTC6810.generate_command(message_in_binary, data_to_send)
+        self.generate_command_address_mode(message_in_binary, data_to_send)
 
         '''
         Set GPIO bits to 1 so they aren`t being pulled down internally by the chip
@@ -297,14 +297,14 @@ class LTC6810:
         message_in_binary = 0b0000110000000000  # CFGR0&1
         message_in_binary += 4096 * gpio_2 + 8192 * gpio_3 + 16384 * gpio_4
 
-        msg_0, msg_1 = LTC6810.command_to_array(message_in_binary)
+        msg_0, msg_1 = self.command_to_array(message_in_binary)
         for i in range(8):
             data_6_byte[40 + i] = msg_0[i]
             data_6_byte[32 + i] = msg_1[i]
 
         # Set the VOV and VUV as 0
         message_in_binary = 0b0000000000000000  # CFGR2&3
-        msg_2, msg_3 = LTC6810.command_to_array(message_in_binary)
+        msg_2, msg_3 = self.command_to_array(message_in_binary)
         for i in range(8):
             data_6_byte[24 + i] = msg_2[i]
             data_6_byte[16 + i] = msg_3[i]
@@ -320,23 +320,23 @@ class LTC6810:
         '''
         message_in_binary = 0b0000000000000010
         message_in_binary += 256 * dcc_1 + 512 * dcc_2 + 1024 * dcc_3 + 2048 * dcc_4 + 4096 * dcc_5
-        msg_4, msg_5 = LTC6810.command_to_array(message_in_binary)
+        msg_4, msg_5 = self.command_to_array(message_in_binary)
         for i in range(8):
             data_6_byte[8 + i] = msg_4[i]
             data_6_byte[0 + i] = msg_5[i]
 
         # generate PEC bits based on above data
-        pec0_6bytes, pec1_6bytes = LTC6810.generate_pec_bits(True, data_6_byte)
+        pec0_6bytes, pec1_6bytes = self.generate_pec_bits(True, data_6_byte)
 
         # change array back to bytes
-        data_to_send[4] = LTC6810.array_to_byte(msg_0)
-        data_to_send[5] = LTC6810.array_to_byte(msg_1)
-        data_to_send[6] = LTC6810.array_to_byte(msg_2)
-        data_to_send[7] = LTC6810.array_to_byte(msg_3)
-        data_to_send[8] = LTC6810.array_to_byte(msg_4)
-        data_to_send[9] = LTC6810.array_to_byte(msg_5)
-        data_to_send[10] = LTC6810.array_to_byte(pec0_6bytes)
-        data_to_send[11] = LTC6810.array_to_byte(pec1_6bytes)
+        data_to_send[4] = self.array_to_byte(msg_0)
+        data_to_send[5] = self.array_to_byte(msg_1)
+        data_to_send[6] = self.array_to_byte(msg_2)
+        data_to_send[7] = self.array_to_byte(msg_3)
+        data_to_send[8] = self.array_to_byte(msg_4)
+        data_to_send[9] = self.array_to_byte(msg_5)
+        data_to_send[10] = self.array_to_byte(pec0_6bytes)
+        data_to_send[11] = self.array_to_byte(pec1_6bytes)
 
         return data_to_send
 
@@ -432,8 +432,19 @@ class LTC6810:
 
         return cmd0_ref, cmd1_ref
 
-    @staticmethod
-    def generate_command(command: int, data_to_send: list[int]):
+    def generate_command_address_mode(self, command: int, data_to_send: list[int]) -> None:
+        """
+        Generate command for address mode. If address mode is not enabled, broadcast mode is used
+        :param command: command to convert
+        :param data_to_send: array of integer containing message and error check
+        :return: None
+        """
+        if self.address_mode_id:
+            address_command = (0b10000 | (self.address_mode_id & 0b1111)) << 12
+            command |= address_command
+        self.generate_command(command, data_to_send)
+
+    def generate_command(self, command: int, data_to_send: list[int]) -> None:
         """
         Fill in data_to_send with command and error checking bits
         :param command: command to convert
@@ -441,16 +452,26 @@ class LTC6810:
         :return: None
         """
         # convert command into two separate array
-        cmd0_list, cmd1_list = LTC6810.command_to_array(command)
+        cmd0_list, cmd1_list = self.command_to_array(command)
 
         # generate error checking bits
-        pec_bits_0, pec_bits_1 = LTC6810.generate_pec_bits(False, cmd0_list, cmd1_list)
+        pec_bits_0, pec_bits_1 = self.generate_pec_bits(False, cmd0_list, cmd1_list)
 
         # put data back into data_to_send list, with size of 4
-        data_to_send[0] = LTC6810.array_to_byte(cmd0_list)  # 1st byte message
-        data_to_send[1] = LTC6810.array_to_byte(cmd1_list)  # 2nd byte message
-        data_to_send[2] = LTC6810.array_to_byte(pec_bits_0)  # 1st byte error check
-        data_to_send[3] = LTC6810.array_to_byte(pec_bits_1)  # 2nd byte error check
+        data_to_send[0] = self.array_to_byte(cmd0_list)  # 1st byte message
+        data_to_send[1] = self.array_to_byte(cmd1_list)  # 2nd byte message
+        data_to_send[2] = self.array_to_byte(pec_bits_0)  # 1st byte error check
+        data_to_send[3] = self.array_to_byte(pec_bits_1)  # 2nd byte error check
+
+    def isospi_wakeup(self) -> None:
+        """
+        Wake up the LTC6810 from sleep mode.
+        :return: None
+        """
+        # No delay more than 3ms allowed (between this function call and the actual SPI comm)! else isoSPI might go back to sleep
+        # Need to transmit dummy byte
+        dummy_byte = [0]
+        self.spi.transfer(dummy_byte)
 
     @staticmethod
     def data_to_voltage(low_byte: int, high_byte: int) -> int:
@@ -507,12 +528,12 @@ class LTC6810:
                 self.initialize_board(0, 1, 0, dcc_5, dcc_4, dcc_3, dcc_2, dcc_1)  # channel 3
 
             message_in_binary = 0b10100010010  # conversion GPIO1, command AXOW
-            LTC6810.generate_command(message_in_binary, data_to_send)
+            self.generate_command_address_mode(message_in_binary, data_to_send)
             self.spi.transfer(data_to_send[:4])  # send 4 bytes of data
 
             # receive data
-            message_in_binary = 0b11000000000  # read auxiliary group 1, command RDAUXA
-            LTC6810.generate_command(message_in_binary, data_to_send)
+            message_in_binary = 0b1100  # read auxiliary group 1, command RDAUXA
+            self.generate_command_address_mode(message_in_binary, data_to_send)
             data_to_receive = self.spi.transfer(data_to_send)  # receive temp data from LTC6810 via SPI
 
             # write value into array
@@ -531,23 +552,23 @@ class LTC6810:
 
         # read first half of data
         vmessage_in_binary = 0b01101110000  # adcv discharge enable,7Hz
-        LTC6810.generate_command(vmessage_in_binary, data_to_send)  # generate the "check voltage command"
+        self.generate_command_address_mode(vmessage_in_binary, data_to_send)  # generate the "check voltage command"
         data_to_receive = self.spi.transfer(data_to_send)
 
         vmessage_in_binary = 0b100  # read cell voltage reg group 1
-        LTC6810.generate_command(vmessage_in_binary, data_to_send)
+        self.generate_command_address_mode(vmessage_in_binary, data_to_send)
         data_to_receive = self.spi.transfer(data_to_send)
 
-        volt_array[0] = LTC6810.data_to_voltage(data_to_receive[0], data_to_receive[1]) / 10000.0
-        volt_array[1] = LTC6810.data_to_voltage(data_to_receive[2], data_to_receive[3]) / 10000.0
-        volt_array[2] = LTC6810.data_to_voltage(data_to_receive[4], data_to_receive[5]) / 10000.0
+        volt_array[0] = self.data_to_voltage(data_to_receive[0], data_to_receive[1]) / 10000.0
+        volt_array[1] = self.data_to_voltage(data_to_receive[2], data_to_receive[3]) / 10000.0
+        volt_array[2] = self.data_to_voltage(data_to_receive[4], data_to_receive[5]) / 10000.0
 
         vmessage_in_binary = 0b110  # read cell voltage reg group 2
-        LTC6810.generate_command(vmessage_in_binary, data_to_send)
+        self.generate_command_address_mode(vmessage_in_binary, data_to_send)
         data_to_receive = self.spi.transfer(data_to_send)
         self.gpio_b.write(True)  # TODO: check if this is still needed
 
-        volt_array[3] = LTC6810.data_to_voltage(data_to_receive[0], data_to_receive[1]) / 10000.0
-        volt_array[4] = LTC6810.data_to_voltage(data_to_receive[2], data_to_receive[3]) / 10000.0
+        volt_array[3] = self.data_to_voltage(data_to_receive[0], data_to_receive[1]) / 10000.0
+        volt_array[4] = self.data_to_voltage(data_to_receive[2], data_to_receive[3]) / 10000.0
 
         return volt_array
