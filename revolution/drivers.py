@@ -270,6 +270,7 @@ class LTC6810:
          A2 is MSB and A0 is MSB, if want channel 2 -> do A2=0, A1=1, A0=0
         """
         data_to_send = self.generate_data_to_send(gpio_4, gpio_3, gpio_2, dcc_5, dcc_4, dcc_3, dcc_2, dcc_1)
+        self.isospi_wakeup()
         self.spi.transfer(data_to_send)
 
     def generate_data_to_send(self, gpio_4: int, gpio_3: int, gpio_2: int, dcc_5: int, dcc_4: int, dcc_3: int, dcc_2: int, dcc_1: int) -> list[int]:
@@ -527,11 +528,13 @@ class LTC6810:
 
             message_in_binary = 0b10100010010  # conversion GPIO1, command AXOW
             self.generate_command_address_mode(message_in_binary, data_to_send)
+            self.isospi_wakeup()
             self.spi.transfer(data_to_send[:4])  # send 4 bytes of data
 
             # receive data
             message_in_binary = 0b1100  # read auxiliary group 1, command RDAUXA
             self.generate_command_address_mode(message_in_binary, data_to_send)
+            self.isospi_wakeup()
             data_to_receive = self.spi.transfer(data_to_send)  # receive temp data from LTC6810 via SPI
 
             # write value into array
@@ -550,10 +553,12 @@ class LTC6810:
         # read first half of data
         vmessage_in_binary = 0b01101110000  # adcv discharge enable,7Hz
         self.generate_command_address_mode(vmessage_in_binary, data_to_send)  # generate the "check voltage command"
+        self.isospi_wakeup()
         data_to_receive = self.spi.transfer(data_to_send)
 
         vmessage_in_binary = 0b100  # read cell voltage reg group 1
         self.generate_command_address_mode(vmessage_in_binary, data_to_send)
+        self.isospi_wakeup()
         data_to_receive = self.spi.transfer(data_to_send)
         volt_array[0] = self.data_to_voltage(data_to_receive[0], data_to_receive[1]) / 10000.0
         volt_array[1] = self.data_to_voltage(data_to_receive[2], data_to_receive[3]) / 10000.0
@@ -561,6 +566,7 @@ class LTC6810:
 
         vmessage_in_binary = 0b110  # read cell voltage reg group 2
         self.generate_command_address_mode(vmessage_in_binary, data_to_send)
+        self.isospi_wakeup()
         data_to_receive = self.spi.transfer(data_to_send)
         volt_array[3] = self.data_to_voltage(data_to_receive[0], data_to_receive[1]) / 10000.0
         volt_array[4] = self.data_to_voltage(data_to_receive[2], data_to_receive[3]) / 10000.0
