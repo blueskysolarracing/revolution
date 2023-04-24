@@ -439,7 +439,7 @@ class LTC6810:
         :return: None
         """
         if self.address_mode_id:
-            address_command = (0b10000 | (self.address_mode_id & 0b1111)) << 12
+            address_command = (0b10000 | (self.address_mode_id & 0b1111)) << 11
             command |= address_command
         self.generate_command(command, data_to_send)
 
