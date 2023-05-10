@@ -90,6 +90,6 @@ class DataManager(Generic[_T]):
     @contextmanager
     def copy(self) -> Iterator[_T]:
         with self.read():
-            data = replace(self.__data)
+            data = replace(self.__data)  # type: ignore[type-var]
 
         yield data
