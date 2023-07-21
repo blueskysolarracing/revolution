@@ -67,18 +67,6 @@ Tag the release version.
 
    git tag v<version>
 
-Build the project.
-
-.. code-block:: sh
-
-   python -m build
-
-Upload the packages.
-
-.. code-block:: sh
-
-   twine upload dist/*
-
 Build the docker image.
 
 .. code-block:: sh
@@ -97,22 +85,3 @@ container in detached mode.
 .. code-block:: sh
 
    docker run -d -v /dev:/dev -v /sys/class/pwm:/sys/class/pwm blueskysolarracing/revolution:<version>
-
-Debugging
-=========
-
-The debug Dockerfile is different from the production Dockerfile as it
-utilizes the code from the host machine through bind mount and runs
-Revolution with debug and interactive mode enabled.
-
-Build the debug docker image.
-
-.. code-block:: sh
-
-   docker build -f debug.Dockerfile -t blueskysolarracing/revolution:debug .
-
-Run the debug docker image.
-
-.. code-block:: sh
-
-   docker run -i -v /dev:/dev -v /sys/class/pwm:/sys/class/pwm -v .:/usr/src/revolution blueskysolarracing/revolution:debug

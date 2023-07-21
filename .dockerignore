@@ -1,0 +1,9 @@
+.dockerignore
+.git
+.gitignore
+Dockerfile
+LICENSE
+README.rst
+docs
+venv
+_site
