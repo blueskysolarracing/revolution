@@ -1,6 +1,5 @@
-build~=0.10.0
-flake8~=6.0.0
-mypy~=1.4.1
+flake8~=6.1.0
+mypy~=1.5.1
+numpy~=1.25.2
 python-periphery~=2.4.1
-Sphinx~=7.0.1
-twine~=4.0.2
+Sphinx~=7.2.5
