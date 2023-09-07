@@ -1,10 +1,10 @@
 from collections.abc import Iterator
 from contextlib import closing, contextmanager
 from dataclasses import dataclass, field, replace
-from enum import Flag, auto
+from enum import auto, Flag
 from logging import getLogger
 from threading import Lock
-from typing import Any, Generic, TypeVar, cast
+from typing import Any, cast, Generic, TypeVar
 
 _logger = getLogger(__name__)
 _T = TypeVar('_T')

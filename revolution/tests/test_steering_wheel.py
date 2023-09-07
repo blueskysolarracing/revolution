@@ -3,7 +3,7 @@ from dataclasses import fields
 from itertools import chain
 from threading import Thread
 from time import sleep
-from unittest import TestCase, main
+from unittest import main, TestCase
 from unittest.mock import MagicMock
 
 from periphery import GPIO

@@ -20,8 +20,10 @@ class Application(ABC):
 
     endpoint: ClassVar[Endpoint]
     environment: Environment
-    _handlers: dict[Header, Callable[..., Any]] \
-        = field(default_factory=dict, init=False)
+    _handlers: dict[Header, Callable[..., Any]] = field(
+        default_factory=dict,
+        init=False,
+    )
     _worker_pool: WorkerPool = field(default_factory=WorkerPool, init=False)
     __stoppage: Event = field(default_factory=Event, init=False)
 

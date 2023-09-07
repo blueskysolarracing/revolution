@@ -1,4 +1,4 @@
-from unittest import TestCase, main
+from unittest import main, TestCase
 from threading import Lock
 
 from revolution.worker_pool import WorkerPool

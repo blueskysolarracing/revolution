@@ -11,14 +11,14 @@ __all__ = (
     'Environment',
     'Header',
     'M2096',
+    'main',
     'Message',
     'Miscellaneous',
     'Motor',
+    'parse_arguments',
     'SteeringWheel',
     'Telemeter',
     'WorkerPool',
-    'main',
-    'parse_arguments',
 )
 
 from revolution.application import Application

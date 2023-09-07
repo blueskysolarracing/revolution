@@ -1,8 +1,8 @@
 from math import inf
 from time import sleep, time
 from typing import Any, cast
-from unittest import TestCase, main
-from unittest.mock import DEFAULT, MagicMock, call
+from unittest import main, TestCase
+from unittest.mock import call, DEFAULT, MagicMock
 
 from revolution.drivers import ADC78H89, M2096
 from revolution.environment import Direction

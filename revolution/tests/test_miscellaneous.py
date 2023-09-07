@@ -1,5 +1,5 @@
 from threading import Thread
-from unittest import TestCase, main
+from unittest import main, TestCase
 from unittest.mock import MagicMock
 
 from revolution.environment import Context, Environment, Header, Message

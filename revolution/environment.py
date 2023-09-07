@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from enum import Enum, IntEnum, auto
+from enum import auto, Enum, IntEnum
 from logging import getLogger
 from math import inf
 from queue import Queue

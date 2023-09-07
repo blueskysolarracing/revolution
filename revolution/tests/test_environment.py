@@ -1,5 +1,5 @@
 from queue import Empty
-from unittest import TestCase, main
+from unittest import main, TestCase
 
 from revolution.environment import (
     Context,

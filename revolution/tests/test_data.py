@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from unittest import TestCase, main
+from unittest import main, TestCase
 
 from revolution.data import DataAccessor, DataManager
 

@@ -1,7 +1,7 @@
 from argparse import ArgumentParser, BooleanOptionalAction, Namespace
 from code import interact
 from datetime import datetime
-from logging import DEBUG, INFO, basicConfig, getLogger
+from logging import basicConfig, DEBUG, getLogger, INFO
 from sys import stderr
 from threading import Thread
 
@@ -66,5 +66,7 @@ def interpolate(
         to_lower_bound: float,
         to_upper_bound: float,
 ) -> float:
-    return to_lower_bound + (to_upper_bound - to_lower_bound) \
+    return (
+        to_lower_bound + (to_upper_bound - to_lower_bound)
         * (value - from_lower_bound) / (from_upper_bound - from_lower_bound)
+    )

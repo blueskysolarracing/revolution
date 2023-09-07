@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from threading import Thread
 from typing import Any, ClassVar
-from unittest import TestCase, main
+from unittest import main, TestCase
 
 from revolution.application import Application
 from revolution.environment import (
