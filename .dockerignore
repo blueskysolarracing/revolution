@@ -1,0 +1,9 @@
+Dockerfile
+.dockerignore
+docs
+.git/
+.gitignore
+LICENSE
+.mypy_cache/
+README.rst
+venv/
