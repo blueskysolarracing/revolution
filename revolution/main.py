@@ -40,16 +40,16 @@ def parse_args() -> Namespace:
     )
 
     parser.add_argument(
-        '-d',
-        '--debug',
-        action=BooleanOptionalAction,
-        help='debug mode (disabled by default)',
-    )
-    parser.add_argument(
         '-i',
         '--interactive',
         action=BooleanOptionalAction,
         help='interactive mode (disabled by default)',
+    )
+    parser.add_argument(
+        '-v',
+        '--virtual',
+        action=BooleanOptionalAction,
+        help='virtual mode (disabled by default)',
     )
 
     return parser.parse_args()
