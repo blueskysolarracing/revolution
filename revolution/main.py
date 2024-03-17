@@ -4,31 +4,13 @@ from datetime import datetime
 from logging import basicConfig, DEBUG, getLogger, INFO
 from sys import stderr
 from threading import Thread
+from typing import Any
 
-from revolution.application import Application
-from revolution.contexts import Contexts
-from revolution.data import DataManager
-from revolution.debugger import Debugger
-from revolution.display import Display
+from door.threading2 import AcquirableDoor
+
 from revolution.environment import Environment
-from revolution.miscellaneous import Miscellaneous
-from revolution.motor import Motor
-from revolution.peripheries import Peripheries
-from revolution.power import Power
-from revolution.settings import Settings
-from revolution.steering_wheel import SteeringWheel
-from revolution.telemeter import Telemeter
 
 _logger = getLogger(__name__)
-APPLICATION_TYPES: tuple[type[Application], ...] = (
-    Debugger,
-    Display,
-    Miscellaneous,
-    Motor,
-    Power,
-    SteeringWheel,
-    Telemeter,
-)
 
 
 def parse_args() -> Namespace:
@@ -40,35 +22,36 @@ def parse_args() -> Namespace:
     )
 
     parser.add_argument(
+        '-d',
+        '--debug',
+        action=BooleanOptionalAction,
+        help='debug mode (disabled by default)',
+    )
+    parser.add_argument(
         '-i',
         '--interactive',
         action=BooleanOptionalAction,
         help='interactive mode (disabled by default)',
     )
-    parser.add_argument(
-        '-v',
-        '--virtual',
-        action=BooleanOptionalAction,
-        help='virtual mode (disabled by default)',
-    )
 
     return parser.parse_args()
 
 
-def main() -> None:
+def main(configurations: Any) -> None:
     args = parse_args()
     log_level = DEBUG if args.debug else INFO
 
     basicConfig(level=log_level, stream=stderr)
     _logger.info('Launching revolution...')
 
-    contexts = Contexts()
-    peripheries = Peripheries()
-    settings = Settings()
-    environment = Environment(DataManager(contexts), peripheries, settings)
+    environment = Environment(
+        AcquirableDoor(configurations.CONTEXTS),
+        configurations.PERIPHERIES,
+        configurations.SETTINGS,
+    )
     threads = []
 
-    for application_type in APPLICATION_TYPES:
+    for application_type in configurations.APPLICATION_TYPES:
         thread = Thread(target=application_type.main, args=(environment,))
 
         threads.append(thread)

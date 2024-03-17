@@ -5,9 +5,7 @@ from logging import getLogger
 from threading import Event
 from typing import Any, ClassVar
 
-from revolution.environment import Environment
-from revolution.utilities import Endpoint, Header
-from revolution.worker_pool import WorkerPool
+from revolution.environment import Endpoint, Environment, Header
 
 _logger = getLogger(__name__)
 
@@ -26,34 +24,37 @@ class Application(ABC):
         default_factory=dict,
         init=False,
     )
-    _worker_pool: WorkerPool = field(default_factory=WorkerPool, init=False)
     __stoppage: Event = field(default_factory=Event, init=False)
+
+    @property
+    def status(self) -> bool:
+        return not self.__stoppage.is_set()
 
     def mainloop(self) -> None:
         self._setup()
         self._run()
         self._teardown()
 
-    @property
-    def _status(self) -> bool:
-        return not self.__stoppage.is_set()
-
     def _setup(self) -> None:
+        self._handlers[Header.STOP] = self._handle_stop
+
         self.__stoppage.clear()
-        self._handlers[Header.STOP] = self.__handle_stop
 
     def _run(self) -> None:
-        while self._status:
-            message = self.environment.receive_message(self.endpoint)
+        while self.status:
+            message = self.environment.receive(self.endpoint)
             handler = self._handlers.get(message.header)
 
             if handler is None:
-                _logger.error(f'Unable to handle message {message}')
+                _logger.error(f'Unable to handle message {repr(message)}')
             else:
-                handler(*message.args, **message.kwargs)
+                try:
+                    handler(*message.args, **message.kwargs)
+                except:  # noqa: E722
+                    _logger.exception('Exception raised during handler call')
 
     def _teardown(self) -> None:
-        self._worker_pool.join()
+        pass
 
-    def __handle_stop(self) -> None:
+    def _handle_stop(self) -> None:
         self.__stoppage.set()

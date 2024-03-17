@@ -1,15 +1,12 @@
 __all__ = (
-    'APPLICATION_TYPES',
     'Application',
     'Contexts',
-    'DataAccessor',
-    'DataManager',
     'Debugger',
     'Direction',
     'Display',
+    'Driver',
     'Endpoint',
     'Environment',
-    'FloatRange',
     'Header',
     'main',
     'Message',
@@ -19,32 +16,27 @@ __all__ = (
     'Peripheries',
     'Power',
     'Settings',
-    'SteeringWheel',
     'Telemeter',
-    'WorkerPool',
+    'Worker',
 )
-__author__ = 'Blue Sky Solar Racing'
-__version__ = '0.0.0'
 
 from revolution.application import Application
-from revolution.contexts import Contexts
-from revolution.data import DataAccessor, DataManager
 from revolution.debugger import Debugger
 from revolution.display import Display
-from revolution.environment import Environment
-from revolution.main import APPLICATION_TYPES, main, parse_args
-from revolution.miscellaneous import Miscellaneous
-from revolution.motor import Motor
-from revolution.peripheries import Peripheries
-from revolution.power import Power
-from revolution.settings import Settings
-from revolution.steering_wheel import SteeringWheel
-from revolution.telemeter import Telemeter
-from revolution.utilities import (
+from revolution.driver import Driver
+from revolution.environment import (
+    Contexts,
     Direction,
     Endpoint,
-    FloatRange,
+    Environment,
     Header,
     Message,
+    Peripheries,
+    Settings,
 )
-from revolution.worker_pool import WorkerPool
+from revolution.main import main, parse_args
+from revolution.miscellaneous import Miscellaneous
+from revolution.motor import Motor
+from revolution.power import Power
+from revolution.telemeter import Telemeter
+from revolution.worker import Worker

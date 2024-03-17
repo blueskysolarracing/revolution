@@ -1,19 +1,106 @@
 from dataclasses import dataclass, field
+from enum import auto, Enum
 from logging import getLogger
 from queue import Queue
+from typing import Any
 
-from revolution.contexts import Contexts
-from revolution.data import DataManager
-from revolution.peripheries import Peripheries
-from revolution.settings import Settings
-from revolution.utilities import Endpoint, Message
+from door.threading2 import AcquirableDoor
 
 _logger = getLogger(__name__)
 
 
+class Direction(Enum):
+    FORWARD = auto()
+    BACKWARD = auto()
+
+
+class Endpoint(Enum):
+    DEBUGGER = auto()
+    DISPLAY = auto()
+    DRIVER = auto()
+    MISCELLANEOUS = auto()
+    MOTOR = auto()
+    POWER = auto()
+    TELEMETER = auto()
+
+
+class Header(Enum):
+    STOP = auto()
+
+
+@dataclass(frozen=True)
+class Message:
+    header: Header
+    args: tuple[Any, ...] = field(default_factory=tuple)
+    kwargs: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class Contexts:
+    # Debugger
+
+    # Display
+
+    # Miscellaneous
+
+    # Motor
+
+    # Power
+
+    # Steering wheel
+
+    # Telemeter
+
+    # General
+
+    pass
+
+
+@dataclass(frozen=True)
+class Peripheries:
+    # Debugger
+
+    # Display
+
+    # Miscellaneous
+
+    # Motor
+
+    # Power
+
+    # Steering wheel
+
+    # Telemeter
+
+    # General
+
+    pass
+
+
+@dataclass(frozen=True)
+class Settings:
+    # Debugger
+
+    # Display
+
+    # Miscellaneous
+
+    # Motor
+
+    # Power
+
+    # Steering wheel
+
+    # Telemeter
+
+    # General
+
+    pass
+
+
 @dataclass(frozen=True)
 class Environment:
-    contexts: DataManager[Contexts]
+    contexts: AcquirableDoor[Contexts]
     peripheries: Peripheries
     settings: Settings
     __queues: dict[Endpoint, Queue[Message]] = field(
@@ -25,7 +112,7 @@ class Environment:
         for endpoint in Endpoint:
             self.__queues[endpoint] = Queue()
 
-    def receive_message(
+    def receive(
             self,
             endpoint: Endpoint,
             block: bool = True,
@@ -33,7 +120,7 @@ class Environment:
     ) -> Message:
         return self.__queues[endpoint].get(block, timeout)
 
-    def send_message(
+    def send(
             self,
             endpoint: Endpoint,
             message: Message,

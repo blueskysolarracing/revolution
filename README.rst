@@ -48,13 +48,27 @@ Run unit tests.
 
 .. code-block:: sh
 
+   export REVOLUTION_CONFIGURATIONS_MODULE=configurations.development
    python -m unittest
+
+Above is equivalent to below...
+
+.. code-block:: sh
+
+   REVOLUTION_CONFIGURATIONS_MODULE=configurations.development python -m unittest
 
 Run documentation tests.
 
 .. code-block:: sh
 
+   export REVOLUTION_CONFIGURATIONS_MODULE=configurations.development
    python -m doctest revolution/*.py
+
+Above is equivalent to below...
+
+.. code-block:: sh
+
+   REVOLUTION_CONFIGURATIONS_MODULE=configurations.development python -m doctest revolution/*.py
 
 Project Deployment
 ==================
