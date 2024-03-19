@@ -16,7 +16,7 @@ __all__ = (
     'Peripheries',
     'Power',
     'Settings',
-    'Telemeter',
+    'Telemetry',
     'Worker',
 )
 
@@ -38,5 +38,5 @@ from revolution.main import main, parse_args
 from revolution.miscellaneous import Miscellaneous
 from revolution.motor import Motor
 from revolution.power import Power
-from revolution.telemeter import Telemeter
+from revolution.telemetry import Telemetry
 from revolution.worker import Worker

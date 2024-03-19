@@ -5,6 +5,10 @@ from queue import Queue
 from typing import Any
 
 from door.threading2 import AcquirableDoor
+from iclib.adc78h89 import ADC78H89, InputChannel
+from iclib.mcp23s17 import MCP23S17, PortRegisterBit as PRB
+from iclib.nhd_c12864a1z_fsw_fbw_htt import NHDC12864A1ZFSWFBWHTT
+from periphery import Serial
 
 _logger = getLogger(__name__)
 
@@ -41,19 +45,47 @@ class Contexts:
 
     # Display
 
+    display_backup_camera_control_status_input: bool
+    display_steering_wheel_in_place_status_input: bool
+    display_left_directional_pad_input: bool
+    display_right_directional_pad_input: bool
+    display_up_directional_pad_input: bool
+    display_down_directional_pad_input: bool
+    display_center_directional_pad_input: bool
+
+    # Driver
+
     # Miscellaneous
+
+    miscellaneous_thermistor_temperature: float
+    miscellaneous_left_indicator_light_status_input: bool
+    miscellaneous_right_indicator_light_status_input: bool
+    miscellaneous_hazard_lights_status_input: bool
+    miscellaneous_daytime_running_lights_status_input: bool
+    miscellaneous_horn_status_input: bool
+    miscellaneous_fan_status_input: bool
+    miscellaneous_brake_status_input: bool
 
     # Motor
 
+    motor_acceleration_pedal_input: float
+    motor_regeneration_pedal_input: float
+    motor_acceleration_paddle_input: float
+    motor_regeneration_paddle_input: float
+    motor_motor_status_input: bool
+    motor_direction_input: Direction
+    motor_economical_mode_input: bool
+    motor_variable_field_magnet_up_input: int
+    motor_variable_field_magnet_down_input: int
+    motor_revolution_period: float
+    motor_speed: float
+
     # Power
 
-    # Steering wheel
+    power_array_relay_status_input: bool
+    power_battery_relay_status_input: bool
 
-    # Telemeter
-
-    # General
-
-    pass
+    # Telemetry
 
 
 @dataclass(frozen=True)
@@ -62,19 +94,53 @@ class Peripheries:
 
     # Display
 
+    display_nhd_c12864a1z_fsw_fbw_htt: NHDC12864A1ZFSWFBWHTT
+    """The NHD display."""
+
+    # Driver
+
+    driver_adc78h89: ADC78H89
+
+    driver_motor_acceleration_pedal_input_channel: InputChannel
+    driver_motor_regeneration_pedal_input_channel: InputChannel
+    driver_motor_acceleration_paddle_input_channel: InputChannel
+    driver_motor_regeneration_paddle_input_channel: InputChannel
+    driver_miscellaneous_thermistor_input_channel: InputChannel
+
+    driver_mcp23s17: MCP23S17
+
+    driver_motor_direction_switch_prb: PRB
+    driver_motor_variable_field_magnet_up_switch_prb: PRB
+    driver_motor_variable_field_magnet_down_switch_prb: PRB
+
+    driver_miscellaneous_left_indicator_light_switch_prb: PRB
+    driver_miscellaneous_right_indicator_light_switch_prb: PRB
+    driver_miscellaneous_hazard_lights_switch_prb: PRB
+    driver_miscellaneous_daytime_running_lights_switch_prb: PRB
+    driver_miscellaneous_horn_switch_prb: PRB
+    driver_miscellaneous_fan_switch_prb: PRB
+    driver_miscellaneous_backup_camera_control_switch_prb: PRB
+    driver_miscellaneous_brake_pedal_switch_prb: PRB
+
+    driver_power_array_relay_switch_prb: PRB
+    driver_power_battery_relay_switch_prb: PRB
+
+    driver_display_steering_wheel_in_place_switch_prb: PRB
+    driver_display_left_directional_pad_switch_prb: PRB
+    driver_display_right_directional_pad_switch_prb: PRB
+    driver_display_up_directional_pad_switch_prb: PRB
+    driver_display_down_directional_pad_switch_prb: PRB
+    driver_display_center_directional_pad_switch_prb: PRB
+
     # Miscellaneous
 
     # Motor
 
     # Power
 
-    # Steering wheel
+    # Telemetry
 
-    # Telemeter
-
-    # General
-
-    pass
+    telemetry_serial: Serial
 
 
 @dataclass(frozen=True)
@@ -83,19 +149,34 @@ class Settings:
 
     # Display
 
+    display_frame_rate: float
+    """The display frame rate (in frames/second)."""
+
+    # Driver
+
+    driver_timeout: float
+
+    driver_motor_acceleration_pedal_input_range: tuple[float, float]
+    driver_motor_regeneration_pedal_input_range: tuple[float, float]
+    driver_motor_acceleration_paddle_input_range: tuple[float, float]
+    driver_motor_regeneration_paddle_input_range: tuple[float, float]
+    driver_miscellaneous_thermistor_input_range: tuple[float, float]
+    driver_miscellaneous_thermistor_output_range: tuple[float, float]
+
     # Miscellaneous
 
     # Motor
 
+    motor_wheel_circumference: float
+
     # Power
 
-    # Steering wheel
+    # Telemetry
 
-    # Telemeter
-
-    # General
-
-    pass
+    telemetry_timeout: float
+    telemetry_begin_token: bytes
+    telemetry_separator_token: bytes
+    telemetry_end_token: bytes
 
 
 @dataclass(frozen=True)

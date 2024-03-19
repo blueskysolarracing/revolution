@@ -24,11 +24,7 @@ class Application(ABC):
         default_factory=dict,
         init=False,
     )
-    __stoppage: Event = field(default_factory=Event, init=False)
-
-    @property
-    def status(self) -> bool:
-        return not self.__stoppage.is_set()
+    _stoppage: Event = field(default_factory=Event, init=False)
 
     def mainloop(self) -> None:
         self._setup()
@@ -38,10 +34,10 @@ class Application(ABC):
     def _setup(self) -> None:
         self._handlers[Header.STOP] = self._handle_stop
 
-        self.__stoppage.clear()
+        self._stoppage.clear()
 
     def _run(self) -> None:
-        while self.status:
+        while not self._stoppage.is_set():
             message = self.environment.receive(self.endpoint)
             handler = self._handlers.get(message.header)
 
@@ -57,4 +53,4 @@ class Application(ABC):
         pass
 
     def _handle_stop(self) -> None:
-        self.__stoppage.set()
+        self._stoppage.set()
