@@ -62,7 +62,7 @@ CONTEXTS: Contexts = Contexts(
     motor_regeneration_pedal_input=0,
     motor_acceleration_paddle_input=0,
     motor_regeneration_paddle_input=0,
-    motor_motor_status_input=False,
+    motor_status_input=False,
     motor_direction_input=Direction.FORWARD,
     motor_economical_mode_input=True,
     motor_variable_field_magnet_up_input=0,
@@ -153,9 +153,22 @@ PERIPHERIES: Peripheries = Peripheries(
 
     # Miscellaneous
 
+    miscellaneous_indicator_lights_pwm=MagicMock(),
+    miscellaneous_left_indicator_light_pwm=MagicMock(),
+    miscellaneous_right_indicator_light_pwm=MagicMock(),
+    miscellaneous_daytime_running_lights_pwm=MagicMock(),
+    miscellaneous_brake_lights_pwm=MagicMock(),
+    miscellaneous_horn_switch_gpio=MagicMock(),
+    miscellaneous_fan_switch_gpio=MagicMock(),
+
     # Motor
 
+    motor_mc2=MagicMock(),
+
     # Power
+
+    power_pptmb_spi=MagicMock(),
+    power_bms_spi=MagicMock(),
 
     # Telemetry
 
@@ -184,11 +197,29 @@ SETTINGS: Settings = Settings(
 
     # Miscellaneous
 
+    miscellaneous_indicator_lights_pwm_period=0.8,
+    miscellaneous_indicator_lights_pwm_duty_cycle=0.5,
+    miscellaneous_left_indicator_light_pwm_period=0.001,
+    miscellaneous_left_indicator_light_pwm_duty_cycle=0.25,
+    miscellaneous_right_indicator_light_pwm_period=0.001,
+    miscellaneous_right_indicator_light_pwm_duty_cycle=0.25,
+    miscellaneous_daytime_running_lights_pwm_period=0.001,
+    miscellaneous_daytime_running_lights_pwm_duty_cycle=0.25,
+    miscellaneous_brake_lights_pwm_period=0.001,
+    miscellaneous_brake_lights_pwm_duty_cycle=0.25,
+
+    miscellaneous_light_timeout=0.1,
+
     # Motor
 
     motor_wheel_circumference=1,
+    motor_control_timeout=0.01,
+    motor_variable_field_magnet_timeout=0.1,
+    motor_revolution_timeout=0.5,
 
     # Power
+
+    power_monitor_timeout=0.1,
 
     # Telemetry
 

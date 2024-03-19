@@ -9,6 +9,7 @@ __all__ = (
     'Environment',
     'Header',
     'main',
+    'MC2',
     'Message',
     'Miscellaneous',
     'Motor',
@@ -26,7 +27,6 @@ from revolution.display import Display
 from revolution.driver import Driver
 from revolution.environment import (
     Contexts,
-    Direction,
     Endpoint,
     Environment,
     Header,
@@ -35,8 +35,10 @@ from revolution.environment import (
     Settings,
 )
 from revolution.main import main, parse_args
+from revolution.mc2 import MC2
 from revolution.miscellaneous import Miscellaneous
 from revolution.motor import Motor
 from revolution.power import Power
 from revolution.telemetry import Telemetry
+from revolution.utilities import Direction
 from revolution.worker import Worker

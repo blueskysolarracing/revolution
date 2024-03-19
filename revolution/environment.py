@@ -8,14 +8,12 @@ from door.threading2 import AcquirableDoor
 from iclib.adc78h89 import ADC78H89, InputChannel
 from iclib.mcp23s17 import MCP23S17, PortRegisterBit as PRB
 from iclib.nhd_c12864a1z_fsw_fbw_htt import NHDC12864A1ZFSWFBWHTT
-from periphery import Serial
+from periphery import GPIO, PWM, Serial, SPI
+
+from revolution.mc2 import MC2
+from revolution.utilities import Direction
 
 _logger = getLogger(__name__)
-
-
-class Direction(Enum):
-    FORWARD = auto()
-    BACKWARD = auto()
 
 
 class Endpoint(Enum):
@@ -72,7 +70,7 @@ class Contexts:
     motor_regeneration_pedal_input: float
     motor_acceleration_paddle_input: float
     motor_regeneration_paddle_input: float
-    motor_motor_status_input: bool
+    motor_status_input: bool
     motor_direction_input: Direction
     motor_economical_mode_input: bool
     motor_variable_field_magnet_up_input: int
@@ -134,9 +132,22 @@ class Peripheries:
 
     # Miscellaneous
 
+    miscellaneous_indicator_lights_pwm: PWM
+    miscellaneous_left_indicator_light_pwm: PWM
+    miscellaneous_right_indicator_light_pwm: PWM
+    miscellaneous_daytime_running_lights_pwm: PWM
+    miscellaneous_brake_lights_pwm: PWM
+    miscellaneous_horn_switch_gpio: GPIO
+    miscellaneous_fan_switch_gpio: GPIO
+
     # Motor
 
+    motor_mc2: MC2
+
     # Power
+
+    power_pptmb_spi: SPI
+    power_bms_spi: SPI
 
     # Telemetry
 
@@ -165,11 +176,29 @@ class Settings:
 
     # Miscellaneous
 
+    miscellaneous_indicator_lights_pwm_period: float
+    miscellaneous_indicator_lights_pwm_duty_cycle: float
+    miscellaneous_left_indicator_light_pwm_period: float
+    miscellaneous_left_indicator_light_pwm_duty_cycle: float
+    miscellaneous_right_indicator_light_pwm_period: float
+    miscellaneous_right_indicator_light_pwm_duty_cycle: float
+    miscellaneous_daytime_running_lights_pwm_period: float
+    miscellaneous_daytime_running_lights_pwm_duty_cycle: float
+    miscellaneous_brake_lights_pwm_period: float
+    miscellaneous_brake_lights_pwm_duty_cycle: float
+
+    miscellaneous_light_timeout: float
+
     # Motor
 
     motor_wheel_circumference: float
+    motor_control_timeout: float
+    motor_variable_field_magnet_timeout: float
+    motor_revolution_timeout: float
 
     # Power
+
+    power_monitor_timeout: float
 
     # Telemetry
 
