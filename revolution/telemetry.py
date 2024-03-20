@@ -39,8 +39,6 @@ class Telemetry(Application):
 
             data = {
                 # TODO: fill data
-
-                'motor_speed': motor_speed,
             }
             data_token = dumps(data).encode()
             checksum_token = md5(data_token).digest()
