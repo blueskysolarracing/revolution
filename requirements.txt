@@ -1,4 +1,4 @@
-battlib==0.0.0.dev0
+battlib==0.0.0.dev1
 coverage~=7.4.1
 door==0.0.3
 flake8~=7.0.0
