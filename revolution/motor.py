@@ -42,10 +42,12 @@ class Motor(Application):
                 acceleration_input = max(
                     contexts.motor_acceleration_pedal_input,
                     contexts.motor_acceleration_paddle_input,
+                    contexts.motor_acceleration_cruise_control_input
                 )
                 regeneration_input = max(
                     contexts.motor_regeneration_pedal_input,
                     contexts.motor_regeneration_paddle_input,
+                    contexts.motor_regeneration_cruise_control_input
                 )
                 direction_input = contexts.motor_direction_input
                 economical_mode_input = contexts.motor_economical_mode_input
@@ -124,3 +126,55 @@ class Motor(Application):
             with self.environment.contexts() as contexts:
                 contexts.motor_revolution_period = revolution_period
                 contexts.motor_speed = motor_speed
+
+    def cruise_control(self) -> None:
+        with self.environment.contexts() as contexts:
+
+            # values from from cruise_control_pi in GEN11_MCMB
+            k_p = 250.0
+            k_i = 0.015
+            k_d = 0.0
+            
+            integralMin = -200.0
+            integralMax = 200.0
+            integrator = 0.0
+
+            derivativeMin = -100.0
+            derivativeMax = 100.0
+            derivative = 0.0
+
+            outMin = -255.0
+            outMax = 255.0
+            output = 0.0
+
+            timeStep_ms = 20
+            error = 0.0
+            prevError = 0.0
+
+            while (contexts.motor_cruise_control_on):
+                error = contexts.motor_cruise_target_speed - contexts.motor_speed
+                integrator +=  k_i * ((error + prevError) / 2) * timeStep_ms
+                derivative = k_d * (error - prevError) / timeStep_ms
+
+                if (integrator > integralMax):
+                    integrator = integralMax
+                if (integrator < integralMin):
+                    integrator = integralMin
+                if (derivative > integralMax):
+                    derivative = derivativeMax
+                if (derivative < integralMin):
+                    derivative = derivativeMin
+
+                output = integrator + derivative + k_p * error
+                if (output > outMax):
+                    output = outMax
+                if (output < outMin):
+                    output = outMin
+
+                output /= outMax # map to [-1, 1]
+                if output > 0:
+                    contexts.motor_acceleration_cruise_control_input = output
+                if output < 0:
+                    contexts.motor_regeneration_cruise_control_input = output
+
+                prevError = error

@@ -70,6 +70,8 @@ class Contexts:
     motor_regeneration_pedal_input: float
     motor_acceleration_paddle_input: float
     motor_regeneration_paddle_input: float
+    motor_acceleration_cruise_control_input: float
+    motor_regeneration_cruise_control_input: float
     motor_status_input: bool
     motor_direction_input: Direction
     motor_economical_mode_input: bool
@@ -77,6 +79,8 @@ class Contexts:
     motor_variable_field_magnet_down_input: int
     motor_revolution_period: float
     motor_speed: float
+    motor_cruise_control_on: bool
+    motor_cruise_target_speed: float
 
     # Power
 
