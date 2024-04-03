@@ -6,6 +6,8 @@ from revolution.application import Application
 from revolution.environment import Endpoint
 from revolution.worker import Worker
 
+import numpy as np
+
 _logger = getLogger(__name__)
 
 
@@ -156,20 +158,11 @@ class Motor(Application):
                 integrator +=  k_i * ((error + prevError) / 2) * timeStep_ms
                 derivative = k_d * (error - prevError) / timeStep_ms
 
-                if (integrator > integralMax):
-                    integrator = integralMax
-                if (integrator < integralMin):
-                    integrator = integralMin
-                if (derivative > integralMax):
-                    derivative = derivativeMax
-                if (derivative < integralMin):
-                    derivative = derivativeMin
+                integrator = np.clip(integrator, integralMin, integralMax)
+                derivative = np.clip(derivative, derivativeMin, derivativeMax)
 
                 output = integrator + derivative + k_p * error
-                if (output > outMax):
-                    output = outMax
-                if (output < outMin):
-                    output = outMin
+                output = np.clip(output, outMin, outMax)
 
                 output /= outMax # map to [-1, 1]
                 if output > 0:
