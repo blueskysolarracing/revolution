@@ -1,15 +1,15 @@
 from dataclasses import dataclass
 from logging import getLogger
 from typing import ClassVar
+import time
+
+import numpy as np
 
 from revolution.application import Application
 from revolution.environment import Endpoint
 from revolution.worker import Worker
 
-import numpy as np
-
 _logger = getLogger(__name__)
-
 
 @dataclass
 class Motor(Application):
@@ -44,12 +44,12 @@ class Motor(Application):
                 acceleration_input = max(
                     contexts.motor_acceleration_pedal_input,
                     contexts.motor_acceleration_paddle_input,
-                    contexts.motor_acceleration_cruise_control_input
+                    contexts.motor_acceleration_cruise_control_input,
                 )
                 regeneration_input = max(
                     contexts.motor_regeneration_pedal_input,
                     contexts.motor_regeneration_paddle_input,
-                    contexts.motor_regeneration_cruise_control_input
+                    contexts.motor_regeneration_cruise_control_input,
                 )
                 direction_input = contexts.motor_direction_input
                 economical_mode_input = contexts.motor_economical_mode_input
@@ -130,44 +130,45 @@ class Motor(Application):
                 contexts.motor_speed = motor_speed
 
     def cruise_control(self) -> None:
-        with self.environment.contexts() as contexts:
 
-            # values from from cruise_control_pi in GEN11_MCMB
-            k_p = 250.0
-            k_i = 0.015
-            k_d = 0.0
-            
-            integralMin = -200.0
-            integralMax = 200.0
-            integrator = 0.0
+        # values from from cruise_control_pi in GEN11_MCMB
+        k_p = 250.0
+        k_i = 15.0
+        k_d = 0.0
+        
+        integralMin = -200.0
+        integralMax = 200.0
+        integrator = 0.0
 
-            derivativeMin = -100.0
-            derivativeMax = 100.0
-            derivative = 0.0
+        derivativeMin = -100.0
+        derivativeMax = 100.0
+        derivative = 0.0
 
-            outMin = -255.0
-            outMax = 255.0
-            output = 0.0
+        outMin = -255.0
+        outMax = 255.0
+        output = 0.0
 
-            timeStep_ms = 20
-            error = 0.0
-            prevError = 0.0
+        timeStep = 0.02
+        error = 0.0
+        prevError = 0.0
 
-            while (contexts.motor_cruise_control_on):
-                error = contexts.motor_cruise_target_speed - contexts.motor_speed
-                integrator +=  k_i * ((error + prevError) / 2) * timeStep_ms
-                derivative = k_d * (error - prevError) / timeStep_ms
+        while (contexts.motor_cruise_control_on):
+            error = contexts.motor_cruise_target_speed - contexts.motor_speed
+            integrator +=  k_i * ((error + prevError) / 2) * timeStep
+            derivative = k_d * (error - prevError) / timeStep
 
-                integrator = np.clip(integrator, integralMin, integralMax)
-                derivative = np.clip(derivative, derivativeMin, derivativeMax)
+            integrator = np.clip(integrator, integralMin, integralMax)
+            derivative = np.clip(derivative, derivativeMin, derivativeMax)
 
-                output = integrator + derivative + k_p * error
-                output = np.clip(output, outMin, outMax)
+            output = integrator + derivative + k_p * error
+            output = np.clip(output, outMin, outMax)
 
-                output /= outMax # map to [-1, 1]
-                if output > 0:
-                    contexts.motor_acceleration_cruise_control_input = output
+            with self.environment.contexts() as contexts:
+                if output >= 0:
+                    contexts.motor_acceleration_cruise_control_input = output/outMax
                 if output < 0:
-                    contexts.motor_regeneration_cruise_control_input = output
+                    contexts.motor_regeneration_cruise_control_input = abs(output/outMin)
 
-                prevError = error
+            prevError = error
+
+            time.sleep(timeStep)
