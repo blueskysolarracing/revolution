@@ -29,10 +29,11 @@ When making changes, please follow these guidelines:
   if necessary.
 - After making changes, please validate your changes.
 
-1. Run static type checking with ``--strict`` flag: ``mypy --strict revolution``
-2. Run style checking: ``flake8 revolution``
-3. Run unit tests: ``python -m unittest``
-4. Run doctests: ``python -m doctest revolution/*.py``
+1. Run style checking: ``flake8 revolution``
+2. Run static type checking with ``--strict`` flag: ``mypy --strict revolution``
+3. Run checks for missing docstrings: ``interrogate -f 100 -i -m -n -p -s -r '^\w+TestCase' revolution``
+4. Run unit tests: ``python -m unittest``
+5. Run doctests: ``python -m doctest revolution/*.py``
 
 Submitting a Pull Request
 -------------------------
