@@ -42,14 +42,14 @@ class Motor(Application):
             with self.environment.contexts() as contexts:
                 status_input = contexts.motor_status_input
                 acceleration_input = max(
-                    contexts.motor_acceleration_pedal_input,
+                    (contexts.motor_acceleration_pedal_input,
                     contexts.motor_acceleration_paddle_input,
-                    contexts.motor_acceleration_cruise_control_input,
+                    contexts.motor_acceleration_cruise_control_input,),
                 )
                 regeneration_input = max(
-                    contexts.motor_regeneration_pedal_input,
+                    (contexts.motor_regeneration_pedal_input,
                     contexts.motor_regeneration_paddle_input,
-                    contexts.motor_regeneration_cruise_control_input,
+                    contexts.motor_regeneration_cruise_control_input,),
                 )
                 direction_input = contexts.motor_direction_input
                 economical_mode_input = contexts.motor_economical_mode_input
