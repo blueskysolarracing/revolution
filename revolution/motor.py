@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from logging import getLogger
 from typing import ClassVar
-import time
 
 import numpy as np
 
@@ -10,6 +9,7 @@ from revolution.environment import Endpoint
 from revolution.worker import Worker
 
 _logger = getLogger(__name__)
+
 
 @dataclass
 class Motor(Application):
@@ -42,14 +42,18 @@ class Motor(Application):
             with self.environment.contexts() as contexts:
                 status_input = contexts.motor_status_input
                 acceleration_input = max(
-                    (contexts.motor_acceleration_pedal_input,
-                    contexts.motor_acceleration_paddle_input,
-                    contexts.motor_acceleration_cruise_control_input,),
+                    (
+                        contexts.motor_acceleration_pedal_input,
+                        contexts.motor_acceleration_paddle_input,
+                        contexts.motor_acceleration_cruise_control_input,
+                    ),
                 )
                 regeneration_input = max(
-                    (contexts.motor_regeneration_pedal_input,
-                    contexts.motor_regeneration_paddle_input,
-                    contexts.motor_regeneration_cruise_control_input,),
+                    (
+                        contexts.motor_regeneration_pedal_input,
+                        contexts.motor_regeneration_paddle_input,
+                        contexts.motor_regeneration_cruise_control_input,
+                    ),
                 )
                 direction_input = contexts.motor_direction_input
                 economical_mode_input = contexts.motor_economical_mode_input
@@ -130,45 +134,68 @@ class Motor(Application):
                 contexts.motor_speed = motor_speed
 
     def cruise_control(self) -> None:
-
-        # values from from cruise_control_pi in GEN11_MCMB
-        k_p = 250.0
-        k_i = 15.0
-        k_d = 0.0
-        
-        integralMin = -200.0
-        integralMax = 200.0
-        integrator = 0.0
-
-        derivativeMin = -100.0
-        derivativeMax = 100.0
-        derivative = 0.0
-
-        outMin = -255.0
-        outMax = 255.0
-        output = 0.0
-
-        timeStep = 0.02
+        k_p = self.environment.settings.motor_cruise_control_k_p
+        k_i = self.environment.settings.motor_cruise_control_k_i
+        k_d = self.environment.settings.motor_cruise_control_k_d
+        min_integral = (
+            self.environment.settings.motor_cruise_control_min_integral
+        )
+        max_integral = (
+            self.environment.settings.motor_cruise_control_max_integral
+        )
+        min_derivative = (
+            self.environment.settings.motor_cruise_control_min_derivative
+        )
+        max_derivative = (
+            self.environment.settings.motor_cruise_control_max_derivative
+        )
+        min_output = self.environment.settings.motor_cruise_control_min_output
+        max_output = self.environment.settings.motor_cruise_control_max_output
+        timeout = self.environment.settings.motor_cruise_control_timeout
+        integral = 0.0
         error = 0.0
-        prevError = 0.0
 
-        while (contexts.motor_cruise_control_on):
-            error = contexts.motor_cruise_target_speed - contexts.motor_speed
-            integrator +=  k_i * ((error + prevError) / 2) * timeStep
-            derivative = k_d * (error - prevError) / timeStep
-
-            integrator = np.clip(integrator, integralMin, integralMax)
-            derivative = np.clip(derivative, derivativeMin, derivativeMax)
-
-            output = integrator + derivative + k_p * error
-            output = np.clip(output, outMin, outMax)
-
+        while not self._stoppage.wait(timeout):
             with self.environment.contexts() as contexts:
-                if output >= 0:
-                    contexts.motor_acceleration_cruise_control_input = output/outMax
-                if output < 0:
-                    contexts.motor_regeneration_cruise_control_input = abs(output/outMin)
+                cruise_control_speed = contexts.motor_cruise_control_speed
+                motor_speed = contexts.motor_speed
 
-            prevError = error
+            if cruise_control_speed is None:
+                integral = 0.0
+                error = 0.0
+            else:
+                previous_error = error
+                error = cruise_control_speed - motor_speed
+                integral += k_i * (error + previous_error) / 2 * timeout
+                derivative = k_d * (error - previous_error) / timeout
 
-            time.sleep(timeStep)
+                integral = np.clip(integral, min_integral, max_integral)
+                derivative = np.clip(
+                    derivative,
+                    min_derivative,
+                    max_derivative,
+                )
+
+                output = integral + derivative + k_p * error
+                output = np.clip(output, min_output, max_output)
+
+                acceleration_input: float
+                regeneration_input: float
+
+                if output > 0:
+                    acceleration_input = output / max_output
+                    regeneration_input = 0
+                elif output < 0:
+                    acceleration_input = 0
+                    regeneration_input = abs(output / min_output)
+                else:
+                    acceleration_input = 0
+                    regeneration_input = 0
+
+                with self.environment.contexts() as contexts:
+                    contexts.motor_acceleration_cruise_control_input = (
+                        acceleration_input
+                    )
+                    contexts.motor_regeneration_cruise_control_input = (
+                        regeneration_input
+                    )

@@ -79,8 +79,7 @@ class Contexts:
     motor_variable_field_magnet_down_input: int
     motor_revolution_period: float
     motor_speed: float
-    motor_cruise_control_on: bool
-    motor_cruise_target_speed: float
+    motor_cruise_control_speed: float | None
 
     # Power
 
@@ -199,6 +198,17 @@ class Settings:
     motor_control_timeout: float
     motor_variable_field_magnet_timeout: float
     motor_revolution_timeout: float
+
+    motor_cruise_control_k_p: float
+    motor_cruise_control_k_i: float
+    motor_cruise_control_k_d: float
+    motor_cruise_control_min_integral: float
+    motor_cruise_control_max_integral: float
+    motor_cruise_control_min_derivative: float
+    motor_cruise_control_max_derivative: float
+    motor_cruise_control_min_output: float
+    motor_cruise_control_max_output: float
+    motor_cruise_control_timeout: float
 
     # Power
 
