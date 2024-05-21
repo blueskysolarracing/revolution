@@ -23,15 +23,18 @@ class Motor(Application):
             target=self._variable_field_magnet,
         )
         self._revolution_worker = Worker(target=self._revolution)
+        self._cruise_control_worker = Worker(target=self._cruise_control)
 
         self._control_worker.start()
         self._variable_field_magnet_worker.start()
         self._revolution_worker.start()
+        self._cruise_control_worker.start()
 
     def _teardown(self) -> None:
         self._control_worker.join()
         self._variable_field_magnet_worker.join()
         self._revolution_worker.join()
+        self._cruise_control_worker.join()
 
     def _control(self) -> None:
         while (
@@ -133,7 +136,7 @@ class Motor(Application):
                 contexts.motor_revolution_period = revolution_period
                 contexts.motor_speed = motor_speed
 
-    def cruise_control(self) -> None:
+    def _cruise_control(self) -> None:
         k_p = self.environment.settings.motor_cruise_control_k_p
         k_i = self.environment.settings.motor_cruise_control_k_i
         k_d = self.environment.settings.motor_cruise_control_k_d
