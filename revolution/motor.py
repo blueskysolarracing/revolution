@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from logging import getLogger
 from typing import ClassVar
 
+import numpy as np
+
 from revolution.application import Application
 from revolution.environment import Endpoint
 from revolution.worker import Worker
@@ -40,12 +42,18 @@ class Motor(Application):
             with self.environment.contexts() as contexts:
                 status_input = contexts.motor_status_input
                 acceleration_input = max(
-                    contexts.motor_acceleration_pedal_input,
-                    contexts.motor_acceleration_paddle_input,
+                    (
+                        contexts.motor_acceleration_pedal_input,
+                        contexts.motor_acceleration_paddle_input,
+                        contexts.motor_acceleration_cruise_control_input,
+                    ),
                 )
                 regeneration_input = max(
-                    contexts.motor_regeneration_pedal_input,
-                    contexts.motor_regeneration_paddle_input,
+                    (
+                        contexts.motor_regeneration_pedal_input,
+                        contexts.motor_regeneration_paddle_input,
+                        contexts.motor_regeneration_cruise_control_input,
+                    ),
                 )
                 direction_input = contexts.motor_direction_input
                 economical_mode_input = contexts.motor_economical_mode_input
@@ -124,3 +132,70 @@ class Motor(Application):
             with self.environment.contexts() as contexts:
                 contexts.motor_revolution_period = revolution_period
                 contexts.motor_speed = motor_speed
+
+    def cruise_control(self) -> None:
+        k_p = self.environment.settings.motor_cruise_control_k_p
+        k_i = self.environment.settings.motor_cruise_control_k_i
+        k_d = self.environment.settings.motor_cruise_control_k_d
+        min_integral = (
+            self.environment.settings.motor_cruise_control_min_integral
+        )
+        max_integral = (
+            self.environment.settings.motor_cruise_control_max_integral
+        )
+        min_derivative = (
+            self.environment.settings.motor_cruise_control_min_derivative
+        )
+        max_derivative = (
+            self.environment.settings.motor_cruise_control_max_derivative
+        )
+        min_output = self.environment.settings.motor_cruise_control_min_output
+        max_output = self.environment.settings.motor_cruise_control_max_output
+        timeout = self.environment.settings.motor_cruise_control_timeout
+        integral = 0.0
+        error = 0.0
+
+        while not self._stoppage.wait(timeout):
+            with self.environment.contexts() as contexts:
+                cruise_control_speed = contexts.motor_cruise_control_speed
+                motor_speed = contexts.motor_speed
+
+            if cruise_control_speed is None:
+                integral = 0.0
+                error = 0.0
+            else:
+                previous_error = error
+                error = cruise_control_speed - motor_speed
+                integral += k_i * (error + previous_error) / 2 * timeout
+                derivative = k_d * (error - previous_error) / timeout
+
+                integral = np.clip(integral, min_integral, max_integral)
+                derivative = np.clip(
+                    derivative,
+                    min_derivative,
+                    max_derivative,
+                )
+
+                output = integral + derivative + k_p * error
+                output = np.clip(output, min_output, max_output)
+
+                acceleration_input: float
+                regeneration_input: float
+
+                if output > 0:
+                    acceleration_input = output / max_output
+                    regeneration_input = 0
+                elif output < 0:
+                    acceleration_input = 0
+                    regeneration_input = abs(output / min_output)
+                else:
+                    acceleration_input = 0
+                    regeneration_input = 0
+
+                with self.environment.contexts() as contexts:
+                    contexts.motor_acceleration_cruise_control_input = (
+                        acceleration_input
+                    )
+                    contexts.motor_regeneration_cruise_control_input = (
+                        regeneration_input
+                    )
