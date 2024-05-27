@@ -165,6 +165,10 @@ class Settings:
     display_font_pathname: str
     """The display font pathname (.ttf file)."""
 
+    # Configure the font path
+    
+    display_font_pathname = 'revolution/fonts/Roboto-Regular.ttf'
+    
     # Driver
 
     driver_timeout: float

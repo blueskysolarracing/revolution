@@ -53,9 +53,56 @@ class Display(Application):
 
             # draw here!
 
+            # Display motor speed (km/h)
+            
+            motor_speed = (motor_speed * 3600) / 1000
+            periphery.set_size(22, 24)
+            if (motor_speed >= 100):
+                periphery.draw_word(str(motor_speed), 30, 26)
+            else:
+                periphery.draw_word(str(motor_speed), 52, 26)
+                
+            periphery.set_size(16, 20)
+            periphery.draw_word('km/h', 100, 36)
+            
+            # Display indicator status
+            
+            periphery.set_size(10, 12)
+            
+            if (left_indicator_light_status):
+                periphery.draw_word('<', 5, 5)
+            if (right_indicator_light_status):
+                periphery.draw_word('>', 18, 5)
+            if (hazard_lights_status):
+                periphery.set_size(6, 12)
+                periphery.draw_word('(', 31, 5)
+                periphery.set_size(10, 12)
+                periphery.draw_word('!!', 38, 5)
+                periphery.set_size(6, 12)
+                periphery.draw_word(')', 59, 5)
+                
+            # Display SOC
+            
+            formatted_soc = f'{battery_soc * 100:.1f}%'
+            periphery.set_size(10, 12)
+            periphery.draw_word(formatted_soc, 82, 5)
+            
+            # Display battery warning
+            
+            periphery.set_size(6, 6)
+            if (battery_warning_status):
+                periphery.draw_word('[-+]!', 5, 56)
+                
+            # Display motor target speed
+            
+            periphery.set_size(8, 10)
+            periphery.draw_word('Target: ', 30, 52)
+            motor_target_speed = (motor_target_speed * 3600) / 1000
+            periphery.draw_word(str(motor_target_speed), 30, 52)
+            
             # Consult: https://github.com/blueskysolarracing/iclib
             # motor speed is in m/s. convert to km/h
             # f'{battery_soc * 100:.1f}%'
-            periphery.draw_word(battery_soc, 2, 2)
+            #periphery.draw_word(battery_soc, 2, 2)
 
             periphery.display()
