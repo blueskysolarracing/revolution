@@ -6,7 +6,7 @@ from periphery import SPI, GPIO
 from threading import Lock
 import time
 import math
-
+from revolution.worker import Worker
 
 ###### battery_config.h & bms_module.h  constants ######
 
@@ -20,7 +20,7 @@ HV_BATT_OT_THRESHOLD = 60.0 	#Should be set to 60.0C
 HV_BATT_UT_THRESHOLD = 0.0   #Should be set to 0.0C
 
 BMS_MODULE_NUM_STATE_OF_CHARGES = BMS_MODULE_NUM_VOLTAGES = NUM_CELLS_PER_MODULE = 5
-NUM_BMS_MODULES	= 6 #Number of BMS modules to read from
+BMS_NUM_BMS_MODULES = NUM_BMS_MODULES	= 6 #Number of BMS modules to read from
 NUM_BATT_CELLS = NUM_BMS_MODULES*NUM_CELLS_PER_MODULE #Number of series parallel groups in battery pack
 BMS_MODULE_NUM_TEMPERATURES = BMS_MODULE_NUM_TEMPERATURE_SENSOR = NUM_TEMP_SENSORS_PER_MODULE = 3 
 NUM_BATT_TEMP_SENSORS =	NUM_TEMP_SENSORS_PER_MODULE*NUM_BMS_MODULES #Number of temperature sensors in battery pack	
@@ -734,6 +734,80 @@ class BmsModule:
         with self.lock:
             for i in range(BMS_MODULE_NUM_STATE_OF_CHARGES):
                 self._state_of_charges[i] = local_soc_list[i]   
+
+
+class BMS():
+    
+    def __init__(self, spi_handle : SPI, spi_cs_ports : list[GPIO]):
+
+        self.init_flag = 0
+        self._bms_modules : list[BmsModule] = []
+
+        for i in range(BMS_NUM_BMS_MODULES):
+            self._bms_modules.append(BmsModule(i, spi_handle, spi_cs_ports[i]))    
+        
+        self._run_thread_handle = None
+
+        if self._run_thread_handle == None:
+            self._run_thread_handle = Worker(target=self.run_thread)
+            self._run_thread_handle.start()
+
+
+    def get_temperature(self, temperatures : list[float], bms_module_id : int, mode : GetMode) -> bool:
+        
+        if bms_module_id < BMS_NUM_BMS_MODULES:
+            self._bms_modules[bms_module_id].get_temperature(temperatures, mode)
+            return True
+        else:
+            return False
+
+
+    def get_voltage(self, voltages : list[float], bms_module_id : int, mode : GetMode) -> bool:
+        
+        if bms_module_id < BMS_NUM_BMS_MODULES:
+            self._bms_modules[bms_module_id].get_voltage(voltages, mode)
+            return True
+        else:
+            return False
+
+    def get_state_of_charge(self, state_of_charges : list[float], bms_module_id : int) -> bool:
+        
+        if bms_module_id < BMS_NUM_BMS_MODULES:
+            self._bms_modules[bms_module_id].get_state_of_charge(state_of_charges)
+            return True
+        else:
+            return False
+
+    def set_current(self, current : float) -> None:
+        
+        for bms_module in self._bms_modules:
+
+            if bms_module.init_flag:
+                bms_module.current = current
+
+
+    def measure_with_all_bms_modules(self):
+        
+        for bms_module in self._bms_modules:
+
+            bms_module.measure_voltage()
+            bms_module.measure_temperature()
+            bms_module.compute_soc()
+
+    def run_thread(self):
+        for i in range(BMS_NUM_BMS_MODULES):
+            while not self._bms_modules[i].init_flag:
+                pass
+
+        self.init_flag = 1
+        i = 0
+        while True:
+            self.measure_with_all_bms_modules()
+            i += 1
+        
+        
+
+
 
 # This is supposed to be a substitute for xTaskTickCount, but no clue if this is correct or if it is even necessary
 def get_tick_count():
