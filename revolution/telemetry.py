@@ -34,10 +34,10 @@ class Telemetry(Application):
             with self.environment.contexts() as contexts:
                 # TODO: extract contextual information
 
-                motor_speed = contexts.motor_speed
+                motor_speed = contexts.motor_speed  # noqa: F841
                 ...
 
-            data = {
+            data = {  # type: ignore[var-annotated]
                 # TODO: fill data
             }
             data_token = dumps(data).encode()

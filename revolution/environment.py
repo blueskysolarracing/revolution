@@ -165,6 +165,8 @@ class Settings:
 
     display_frame_rate: float
     """The display frame rate (in frames/second)."""
+    display_font_pathname: str
+    """The display font pathname (.ttf file)."""
 
     # Driver
 
