@@ -1,30 +1,29 @@
 from enum import Enum
-import queue
+from collections import deque
+from threading import Lock
 from dataclasses import dataclass, field
 import numpy as np
+from statistics import mean
 from periphery import SPI, GPIO
 from threading import Lock
 import time
 import math
 from revolution.worker import Worker
 
-###### battery_config.h & bms_module.h  constants ######
-
 BMS_DISCONNECTED_VOLTAGE_THRESHOLD = 6.0
 BMS_DISCONNECTED_TEMPERATURE_THRESHOLD = -100.0
 
-HV_BATT_OC_THRESHOLD = 60.0 	#Should be set to 60.0A
-HV_BATT_OV_THRESHOLD = 4.25  #Should be set to 4.25V
-HV_BATT_UV_THRESHOLD = 2.50	#Should be set to 2.50V
-HV_BATT_OT_THRESHOLD = 60.0 	#Should be set to 60.0C
-HV_BATT_UT_THRESHOLD = 0.0   #Should be set to 0.0C
+HV_BATT_OC_THRESHOLD = 60.0
+HV_BATT_OV_THRESHOLD = 4.25
+HV_BATT_UV_THRESHOLD = 2.50
+HV_BATT_OT_THRESHOLD = 60.0
+HV_BATT_UT_THRESHOLD = 0.0
 
 BMS_MODULE_NUM_STATE_OF_CHARGES = BMS_MODULE_NUM_VOLTAGES = NUM_CELLS_PER_MODULE = 5
-BMS_NUM_BMS_MODULES = NUM_BMS_MODULES	= 6 #Number of BMS modules to read from
-NUM_BATT_CELLS = NUM_BMS_MODULES*NUM_CELLS_PER_MODULE #Number of series parallel groups in battery pack
+BMS_NUM_BMS_MODULES = NUM_BMS_MODULES	= 6
+NUM_BATT_CELLS = NUM_BMS_MODULES*NUM_CELLS_PER_MODULE
 BMS_MODULE_NUM_TEMPERATURES = BMS_MODULE_NUM_TEMPERATURE_SENSOR = NUM_TEMP_SENSORS_PER_MODULE = 3 
-NUM_BATT_TEMP_SENSORS =	NUM_TEMP_SENSORS_PER_MODULE*NUM_BMS_MODULES #Number of temperature sensors in battery pack	
-
+NUM_BATT_TEMP_SENSORS =	NUM_TEMP_SENSORS_PER_MODULE * NUM_BMS_MODULES
 
 BATTERY_CELL_VOLTAGES_INITIAL_VALUE = -1000.0
 BATTERY_CELL_VOLTAGES_FAKE_VALUE = 0.0
@@ -38,225 +37,33 @@ MOTOR_OT_WARNING_THRESHOLD =  100.0 # 100.0C
 HV_BATT_OV_DEBOUNCE_TIME  = 3000 # 3 seconds
 HV_BATT_UV_DEBOUNCE_TIME =  3000 # 3 seconds
 
-FLOAT_QUEUE_NUM_VALUES = 20
-
-# From batteryEKF.h
-STATE_NUM = 3
-INPUT_NUM = 2
-OUTPUT_NUM = 1
-
-R_D = R_CT = 0.00294294 # in Ohm
-C_D = C_CT = 2072.89471 # in Farad
-
-Q_CAP = 173880.0 # in Ampere Second  49 Ampere hour = 49*3600 = 176400 Ampere Second
-COULOMB_ETA = 1.0
-
-
-
-###### end of battery_config.h & bms_module.h constants ######
-
-###### classes translated from bms_module.h, cQueue.h, batteryEKF.h ######
-
-class GetMode(Enum):
-    GET_MOST_RECENT = 1
-    GET_PAST_AVERAGE = 2
-    GET_FILTERED_RESULT = 3
-
-class GPIO_PinState(Enum): 
-    GPIO_PIN_RESET = 0
-    GPIO_PIN_SET = 1
-
-# Custom implementation of Queue for thread-safe operations and overwriting
-class CustomQueue(queue.Queue):
-    def __init__(self, maxsize=0, overwrite=False) -> None:
-        super().__init__(maxsize)
-        self.overwrite = overwrite
-
-    def put(self, item, block=True, timeout=None) -> None:
-        with self.not_full:
-            if self.overwrite and self.full():
-                with self.mutex:
-                    self._get() 
-            super().put(item, block, timeout)
-
-    def peek(self):
-        if self.empty():
-            raise queue.Empty
-        with self.mutex:
-            
-            return self.queue[0]
-
-    def drop(self) -> None:
-        if self.empty():
-            raise queue.Empty
-        with self.mutex:
-            self.queue.popleft()
-
-    def peek_index(self, index : int):
-        with self.mutex:
-            if index >= self.qsize():
-                raise IndexError("Index out of range")
-            return self.queue[index]
-
-    def get_size(self) -> int:
-        with self.mutex:
-            return self.qsize()
-        
-    def get_avg(self) -> float:
-        with self.mutex:
-            if self.empty():
-                raise queue.Empty
-            return sum(self.queue) / self.qsize()
-            
-class FloatQueue(CustomQueue):
-    def __init__(self) -> None:
-        super().__init__(FLOAT_QUEUE_NUM_VALUES, True)
-
-
-
-
-# from batteryEKF.h
-
-class EKFModelMatrix:
-    # -------------- CONSTANTS AND EKF ALGO VARIABLES --------------
-    dim1: np.ndarray = np.zeros(2, dtype=np.uint8)
-    dim2: np.ndarray = np.zeros(2, dtype=np.uint8)
-    dim3: np.ndarray = np.zeros(2, dtype=np.uint8)
-    dim4: np.ndarray = np.zeros(2, dtype=np.uint8)
-    dim5: np.ndarray = np.zeros(2, dtype=np.uint8)
-    dim6: np.ndarray = np.zeros(2, dtype=np.uint8)
-    dim7: np.ndarray = np.zeros(2, dtype=np.uint8)
-
-    # a priori state covariance matrix - k+1|k (prediction)
-    P_k: np.ndarray = np.zeros(STATE_NUM * STATE_NUM, dtype=np.float32)
-    # noise in state measurement (sampled) - expected value of the distribution
-    Q: np.ndarray = np.zeros(STATE_NUM * STATE_NUM, dtype=np.float32)
-    # noise in output sensor (sampled) - expected value of the distribution
-    R: np.ndarray = np.zeros(OUTPUT_NUM, dtype=np.float32)
-    # a priori measurement covariance
-    S: np.ndarray = np.zeros(OUTPUT_NUM, dtype=np.float32)
-    # Kalman Weight
-    W: np.ndarray = np.zeros(STATE_NUM * OUTPUT_NUM, dtype=np.float32)
-
-    covList: np.ndarray = np.zeros(STATE_NUM, dtype=np.float32)
-    A: np.ndarray = np.zeros(STATE_NUM * STATE_NUM, dtype=np.float32)
-    B: np.ndarray = np.zeros(STATE_NUM * INPUT_NUM, dtype=np.float32)
-    C: np.ndarray = np.zeros(STATE_NUM * OUTPUT_NUM, dtype=np.float32)
-    D: np.ndarray = np.zeros(INPUT_NUM, dtype=np.float32)
-
-    U: np.ndarray = np.zeros(INPUT_NUM, dtype=np.float32)
-    V_Measured: np.ndarray = np.zeros(1, dtype=np.float32)
-    V_OCV: np.ndarray = np.zeros(1, dtype=np.float32)
-
-    # ------------- HELPER VARIABLES TO COMPUTE INVERSES -------------
-    A_T: np.ndarray = np.zeros(STATE_NUM * STATE_NUM, dtype=np.float32)
-    A_P: np.ndarray = np.zeros(STATE_NUM * STATE_NUM, dtype=np.float32)
-    A_P_AT: np.ndarray = np.zeros(STATE_NUM * STATE_NUM, dtype=np.float32)
-    P_k1: np.ndarray = np.zeros(STATE_NUM * STATE_NUM, dtype=np.float32)
-
-    C_T: np.ndarray = np.zeros(STATE_NUM * OUTPUT_NUM, dtype=np.float32)
-    C_P: np.ndarray = np.zeros(STATE_NUM * OUTPUT_NUM, dtype=np.float32)
-    C_P_CT: np.ndarray = np.zeros(OUTPUT_NUM * OUTPUT_NUM, dtype=np.float32)
-
-    SInv: np.ndarray = np.zeros(OUTPUT_NUM * OUTPUT_NUM, dtype=np.float32)
-
-    P_CT: np.ndarray = np.zeros(STATE_NUM * OUTPUT_NUM, dtype=np.float32)
-
-    W_T: np.ndarray = np.zeros(OUTPUT_NUM * STATE_NUM, dtype=np.float32)
-    W_S: np.ndarray = np.zeros(STATE_NUM * OUTPUT_NUM, dtype=np.float32)
-    W_S_WT: np.ndarray = np.zeros(STATE_NUM * STATE_NUM, dtype=np.float32)
-
-    A_X: np.ndarray = np.zeros(STATE_NUM, dtype=np.float32)
-    B_U: np.ndarray = np.zeros(STATE_NUM * INPUT_NUM, dtype=np.float32)
-    CX_DU: np.ndarray = np.zeros(OUTPUT_NUM, dtype=np.float32)
-    X_k1: np.ndarray = np.zeros(STATE_NUM, dtype=np.float32)
-    Z_k1: np.ndarray = np.zeros(OUTPUT_NUM, dtype=np.float32)
-
-    C_X: np.ndarray = np.zeros(OUTPUT_NUM, dtype=np.float32)
-    D_U: np.ndarray = np.zeros(OUTPUT_NUM, dtype=np.float32)
-
-    Z_err: np.ndarray = np.zeros(OUTPUT_NUM, dtype=np.float32)
-    W_Zerr: np.ndarray = np.zeros(STATE_NUM, dtype=np.float32)
-
-class EKF_Model_14p:
-    covP : list[float] = field(default_factory = lambda: [0.0] * (STATE_NUM * STATE_NUM))
-    matrix : EKFModelMatrix
-
-    # Incomplete constructor. This replaces initEKFModel and initBatteryAlgo
-    def __init__(self, initial_v : float, initial_deltaT : float) -> None:
-
-        self.stateX : list[float] = [0.0] * STATE_NUM
-        self.covP : list[float] = [0.0] * (STATE_NUM * STATE_NUM)
-        self.matrix = EKFModelMatrix()
-        # pass
-
-
-
-    def run_EKF(self, dt : float, currentIn : float, measuredV : float) -> None:
-        pass
-
-    def compute_A_B_dt(self, dt : float) -> None:
-
-        self.matrix.A[0] = 1.0
-        self.matrix.A[4] = np.exp(-dt/(R_CT*C_CT))
-        self.matrix.A[8] = np.exp(-dt/(R_D*C_D))
-
-        self.matrix.B[0] = ((-COULOMB_ETA) * dt / Q_CAP) 
-        self.matrix.B[2] = 1 - np.exp(-dt/(R_CT*C_CT))
-        self.matrix.B[3] = 1 - np.exp(-dt/(R_D*C_D))    
-
-
-        pass    
+BATTERY = Battery(...)
 
 
 @dataclass
-class BmsModule:  
-
-    
-    _bms_module_id : int
-    _spi_handle : SPI
-    _spi_cs_port : GPIO # Should be initialized with pin
-    # _spi_cs_pin : int
-
-    init_flag : int = 0 # not sure if this is necessary
-    current : float = 0.0
-
-    _voltages : list[float] = field(default_factory= lambda: [0.0] * BMS_MODULE_NUM_VOLTAGES)   
-    past_voltages : list[FloatQueue] = field(default_factory= lambda: [FloatQueue() for i in range(BMS_MODULE_NUM_VOLTAGES)] )  
-
-    _temperatures : list[float] = field(default_factory= lambda: [0.0] * BMS_MODULE_NUM_TEMPERATURES)
-    past_temperatures : list[FloatQueue] = field(default_factory= lambda: [FloatQueue() for i in range(BMS_MODULE_NUM_TEMPERATURES)] )
-
-    _state_of_charges  : list[float] = field(default_factory= lambda: [0.0] * BMS_MODULE_NUM_STATE_OF_CHARGES)
-    _EKF_models : list[EKF_Model_14p] = []
-    _tick_last_soc_compute : list[int] = field(default_factory= lambda: [0] * BMS_MODULE_NUM_STATE_OF_CHARGES)
-    
+class BMSModule:
+    index: int
+    current: float = field(default=0, init=False)
+    voltages: list[deque] = field(default_factory=list, init=False)
+    temperatures: list[deque] = field(default_factory=list, init=False)
+    soc_estimators: list[EKFSOCEstimator] = field(fefault_factory=list, init=False)
+    lock: Lock = field(default_factory=Lock, init=False)
 
     def __post_init__(self) -> None:   
+        for i in range(VOLTAGE_SENSOR_COUNT):
+            self.voltages[i] = deque(maxlen=VOLTAGE_FILTER_SIZE)
 
-        #  for simulating suspension of tasks
-        self.lock = Lock()
+        for i in range(TEMPERAURE_SENSOR_COUNT):
+            self.temperatures[i] = deque(maxlen=VOLTAGE_FILTER_SIZE)
 
-        self._spi_cs_port.write(GPIO_PinState.GPIO_PIN_SET)
-        
-        for i in range(BMS_MODULE_NUM_VOLTAGES):
-            self.past_voltages[i] = FloatQueue()
-            self._state_of_charges[i] = BATTERY_SOC_INITIAL_VALUE
-            self._voltages[i] = BATTERY_CELL_VOLTAGES_FAKE_VALUE
-        
-        for i in range(BMS_MODULE_NUM_TEMPERATURES):
-            self.past_temperatures[i] = FloatQueue()
-            self._temperatures[i] = BATTERY_TEMPERATURES_INITIAL_VALUE
+        for i in range(VOLTAGE_FILTER_SIZE):
+            self.measure_voltages()
+            self.measure_temperatures()
 
-        # we want to measure many times to ensure we initialize SOC with a filtered voltage
-        for i in range(10):
-            self.measure_voltage()
-            self.measure_temperature()
-
-        # SOC Algorithm
-        for i in range(BMS_MODULE_NUM_STATE_OF_CHARGES):
-            self._tick_last_soc_compute[i] = get_tick_count()
-            self._EKF_models.append(EKF_Model_14p(self.past_voltages[i].get_avg(), self._tick_last_soc_compute))  
+        for i in range(VOLTAGE_SENSOR_COUNT):
+            self.soc_estimators.append(
+                EKFSOCEstimator(BATTERY, mean(self.voltages[i])),
+            )
 
         self.compute_soc()
 
@@ -448,34 +255,20 @@ class BmsModule:
 
 
     def LTC6810_transmit_isospi_mode(self, data : list[int]) -> None:
-
-        self.LTC6810_isospi_wakeup()
-        time.sleep(0.001)
-        self._spi_cs_port.write(GPIO_PinState.GPIO_PIN_RESET)
-        time.sleep(0.001)
         self._spi_handle.transfer(data)
-        self._spi_cs_port.write(GPIO_PinState.GPIO_PIN_SET)
 
-        pass
+    def LTC6810_transmit_receive_isospi_mode(
+            self,
+            transmitted_data_bytes: list[int],
+            received_data_byte_count,
+    ) -> None:
+        received_data_bytes = self._spi_handle.transfer(
+            transmitted_data_bytes + [0] * received_data_byte_count,
+        )
 
-    def LTC6810_transmit_receive_isospi_mode(self, data_to_send : list[int], data_to_receive : list[int]) -> None:
-        self.LTC6810_isospi_wakeup()
-        time.sleep(0.001)
-        self._spi_cs_port.write(GPIO_PinState.GPIO_PIN_RESET)
-        time.sleep(0.001)
-        self._spi_handle.transfer(data_to_send)
-        time.sleep(0.001)
-        received_datalist = self._spi_handle.transfer([0x00] * len(data_to_receive))
-        for i, data in enumerate(received_datalist):
-            data_to_receive[i] = data   
-        time.sleep(0.001)
-        self._spi_cs_port.write(GPIO_PinState.GPIO_PIN_SET)
-
-        
-
+        return received_data_bytes[len(data_to_send):]
 
     def LTC6810_init(self, GPIO4 : int, GPIO3 : int, GPIO2 : int, DCC5 : int, DCC4 : int, DCC3 : int, DCC2 : int, DCC1 : int) -> None:
-
         """This function initialize the LTC6810 ADC chip, shall be called at the start of the program
         
         To modify the initialization setting, please refer to the Datasheet and the chart below:
@@ -619,8 +412,6 @@ class BmsModule:
         self.LTC6810_command_generate_address_mode(v_message_in_binary, data_to_send, self._bms_module_id)
         self.LTC6810_transmit_receive_isospi_mode(data_to_send, data_to_receive)
 
-        time.sleep(ticks_to_s(10))
-
         v_message_in_binary = 0b100
         self.LTC6810_command_generate_address_mode(v_message_in_binary, data_to_send, self._bms_module_id)
         self.LTC6810_transmit_receive_isospi_mode(data_to_send, data_to_receive)
@@ -647,7 +438,7 @@ class BmsModule:
                     temperatures[i] = self._temperatures[i]
                 elif mode == GetMode.GET_PAST_AVERAGE:
                     if check_temperature_is_valid(self._temperatures[i]): 
-                        temperatures[i] = self.past_temperatures[i].get_avg()
+                        temperatures[i] = mean(self.past_temperatures[i])
                     else:
                         temperatures[i] = BATTERY_TEMPERATURES_INITIAL_VALUE
                 elif mode == GetMode.GET_FILTERED_RESULT:   
@@ -665,7 +456,7 @@ class BmsModule:
                     voltages[i] = self._voltages[i]
                 elif mode == GetMode.GET_PAST_AVERAGE:
                     if check_voltage_is_valid(self._voltages[i])   :
-                        voltages[i] = self.past_voltages[i].get_avg()
+                        voltages[i] = mean(self.past_voltages[i])
                     else:
                         voltages[i] = BATTERY_CELL_VOLTAGES_INITIAL_VALUE
                 elif mode == GetMode.GET_FILTERED_RESULT:
@@ -721,9 +512,10 @@ class BmsModule:
         for i in range(BMS_MODULE_NUM_STATE_OF_CHARGES):
             if check_voltage_is_valid(self._voltages[i]):
                 tick_now = get_tick_count()
+                # TODO
                 self._EKF_models[i].run_EKF((tick_now - self._tick_last_soc_compute[i]) / pdMS_TO_TICKS(1) / 1000.0, 
                                             self.current,
-                                            self.past_voltages[i].get_avg()) # changes units to seconds
+                                            mean(self.past_voltages[i])) # changes units to seconds
                 
                 local_soc_list[i] = self._EKF_models[i].stateX[0]
                 self._tick_last_soc_compute[i] = tick_now
@@ -804,19 +596,7 @@ class BMS():
         while True:
             self.measure_with_all_bms_modules()
             i += 1
-        
-        
 
-
-
-# This is supposed to be a substitute for xTaskTickCount, but no clue if this is correct or if it is even necessary
-def get_tick_count():
-    return int(time.time() * 1000)
-
-def ticks_to_s(ticks : int) -> float:
-    configTICK_RATE_HZ = 1000
-
-    return ticks / configTICK_RATE_HZ
 
 def pdMS_TO_TICKS(xTimeInMs : int) -> int:
 
@@ -834,7 +614,3 @@ def check_voltage_is_valid(voltage : float) -> bool:
     return (voltage < BMS_DISCONNECTED_VOLTAGE_THRESHOLD 
             and voltage > 1.6 
             and voltage != BATTERY_CELL_VOLTAGES_FAKE_VALUE)
-
-
-
-
