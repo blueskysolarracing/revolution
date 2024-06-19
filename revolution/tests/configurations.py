@@ -1,6 +1,10 @@
 from math import inf
 from unittest.mock import MagicMock
 
+from iclib.adc78h89 import ADC78H89, InputChannel
+from iclib.mcp23s17 import MCP23S17, PortRegisterBit as PRB
+from iclib.nhd_c12864a1z_fsw_fbw_htt import NHDC12864A1ZFSWFBWHTT
+
 from revolution import (
     Application,
     Contexts,
@@ -15,10 +19,6 @@ from revolution import (
     Settings,
     Telemetry,
 )
-
-from iclib.adc78h89 import ADC78H89, InputChannel
-from iclib.mcp23s17 import MCP23S17, PortRegisterBit as PRB
-from iclib.nhd_c12864a1z_fsw_fbw_htt import NHDC12864A1ZFSWFBWHTT
 
 APPLICATION_TYPES: tuple[type[Application], ...] = (
     Debugger,
@@ -62,6 +62,8 @@ CONTEXTS: Contexts = Contexts(
     motor_regeneration_pedal_input=0,
     motor_acceleration_paddle_input=0,
     motor_regeneration_paddle_input=0,
+    motor_acceleration_cruise_control_input=0,
+    motor_regeneration_cruise_control_input=0,
     motor_status_input=False,
     motor_direction_input=Direction.FORWARD,
     motor_economical_mode_input=True,
@@ -69,6 +71,7 @@ CONTEXTS: Contexts = Contexts(
     motor_variable_field_magnet_down_input=0,
     motor_revolution_period=inf,
     motor_speed=0,
+    motor_cruise_control_speed=0,
 
     # Power
 
@@ -112,9 +115,6 @@ PERIPHERIES: Peripheries = Peripheries(
     driver_miscellaneous_thermistor_input_channel=InputChannel.AIN1,
 
     driver_mcp23s17=MCP23S17(
-        MagicMock(),
-        MagicMock(),
-        MagicMock(),
         MagicMock(),
         MagicMock(),
         MagicMock(),
@@ -181,6 +181,7 @@ SETTINGS: Settings = Settings(
     # Display
 
     display_frame_rate=10,
+    display_font_pathname='fonts/minecraft.ttf',
 
     # Driver
 
@@ -216,6 +217,17 @@ SETTINGS: Settings = Settings(
     motor_control_timeout=0.01,
     motor_variable_field_magnet_timeout=0.1,
     motor_revolution_timeout=0.5,
+
+    motor_cruise_control_k_p=250,
+    motor_cruise_control_k_i=15000,
+    motor_cruise_control_k_d=0,
+    motor_cruise_control_min_integral=-200,
+    motor_cruise_control_max_integral=200,
+    motor_cruise_control_min_derivative=-100,
+    motor_cruise_control_max_derivative=100,
+    motor_cruise_control_min_output=-255,
+    motor_cruise_control_max_output=255,
+    motor_cruise_control_timeout=0.02,
 
     # Power
 

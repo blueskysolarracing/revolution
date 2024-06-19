@@ -8,7 +8,7 @@ configurations_module = getenv('REVOLUTION_CONFIGURATIONS_MODULE')
 if configurations_module is None:
     raise ValueError(
         'configurations module not set as an environment variable '
-        '(ex: \'REVOLUTION_SETTINGS_MODULE=configurations.deployment\')'
+        '(ex: \'REVOLUTION_CONFIGURATIONS_MODULE=configurations\')'
     )
 
 configurations = import_module(configurations_module)

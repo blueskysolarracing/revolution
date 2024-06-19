@@ -1,5 +1,6 @@
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from enum import auto, Enum
+from json import dumps
 from logging import getLogger
 from queue import Queue
 from typing import Any
@@ -70,6 +71,8 @@ class Contexts:
     motor_regeneration_pedal_input: float
     motor_acceleration_paddle_input: float
     motor_regeneration_paddle_input: float
+    motor_acceleration_cruise_control_input: float
+    motor_regeneration_cruise_control_input: float
     motor_status_input: bool
     motor_direction_input: Direction
     motor_economical_mode_input: bool
@@ -77,6 +80,7 @@ class Contexts:
     motor_variable_field_magnet_down_input: int
     motor_revolution_period: float
     motor_speed: float
+    motor_cruise_control_speed: float | None
 
     # Power
 
@@ -84,6 +88,9 @@ class Contexts:
     power_battery_relay_status_input: bool
 
     # Telemetry
+
+    def serialize(self) -> str:
+        return dumps(asdict(self))
 
 
 @dataclass(frozen=True)
@@ -162,6 +169,8 @@ class Settings:
 
     display_frame_rate: float
     """The display frame rate (in frames/second)."""
+    display_font_pathname: str
+    """The display font pathname (.ttf file)."""
 
     # Driver
 
@@ -195,6 +204,17 @@ class Settings:
     motor_control_timeout: float
     motor_variable_field_magnet_timeout: float
     motor_revolution_timeout: float
+
+    motor_cruise_control_k_p: float
+    motor_cruise_control_k_i: float
+    motor_cruise_control_k_d: float
+    motor_cruise_control_min_integral: float
+    motor_cruise_control_max_integral: float
+    motor_cruise_control_min_derivative: float
+    motor_cruise_control_max_derivative: float
+    motor_cruise_control_min_output: float
+    motor_cruise_control_max_output: float
+    motor_cruise_control_timeout: float
 
     # Power
 
