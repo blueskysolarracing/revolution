@@ -1,8 +1,8 @@
 battlib==0.0.0.dev1
 coverage~=7.5.1
-door==0.0.3
+door==0.0.4
 flake8~=7.0.0
-iclib==0.0.0.dev0
+iclib==0.0.0.dev1
 interrogate~=1.7.0
 mypy~=1.10.0
 python-periphery~=2.4.1

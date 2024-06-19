@@ -1,5 +1,6 @@
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from enum import auto, Enum
+from json import dumps
 from logging import getLogger
 from queue import Queue
 from typing import Any
@@ -87,6 +88,9 @@ class Contexts:
     power_battery_relay_status_input: bool
 
     # Telemetry
+
+    def serialize(self) -> str:
+        return dumps(asdict(self))
 
 
 @dataclass(frozen=True)

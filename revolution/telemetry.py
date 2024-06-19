@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from hashlib import md5
-from json import dumps
 from logging import getLogger
 from typing import ClassVar
 
@@ -32,15 +31,10 @@ class Telemetry(Application):
                 )
         ):
             with self.environment.contexts() as contexts:
-                # TODO: extract contextual information
+                data = contexts._resource.serialize()
 
-                motor_speed = contexts.motor_speed  # noqa: F841
-                ...
-
-            data = {  # type: ignore[var-annotated]
-                # TODO: fill data
-            }
-            data_token = dumps(data).encode()
+            print(data)
+            data_token = data.encode()
             checksum_token = md5(data_token).digest()
             tokens = (
                 self.environment.settings.telemetry_begin_token,

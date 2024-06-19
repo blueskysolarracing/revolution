@@ -1,6 +1,10 @@
 from math import inf
 from unittest.mock import MagicMock
 
+from iclib.adc78h89 import ADC78H89, InputChannel
+from iclib.mcp23s17 import MCP23S17, PortRegisterBit as PRB
+from iclib.nhd_c12864a1z_fsw_fbw_htt import NHDC12864A1ZFSWFBWHTT
+
 from revolution import (
     Application,
     Contexts,
@@ -15,10 +19,6 @@ from revolution import (
     Settings,
     Telemetry,
 )
-
-from iclib.adc78h89 import ADC78H89, InputChannel
-from iclib.mcp23s17 import MCP23S17, PortRegisterBit as PRB
-from iclib.nhd_c12864a1z_fsw_fbw_htt import NHDC12864A1ZFSWFBWHTT
 
 APPLICATION_TYPES: tuple[type[Application], ...] = (
     Debugger,
@@ -115,9 +115,6 @@ PERIPHERIES: Peripheries = Peripheries(
     driver_miscellaneous_thermistor_input_channel=InputChannel.AIN1,
 
     driver_mcp23s17=MCP23S17(
-        MagicMock(),
-        MagicMock(),
-        MagicMock(),
         MagicMock(),
         MagicMock(),
         MagicMock(),
