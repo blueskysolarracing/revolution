@@ -1,6 +1,10 @@
 from dataclasses import dataclass
+from enum import IntEnum
 from logging import getLogger
 from typing import ClassVar
+from math import inf
+from time import sleep, time
+from unittest.mock import MagicMock
 
 import numpy as np
 
@@ -8,7 +12,14 @@ from revolution.application import Application
 from revolution.environment import Endpoint
 from revolution.worker import Worker
 
+from periphery import GPIO, SPI
+
 _logger = getLogger(__name__)
+
+
+class Direction(IntEnum):
+    FORWARD = 0
+    BACKWARD = 1
 
 
 @dataclass
@@ -29,6 +40,19 @@ class Motor(Application):
         self._variable_field_magnet_worker.start()
         self._revolution_worker.start()
         self._cruise_control_worker.start()
+        
+        # Initialize MotorMC2 instance
+        self.motor_mc2 = MotorMC2(
+            MagicMock(),  # Replace with SPI instance
+            MagicMock(),  # Replace with GPIO for accel_potentiometer_cs
+            MagicMock(),  # Replace with GPIO for regen_potentiometer_cs
+            MagicMock(),  # Replace with GPIO for main_switch_gpio
+            MagicMock(),  # Replace with GPIO for forward_or_reverse_switch_gpio
+            MagicMock(),  # Replace with GPIO for power_or_economical_switch_gpio
+            MagicMock(),  # Replace with GPIO for variable_field_magnet_up_switch_gpio
+            MagicMock(),  # Replace with GPIO for variable_field_magnet_down_switch_gpio
+            MagicMock(),  # Replace with GPIO for revolution_gpio
+        )
 
     def _teardown(self) -> None:
         self._control_worker.join()
@@ -202,3 +226,97 @@ class Motor(Application):
                     contexts.motor_regeneration_cruise_control_input = (
                         regeneration_input
                     )
+
+
+@dataclass
+class MotorMC2:
+    @staticmethod
+    def __position_potentiometer(
+            gpio,
+            spi,
+            position: float,
+            eeprom: bool,
+    ) -> None:
+        if not 0 <= position <= 1:
+            raise ValueError('position not between 0 and 1')
+
+        raw_data = round(256 * position)
+
+        if eeprom:
+            raw_data |= 1 << 13
+
+        data = [raw_data >> 8, raw_data & ((1 << 8) - 1)]
+
+        gpio.write(False)
+        spi.transfer(data)
+        gpio.write(True)
+
+    main_switch_timeout: ClassVar[float] = 5
+    variable_field_magnet_switch_timeout: ClassVar[float] = 0.2
+    revolution_timeout: ClassVar[float] = 5
+    potentiometer_spi: SPI
+    accel_potentiometer_cs: GPIO
+    regen_potentiometer_cs: GPIO
+    main_switch_gpio: GPIO
+    forward_or_reverse_switch_gpio: GPIO
+    power_or_economical_switch_gpio: GPIO
+    variable_field_magnet_up_switch_gpio: GPIO
+    variable_field_magnet_down_switch_gpio: GPIO
+    revolution_gpio: GPIO
+
+    def __post_init__(self) -> None:
+        self.accelerate(0, True)
+        self.accelerate(0)
+        self.regenerate(0, True)
+        self.regenerate(0)
+        self.main_switch_gpio.write(False)
+        self.forward_or_reverse_switch_gpio.write(False)
+        self.power_or_economical_switch_gpio.write(False)
+        self.variable_field_magnet_up_switch_gpio.write(False)
+        self.variable_field_magnet_down_switch_gpio.write(False)
+
+    @property
+    def revolution_period(self) -> float:
+        if not self.revolution_gpio.poll(self.revolution_timeout):
+            return inf
+
+        timestamp = time()
+
+        if not self.revolution_gpio.poll(self.revolution_timeout):
+            return inf
+
+        return 2 * (time() - timestamp)
+
+    @property
+    def status(self) -> bool:
+        return self.main_switch_gpio.read()
+
+    def accelerate(self, acceleration: float, eeprom: bool = False) -> None:
+        self.__position_potentiometer(
+            self.accel_potentiometer_cs,
+            self.potentiometer_spi,
+            acceleration,
+            eeprom,
+        )
+
+    def regenerate(self, regeneration: float, eeprom: bool = False) -> None:
+        self.__position_potentiometer(
+            self.regen_potentiometer_cs,
+            self.potentiometer_spi,
+            regeneration,
+            eeprom,
+        )
+
+    def state(self, status: bool) -> None:
+        wait = status and not self.status
+
+        self.main_switch_gpio.write(status)
+
+        if wait:
+            sleep(self.main_switch_timeout)
+
+    def direct(self, direction: Direction) -> None:
+        self.forward_or_reverse_switch_gpio.write(bool(direction))
+
+    def economize(self, mode: bool) -> None:
+        self.power_or_economical_switch_gpio.write(mode)
