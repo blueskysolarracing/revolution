@@ -33,7 +33,6 @@ class Telemetry(Application):
             with self.environment.contexts() as contexts:
                 data = contexts._resource.serialize()
 
-            print(data)
             data_token = data.encode()
             checksum_token = md5(data_token).digest()
             tokens = (
