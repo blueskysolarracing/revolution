@@ -14,6 +14,8 @@ class MC2:
     main_switch_timeout: ClassVar[float] = 5
     variable_field_magnet_switch_timeout: ClassVar[float] = 0.2
     revolution_timeout: ClassVar[float] = 5
+    MAIN_GPIO_INVERTED: ClassVar[bool] = True
+    GPIO_INVERTED: ClassVar[bool] = False
     acceleration_potentiometer: MCP4161
     regeneration_potentiometer: MCP4161
     main_switch_gpio: GPIO
@@ -24,7 +26,34 @@ class MC2:
     revolution_gpio: GPIO
 
     def __post_init__(self) -> None:
+        if (
+                self.main_switch_gpio.inverted != self.MAIN_GPIO_INVERTED
+                and (
+                    self.forward_or_reverse_switch_gpio.inverted
+                    != self.GPIO_INVERTED
+                )
+                and (
+                    self.power_or_economical_switch_gpio.inverted
+                    != self.GPIO_INVERTED
+                )
+                and (
+                    self.variable_field_magnet_up_switch_gpio.inverted
+                    != self.GPIO_INVERTED
+                )
+                and (
+                    self.variable_field_magnet_down_switch_gpio.inverted
+                    != self.GPIO_INVERTED
+                )
+                and self.revolution_gpio.inverted != self.GPIO_INVERTED
+        ):
+            raise ValueError('all GPIOs must not be inverted except main SW')
+
+        if self.revolution_gpio.edge != 'both':
+            raise ValueError('revolution gpio must trigger on both edges')
+
+        self.accelerate(0)
         self.accelerate(0, True)
+        self.regenerate(0)
         self.regenerate(0, True)
         self.main_switch_gpio.write(False)
         self.forward_or_reverse_switch_gpio.write(False)

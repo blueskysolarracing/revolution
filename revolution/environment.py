@@ -155,6 +155,9 @@ class Peripheries:
 
     power_pptmb_spi: SPI
     power_bms_spi: SPI
+    power_battery_relay_ls_gpio: GPIO
+    power_battery_relay_hs_gpio: GPIO
+    power_battery_relay_pc_gpio: GPIO
 
     # Telemetry
 
@@ -219,6 +222,7 @@ class Settings:
     # Power
 
     power_monitor_timeout: float
+    power_battery_relay_timeout: float
 
     # Telemetry
 

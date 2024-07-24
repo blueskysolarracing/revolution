@@ -31,6 +31,8 @@ class Telemetry(Application):
                 )
         ):
             with self.environment.contexts() as contexts:
+                assert hasattr(contexts, '_resource')
+
                 data = contexts._resource.serialize()
 
             data_token = data.encode()

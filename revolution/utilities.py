@@ -1,6 +1,6 @@
-from enum import auto, Enum
+from enum import IntEnum
 
 
-class Direction(Enum):
-    FORWARD = auto()
-    BACKWARD = auto()
+class Direction(IntEnum):
+    FORWARD: int = 0
+    BACKWARD: int = 1

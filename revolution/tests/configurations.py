@@ -169,6 +169,9 @@ PERIPHERIES: Peripheries = Peripheries(
 
     power_pptmb_spi=MagicMock(),
     power_bms_spi=MagicMock(),
+    power_battery_relay_ls_gpio=MagicMock(),
+    power_battery_relay_hs_gpio=MagicMock(),
+    power_battery_relay_pc_gpio=MagicMock(),
 
     # Telemetry
 
@@ -232,6 +235,7 @@ SETTINGS: Settings = Settings(
     # Power
 
     power_monitor_timeout=0.1,
+    power_battery_relay_timeout=3,
 
     # Telemetry
 
