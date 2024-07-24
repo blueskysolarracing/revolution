@@ -56,10 +56,14 @@ class Power(Application):
                     and power_battery_relay_status_input
             ):
                 self.environment.peripheries.power_battery_relay_ls_gpio.write(
-                    False,
+                    True,
                 )
+                self.environment.peripheries.power_battery_relay_pc_gpio.write(
+                    True,
+                )
+                sleep(self.environment.settings.power_battery_relay_timeout)
                 self.environment.peripheries.power_battery_relay_hs_gpio.write(
-                    False,
+                    True,
                 )
                 self.environment.peripheries.power_battery_relay_pc_gpio.write(
                     False,
@@ -78,14 +82,10 @@ class Power(Application):
                     and not power_battery_relay_status_input
             ):
                 self.environment.peripheries.power_battery_relay_ls_gpio.write(
-                    True,
+                    False,
                 )
-                self.environment.peripheries.power_battery_relay_pc_gpio.write(
-                    True,
-                )
-                sleep(self.environment.settings.power_battery_relay_timeout)
                 self.environment.peripheries.power_battery_relay_hs_gpio.write(
-                    True,
+                    False,
                 )
                 self.environment.peripheries.power_battery_relay_pc_gpio.write(
                     False,
