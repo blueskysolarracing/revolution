@@ -41,9 +41,9 @@ class Driver(Application):
         # ),
     }
     MOMENTARY_SWITCHES: ClassVar[dict[str, str]] = {
-        # 'driver_motor_direction_switch_prb': (
-        #     'motor_direction_input'
-        # ),
+        'driver_motor_direction_switch_prb': (
+            'motor_direction_input'
+        ),
 
         # 'driver_miscellaneous_left_indicator_light_switch_prb': (
         #     'miscellaneous_left_indicator_light_status_input'
@@ -79,8 +79,12 @@ class Driver(Application):
         # 'driver_display_center_directional_pad_switch_prb': (
         #     'display_center_directional_pad_input'
         # ),
+
         'driver_power_battery_relay_switch_prb': (
             'power_battery_relay_status_input'
+        ),
+        'driver_power_array_relay_switch_prb': (
+            'power_array_relay_status_input'
         ),
     }
     TOGGLING_SWITCHES: ClassVar[dict[str, str]] = {
@@ -92,10 +96,6 @@ class Driver(Application):
         # ),
         # 'driver_miscellaneous_backup_camera_control_switch_prb': (
         #     'display_backup_camera_control_status_input'
-        # ),
-
-        # 'driver_power_array_relay_switch_prb': (
-        #     'power_array_relay_status_input'
         # ),
     }
     ADDITIVE_SWITCHES: ClassVar[dict[str, str]] = {
@@ -142,11 +142,15 @@ class Driver(Application):
             lookup = {}
 
             for i in range(8):
-                lookup[Port.PORTA, Register.GPIO, i] = bool(
-                    gpioa_byte & (1 << i),
+                lookup[Port.PORTA, Register.GPIO, i] = (
+                    not bool(
+                        gpioa_byte & (1 << i),
+                    )
                 )
-                lookup[Port.PORTB, Register.GPIO, i] = bool(
-                    gpiob_byte & (1 << i),
+                lookup[Port.PORTB, Register.GPIO, i] = (
+                    not bool(
+                        gpiob_byte & (1 << i),
+                    )
                 )
 
             voltages = (

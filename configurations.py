@@ -162,7 +162,7 @@ PERIPHERIES: Peripheries = Peripheries(
         ),
     ),
 
-    driver_motor_direction_switch_prb=PRB.GPIOA_GP0,
+    driver_motor_direction_switch_prb=PRB.GPIOB_GP3,
     driver_motor_variable_field_magnet_up_switch_prb=PRB.GPIOA_GP0,
     driver_motor_variable_field_magnet_down_switch_prb=PRB.GPIOA_GP0,
 
@@ -175,7 +175,7 @@ PERIPHERIES: Peripheries = Peripheries(
     driver_miscellaneous_backup_camera_control_switch_prb=PRB.GPIOA_GP0,
     driver_miscellaneous_brake_pedal_switch_prb=PRB.GPIOA_GP0,
 
-    driver_power_array_relay_switch_prb=PRB.GPIOA_GP0,
+    driver_power_array_relay_switch_prb=PRB.GPIOA_GP6,
     driver_power_battery_relay_switch_prb=PRB.GPIOA_GP5,
 
     driver_display_steering_wheel_in_place_switch_prb=PRB.GPIOA_GP0,
