@@ -74,6 +74,8 @@ class Motor(Application):
             )
 
     def _variable_field_magnet(self) -> None:
+        previous_motor_status = False
+
         while (
                 not self._stoppage.wait(
                     (
@@ -84,6 +86,19 @@ class Motor(Application):
                     ),
                 )
         ):
+            motor_status = self.environment.peripheries.motor_mc2.status
+
+            if motor_status and not previous_motor_status:
+                (
+                    self
+                    .environment
+                    .peripheries
+                    .motor_mc2
+                    .variable_field_magnet_reset()
+                )
+
+            previous_motor_status = motor_status
+
             with self.environment.contexts() as contexts:
                 min_value = min(
                     contexts.motor_variable_field_magnet_up_input,
@@ -163,9 +178,14 @@ class Motor(Application):
                 cruise_control_speed = contexts.motor_cruise_control_speed
                 motor_speed = contexts.motor_speed
 
+            acceleration_input: float
+            regeneration_input: float
+
             if cruise_control_speed is None:
-                integral = 0.0
-                error = 0.0
+                integral = 0
+                error = 0
+                acceleration_input = 0
+                regeneration_input = 0
             else:
                 previous_error = error
                 error = cruise_control_speed - motor_speed
@@ -182,9 +202,6 @@ class Motor(Application):
                 output = integral + derivative + k_p * error
                 output = np.clip(output, min_output, max_output)
 
-                acceleration_input: float
-                regeneration_input: float
-
                 if output > 0:
                     acceleration_input = output / max_output
                     regeneration_input = 0
@@ -195,10 +212,10 @@ class Motor(Application):
                     acceleration_input = 0
                     regeneration_input = 0
 
-                with self.environment.contexts() as contexts:
-                    contexts.motor_acceleration_cruise_control_input = (
-                        acceleration_input
-                    )
-                    contexts.motor_regeneration_cruise_control_input = (
-                        regeneration_input
-                    )
+            with self.environment.contexts() as contexts:
+                contexts.motor_acceleration_cruise_control_input = (
+                    acceleration_input
+                )
+                contexts.motor_regeneration_cruise_control_input = (
+                    regeneration_input
+                )

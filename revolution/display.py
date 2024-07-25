@@ -20,7 +20,6 @@ class Display(Application):
             self.environment.peripheries.display_nhd_c12864a1z_fsw_fbw_htt
         )
 
-        periphery.configure()
         periphery.set_font(self.environment.settings.display_font_pathname)
 
         self._display_worker = Worker(target=self._display)
@@ -36,7 +35,7 @@ class Display(Application):
         while not self._stoppage.wait(timeout):
             with self.environment.contexts() as contexts:
                 motor_speed = contexts.motor_speed
-                battery_soc = 0.5
+                power_state_of_charge = contexts.power_state_of_charge
                 hazard_lights_status = (
                     contexts.miscellaneous_hazard_lights_status_input
                 )
@@ -85,7 +84,7 @@ class Display(Application):
             # SOC
 
             periphery.set_size(10, 12)
-            periphery.draw_word(f'{battery_soc * 100:.0f}%', 82, 5)
+            periphery.draw_word(f'{power_state_of_charge * 100:.0f}%', 82, 5)
 
             # Battery warning
 

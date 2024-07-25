@@ -1,9 +1,12 @@
 battlib==0.0.0.dev1
-coverage~=7.5.1
+build~=1.2.1
+coverage~=7.6.0
 door==0.0.4
-flake8~=7.0.0
-iclib==0.0.0.dev5
+flake8~=7.1.0
+freetype-py~=2.4.0
+iclib==0.0.0.dev6
 interrogate~=1.7.0
-mypy~=1.10.0
+mypy~=1.11.0
 python-periphery~=2.4.1
-Sphinx~=7.3.7
+Sphinx~=7.4.7
+twine~=5.1.1

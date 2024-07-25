@@ -15,96 +15,96 @@ _logger = getLogger(__name__)
 class Driver(Application):
     endpoint: ClassVar[Endpoint] = Endpoint.DRIVER
     INPUT_CHANNELS: ClassVar[dict[str, tuple[str, tuple[str, str | None]]]] = {
-        'driver_motor_acceleration_pedal_input_channel': (
-            'motor_acceleration_pedal_input',
-            ('driver_motor_acceleration_pedal_input_range', None),
-        ),
-        'driver_motor_regeneration_pedal_input_channel': (
-            'motor_regeneration_pedal_input',
-            ('driver_motor_regeneration_pedal_input_range', None),
-        ),
-        'driver_motor_acceleration_paddle_input_channel': (
-            'motor_acceleration_paddle_input',
-            ('driver_motor_acceleration_paddle_input_range', None),
-        ),
-        'driver_motor_regeneration_paddle_input_channel': (
-            'motor_regeneration_paddle_input',
-            ('driver_motor_regeneration_paddle_input_range', None),
-        ),
+        # 'driver_motor_acceleration_pedal_input_channel': (
+        #     'motor_acceleration_pedal_input',
+        #     ('driver_motor_acceleration_pedal_input_range', None),
+        # ),
+        # 'driver_motor_regeneration_pedal_input_channel': (
+        #     'motor_regeneration_pedal_input',
+        #     ('driver_motor_regeneration_pedal_input_range', None),
+        # ),
+        # 'driver_motor_acceleration_paddle_input_channel': (
+        #     'motor_acceleration_paddle_input',
+        #     ('driver_motor_acceleration_paddle_input_range', None),
+        # ),
+        # 'driver_motor_regeneration_paddle_input_channel': (
+        #     'motor_regeneration_paddle_input',
+        #     ('driver_motor_regeneration_paddle_input_range', None),
+        # ),
 
-        'driver_miscellaneous_thermistor_input_channel': (
-            'miscellaneous_thermistor_temperature',
-            (
-                'driver_miscellaneous_thermistor_input_range',
-                'driver_miscellaneous_thermistor_output_range',
-            ),
-        ),
+        # 'driver_miscellaneous_thermistor_input_channel': (
+        #     'miscellaneous_thermistor_temperature',
+        #     (
+        #         'driver_miscellaneous_thermistor_input_range',
+        #         'driver_miscellaneous_thermistor_output_range',
+        #     ),
+        # ),
     }
     MOMENTARY_SWITCHES: ClassVar[dict[str, str]] = {
         'driver_motor_direction_switch_prb': (
             'motor_direction_input'
         ),
 
-        'driver_miscellaneous_left_indicator_light_switch_prb': (
-            'miscellaneous_left_indicator_light_status_input'
-        ),
-        'driver_miscellaneous_right_indicator_light_switch_prb': (
-            'miscellaneous_right_indicator_light_status_input'
-        ),
-        'driver_miscellaneous_hazard_lights_switch_prb': (
-            'miscellaneous_hazard_lights_status_input'
-        ),
-        'driver_miscellaneous_horn_switch_prb': (
-            'miscellaneous_horn_status_input'
-        ),
-        'driver_miscellaneous_brake_pedal_switch_prb': (
-            'miscellaneous_brake_status_input'
-        ),
+        # 'driver_miscellaneous_left_indicator_light_switch_prb': (
+        #     'miscellaneous_left_indicator_light_status_input'
+        # ),
+        # 'driver_miscellaneous_right_indicator_light_switch_prb': (
+        #     'miscellaneous_right_indicator_light_status_input'
+        # ),
+        # 'driver_miscellaneous_hazard_lights_switch_prb': (
+        #     'miscellaneous_hazard_lights_status_input'
+        # ),
+        # 'driver_miscellaneous_horn_switch_prb': (
+        #     'miscellaneous_horn_status_input'
+        # ),
+        # 'driver_miscellaneous_brake_pedal_switch_prb': (
+        #     'miscellaneous_brake_status_input'
+        # ),
 
-        'driver_display_steering_wheel_in_place_switch_prb': (
-            'display_steering_wheel_in_place_status_input'
-        ),
-        'driver_display_left_directional_pad_switch_prb': (
-            'display_left_directional_pad_input'
-        ),
-        'driver_display_right_directional_pad_switch_prb': (
-            'display_right_directional_pad_input'
-        ),
-        'driver_display_up_directional_pad_switch_prb': (
-            'display_up_directional_pad_input'
-        ),
-        'driver_display_down_directional_pad_switch_prb': (
-            'display_down_directional_pad_input'
-        ),
-        'driver_display_center_directional_pad_switch_prb': (
-            'display_center_directional_pad_input'
-        ),
-    }
-    TOGGLING_SWITCHES: ClassVar[dict[str, str]] = {
-        'driver_miscellaneous_daytime_running_lights_switch_prb': (
-            'miscellaneous_daytime_running_lights_status_input'
-        ),
-        'driver_miscellaneous_fan_switch_prb': (
-            'miscellaneous_fan_status_input'
-        ),
-        'driver_miscellaneous_backup_camera_control_switch_prb': (
-            'display_backup_camera_control_status_input'
-        ),
+        # 'driver_display_steering_wheel_in_place_switch_prb': (
+        #     'display_steering_wheel_in_place_status_input'
+        # ),
+        # 'driver_display_left_directional_pad_switch_prb': (
+        #     'display_left_directional_pad_input'
+        # ),
+        # 'driver_display_right_directional_pad_switch_prb': (
+        #     'display_right_directional_pad_input'
+        # ),
+        # 'driver_display_up_directional_pad_switch_prb': (
+        #     'display_up_directional_pad_input'
+        # ),
+        # 'driver_display_down_directional_pad_switch_prb': (
+        #     'display_down_directional_pad_input'
+        # ),
+        # 'driver_display_center_directional_pad_switch_prb': (
+        #     'display_center_directional_pad_input'
+        # ),
 
-        'driver_power_array_relay_switch_prb': (
-            'power_array_relay_status_input'
-        ),
         'driver_power_battery_relay_switch_prb': (
             'power_battery_relay_status_input'
         ),
+        'driver_power_array_relay_switch_prb': (
+            'power_array_relay_status_input'
+        ),
+    }
+    TOGGLING_SWITCHES: ClassVar[dict[str, str]] = {
+        # 'driver_miscellaneous_daytime_running_lights_switch_prb': (
+        #     'miscellaneous_daytime_running_lights_status_input'
+        # ),
+        # 'driver_miscellaneous_fan_switch_prb': (
+        #     'miscellaneous_fan_status_input'
+        # ),
+        # 'driver_miscellaneous_backup_camera_control_switch_prb': (
+        #     'display_backup_camera_control_status_input'
+        # ),
     }
     ADDITIVE_SWITCHES: ClassVar[dict[str, str]] = {
-        'driver_motor_variable_field_magnet_up_switch_prb': (
-            'motor_variable_field_magnet_up_input'
-        ),
-        'driver_motor_variable_field_magnet_down_switch_prb': (
-            'motor_variable_field_magnet_down_input'
-        ),
+        # 'driver_motor_variable_field_magnet_up_switch_prb': (
+        #     'motor_variable_field_magnet_up_input'
+        # ),
+        # 'driver_motor_variable_field_magnet_down_switch_prb': (
+        #     'motor_variable_field_magnet_down_input'
+        # ),
     }
 
     def _setup(self) -> None:
@@ -142,11 +142,15 @@ class Driver(Application):
             lookup = {}
 
             for i in range(8):
-                lookup[Port.PORTA, Register.GPIO, i] = bool(
-                    gpioa_byte & (1 << i),
+                lookup[Port.PORTA, Register.GPIO, i] = (
+                    not bool(
+                        gpioa_byte & (1 << i),
+                    )
                 )
-                lookup[Port.PORTB, Register.GPIO, i] = bool(
-                    gpiob_byte & (1 << i),
+                lookup[Port.PORTB, Register.GPIO, i] = (
+                    not bool(
+                        gpiob_byte & (1 << i),
+                    )
                 )
 
             voltages = (

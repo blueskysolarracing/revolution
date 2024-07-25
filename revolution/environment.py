@@ -86,6 +86,7 @@ class Contexts:
 
     power_array_relay_status_input: bool
     power_battery_relay_status_input: bool
+    power_state_of_charge: float
 
     # Telemetry
 
