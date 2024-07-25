@@ -69,6 +69,9 @@ class Power(Application):
                     False,
                 )
 
+                with self.environment.contexts() as contexts:
+                    contexts.motor_status_input = True
+
             if (
                     previous_power_array_relay_status_input
                     and not power_array_relay_status_input
@@ -81,6 +84,9 @@ class Power(Application):
                     previous_power_battery_relay_status_input
                     and not power_battery_relay_status_input
             ):
+                with self.environment.contexts() as contexts:
+                    contexts.motor_status_input = False
+
                 self.environment.peripheries.power_battery_relay_ls_gpio.write(
                     False,
                 )

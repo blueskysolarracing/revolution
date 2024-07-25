@@ -30,8 +30,8 @@ APPLICATION_TYPES: tuple[type[Application], ...] = (
     # Display,
     Driver,
     # Miscellaneous,
-    # Motor,
-    # Power,
+    Motor,
+    Power,
     # Telemetry,
 )
 
@@ -176,7 +176,7 @@ PERIPHERIES: Peripheries = Peripheries(
     driver_miscellaneous_brake_pedal_switch_prb=PRB.GPIOA_GP0,
 
     driver_power_array_relay_switch_prb=PRB.GPIOA_GP0,
-    driver_power_battery_relay_switch_prb=PRB.GPIOA_GP6,
+    driver_power_battery_relay_switch_prb=PRB.GPIOA_GP5,
 
     driver_display_steering_wheel_in_place_switch_prb=PRB.GPIOA_GP0,
     driver_display_left_directional_pad_switch_prb=PRB.GPIOA_GP0,
