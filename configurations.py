@@ -26,13 +26,13 @@ from revolution import (
 )
 
 APPLICATION_TYPES: tuple[type[Application], ...] = (
-    Debugger,
-    Display,
+    # Debugger,
+    # Display,
     Driver,
-    Miscellaneous,
-    Motor,
-    Power,
-    Telemetry,
+    # Miscellaneous,
+    # Motor,
+    # Power,
+    # Telemetry,
 )
 
 CONTEXTS: Contexts = Contexts(
@@ -76,7 +76,7 @@ CONTEXTS: Contexts = Contexts(
     motor_variable_field_magnet_down_input=0,
     motor_revolution_period=inf,
     motor_speed=0,
-    motor_cruise_control_speed=0,
+    motor_cruise_control_speed=None,
 
     # Power
 
@@ -111,7 +111,8 @@ mc2: MC2 = MC2(
     GPIO('/dev/gpiochip6', 11, 'out'),
     GPIO('/dev/gpiochip6', 12, 'out'),
     GPIO('/dev/gpiochip6', 10, 'out'),
-    MagicMock(),
+    GPIO('/dev/gpiochip6', 17, 'out'),
+    MagicMock(edge='both', inverted=False),
 )
 
 PERIPHERIES: Peripheries = Peripheries(
@@ -175,7 +176,7 @@ PERIPHERIES: Peripheries = Peripheries(
     driver_miscellaneous_brake_pedal_switch_prb=PRB.GPIOA_GP0,
 
     driver_power_array_relay_switch_prb=PRB.GPIOA_GP0,
-    driver_power_battery_relay_switch_prb=PRB.GPIOA_GP0,
+    driver_power_battery_relay_switch_prb=PRB.GPIOA_GP6,
 
     driver_display_steering_wheel_in_place_switch_prb=PRB.GPIOA_GP0,
     driver_display_left_directional_pad_switch_prb=PRB.GPIOA_GP0,

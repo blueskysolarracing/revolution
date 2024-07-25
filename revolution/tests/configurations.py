@@ -71,7 +71,7 @@ CONTEXTS: Contexts = Contexts(
     motor_variable_field_magnet_down_input=0,
     motor_revolution_period=inf,
     motor_speed=0,
-    motor_cruise_control_speed=0,
+    motor_cruise_control_speed=None,
 
     # Power
 

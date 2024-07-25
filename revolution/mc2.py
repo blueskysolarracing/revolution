@@ -23,28 +23,18 @@ class MC2:
     power_or_economical_switch_gpio: GPIO
     variable_field_magnet_up_switch_gpio: GPIO
     variable_field_magnet_down_switch_gpio: GPIO
+    variable_field_magnet_reset_switch_gpio: GPIO
     revolution_gpio: GPIO
 
     def __post_init__(self) -> None:
         if (
-                self.main_switch_gpio.inverted != self.MAIN_GPIO_INVERTED
-                and (
-                    self.forward_or_reverse_switch_gpio.inverted
-                    != self.GPIO_INVERTED
-                )
-                and (
-                    self.power_or_economical_switch_gpio.inverted
-                    != self.GPIO_INVERTED
-                )
-                and (
-                    self.variable_field_magnet_up_switch_gpio.inverted
-                    != self.GPIO_INVERTED
-                )
-                and (
-                    self.variable_field_magnet_down_switch_gpio.inverted
-                    != self.GPIO_INVERTED
-                )
-                and self.revolution_gpio.inverted != self.GPIO_INVERTED
+                not self.main_switch_gpio.inverted
+                or self.forward_or_reverse_switch_gpio.inverted
+                or self.power_or_economical_switch_gpio.inverted
+                or self.variable_field_magnet_up_switch_gpio.inverted
+                or self.variable_field_magnet_down_switch_gpio.inverted
+                or self.variable_field_magnet_reset_switch_gpio.inverted
+                or self.revolution_gpio.inverted
         ):
             raise ValueError('all GPIOs must not be inverted except main SW')
 
@@ -60,6 +50,7 @@ class MC2:
         self.power_or_economical_switch_gpio.write(False)
         self.variable_field_magnet_up_switch_gpio.write(False)
         self.variable_field_magnet_down_switch_gpio.write(False)
+        self.variable_field_magnet_reset_switch_gpio.write(False)
 
     @property
     def revolution_period(self) -> float:
@@ -122,3 +113,8 @@ class MC2:
         self.variable_field_magnet_down_switch_gpio.write(True)
         sleep(self.variable_field_magnet_switch_timeout)
         self.variable_field_magnet_down_switch_gpio.write(False)
+
+    def variable_field_magnet_reset(self) -> None:
+        self.variable_field_magnet_reset_switch_gpio.write(True)
+        sleep(self.variable_field_magnet_switch_timeout)
+        self.variable_field_magnet_reset_switch_gpio.write(False)
