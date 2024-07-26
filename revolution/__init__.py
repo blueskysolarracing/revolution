@@ -9,13 +9,14 @@ __all__ = (
     'Environment',
     'Header',
     'main',
-    'MC2',
     'Message',
     'Miscellaneous',
     'Motor',
+    'MotorControllerSquared',
     'parse_args',
     'Peripheries',
     'Power',
+    'PRBS',
     'Settings',
     'Telemetry',
     'Worker',
@@ -35,10 +36,10 @@ from revolution.environment import (
     Settings,
 )
 from revolution.main import main, parse_args
-from revolution.mc2 import MC2
 from revolution.miscellaneous import Miscellaneous
+from revolution.motor_controller_squared import MotorControllerSquared
 from revolution.motor import Motor
 from revolution.power import Power
 from revolution.telemetry import Telemetry
-from revolution.utilities import Direction
+from revolution.utilities import Direction, PRBS
 from revolution.worker import Worker

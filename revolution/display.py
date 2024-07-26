@@ -45,8 +45,8 @@ class Display(Application):
                 right_indicator_light_status = (
                     contexts.miscellaneous_right_indicator_light_status_input
                 )
-                battery_warning_status = False
-                motor_target_speed = None
+                battery_warning_status = False  # TODO
+                motor_target_speed = None  # TODO
 
             periphery = (
                 self.environment.peripheries.display_nhd_c12864a1z_fsw_fbw_htt

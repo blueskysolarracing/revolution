@@ -12,7 +12,7 @@ _logger = getLogger(__name__)
 
 @dataclass
 class Telemetry(Application):
-    endpoint: ClassVar[Endpoint] = Endpoint.TELEMETER
+    endpoint: ClassVar[Endpoint] = Endpoint.TELEMETRY
 
     def _setup(self) -> None:
         super()._setup()
@@ -46,4 +46,4 @@ class Telemetry(Application):
             )
             raw_data = b''.join(tokens)
 
-            self.environment.peripheries.telemetry_serial.write(raw_data)
+            self.environment.peripheries.telemetry_radio_serial.write(raw_data)

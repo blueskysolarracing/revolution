@@ -33,13 +33,13 @@ Run style checker.
 
 .. code-block:: sh
 
-   flake8 revolution
+   flake8 revolution configurations.py
 
 Run static type checker.
 
 .. code-block:: sh
 
-   mypy --strict revolution
+   mypy --strict revolution configurations.py
 
 Unit and Documentation Testing
 ==============================
@@ -48,27 +48,27 @@ Run unit tests.
 
 .. code-block:: sh
 
-   export REVOLUTION_CONFIGURATIONS_MODULE=configurations.development
+   export REVOLUTION_CONFIGURATIONS_MODULE=revolution.tests.configurations
    python -m unittest
 
 Above is equivalent to below...
 
 .. code-block:: sh
 
-   REVOLUTION_CONFIGURATIONS_MODULE=configurations.development python -m unittest
+   REVOLUTION_CONFIGURATIONS_MODULE=revolution.tests.configurations python -m unittest
 
 Run documentation tests.
 
 .. code-block:: sh
 
-   export REVOLUTION_CONFIGURATIONS_MODULE=configurations.development
+   export REVOLUTION_CONFIGURATIONS_MODULE=revolution.tests.configurations
    python -m doctest revolution/*.py
 
 Above is equivalent to below...
 
 .. code-block:: sh
 
-   REVOLUTION_CONFIGURATIONS_MODULE=configurations.development python -m doctest revolution/*.py
+   REVOLUTION_CONFIGURATIONS_MODULE=revolution.tests.configurations python -m doctest revolution/*.py
 
 Project Deployment
 ==================

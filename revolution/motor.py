@@ -45,31 +45,29 @@ class Motor(Application):
             with self.environment.contexts() as contexts:
                 status_input = contexts.motor_status_input
                 acceleration_input = max(
-                    (
-                        contexts.motor_acceleration_pedal_input,
-                        contexts.motor_acceleration_paddle_input,
-                        contexts.motor_acceleration_cruise_control_input,
-                    ),
+                    contexts.motor_acceleration_input,
+                    contexts.motor_cruise_control_acceleration_input,
                 )
                 regeneration_input = max(
-                    (
-                        contexts.motor_regeneration_pedal_input,
-                        contexts.motor_regeneration_paddle_input,
-                        contexts.motor_regeneration_cruise_control_input,
-                    ),
+                    contexts.motor_regeneration_input,
+                    contexts.motor_cruise_control_regeneration_input,
                 )
                 direction_input = contexts.motor_direction_input
                 economical_mode_input = contexts.motor_economical_mode_input
 
-            self.environment.peripheries.motor_mc2.state(status_input)
-            self.environment.peripheries.motor_mc2.accelerate(
+            self.environment.peripheries.motor_controller_squared.state(
+                status_input,
+            )
+            self.environment.peripheries.motor_controller_squared.accelerate(
                 acceleration_input,
             )
-            self.environment.peripheries.motor_mc2.regenerate(
+            self.environment.peripheries.motor_controller_squared.regenerate(
                 regeneration_input,
             )
-            self.environment.peripheries.motor_mc2.direct(direction_input)
-            self.environment.peripheries.motor_mc2.economize(
+            self.environment.peripheries.motor_controller_squared.direct(
+                direction_input,
+            )
+            self.environment.peripheries.motor_controller_squared.economize(
                 economical_mode_input,
             )
 
@@ -86,14 +84,16 @@ class Motor(Application):
                     ),
                 )
         ):
-            motor_status = self.environment.peripheries.motor_mc2.status
+            motor_status = (
+                self.environment.peripheries.motor_controller_squared.status
+            )
 
             if motor_status and not previous_motor_status:
                 (
                     self
                     .environment
                     .peripheries
-                    .motor_mc2
+                    .motor_controller_squared
                     .variable_field_magnet_reset()
                 )
 
@@ -121,7 +121,7 @@ class Motor(Application):
                     self
                     .environment
                     .peripheries
-                    .motor_mc2
+                    .motor_controller_squared
                     .variable_field_magnet_up()
                 )
             elif variable_field_magnet_input < 0:
@@ -129,7 +129,7 @@ class Motor(Application):
                     self
                     .environment
                     .peripheries
-                    .motor_mc2
+                    .motor_controller_squared
                     .variable_field_magnet_down()
                 )
 
@@ -139,16 +139,13 @@ class Motor(Application):
                     self.environment.settings.motor_revolution_timeout,
                 )
         ):
-            revolution_period = (
-                self.environment.peripheries.motor_mc2.revolution_period
-            )
+            revolution_period = 1  # TODO
             motor_speed = (
                 self.environment.settings.motor_wheel_circumference
                 / revolution_period
             )
 
             with self.environment.contexts() as contexts:
-                contexts.motor_revolution_period = revolution_period
                 contexts.motor_speed = motor_speed
 
     def _cruise_control(self) -> None:
@@ -175,18 +172,16 @@ class Motor(Application):
 
         while not self._stoppage.wait(timeout):
             with self.environment.contexts() as contexts:
+                cruise_control_status_input = (
+                    contexts.motor_cruise_control_status_input
+                )
                 cruise_control_speed = contexts.motor_cruise_control_speed
                 motor_speed = contexts.motor_speed
 
             acceleration_input: float
             regeneration_input: float
 
-            if cruise_control_speed is None:
-                integral = 0
-                error = 0
-                acceleration_input = 0
-                regeneration_input = 0
-            else:
+            if cruise_control_status_input:
                 previous_error = error
                 error = cruise_control_speed - motor_speed
                 integral += k_i * (error + previous_error) / 2 * timeout
@@ -211,11 +206,16 @@ class Motor(Application):
                 else:
                     acceleration_input = 0
                     regeneration_input = 0
+            else:
+                integral = 0
+                error = 0
+                acceleration_input = 0
+                regeneration_input = 0
 
             with self.environment.contexts() as contexts:
-                contexts.motor_acceleration_cruise_control_input = (
+                contexts.motor_cruise_control_acceleration_input = (
                     acceleration_input
                 )
-                contexts.motor_regeneration_cruise_control_input = (
+                contexts.motor_cruise_control_regeneration_input = (
                     regeneration_input
                 )

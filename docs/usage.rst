@@ -1,7 +1,7 @@
 Usage
 =====
 
-Revolution can be run, optionally with various modes.
+Revolution can be run, optionally with interactive mode.
 
 .. code-block:: bash
 
@@ -12,15 +12,3 @@ With interactive mode enabled,
 .. code-block:: bash
 
    python -m revolution -i
-
-With virtual mode enabled,
-
-.. code-block:: bash
-
-   python -m revolution -v
-
-With both modes enabled,
-
-.. code-block:: bash
-
-   python -m revolution -i -v

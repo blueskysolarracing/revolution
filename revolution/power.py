@@ -25,8 +25,8 @@ class Power(Application):
         self._monitor_worker.join()
 
     def _monitor(self) -> None:
-        previous_power_array_relay_status_input = False
-        previous_power_battery_relay_status_input = False
+        previous_array_relay_status_input = False
+        previous_battery_relay_status_input = False
 
         while (
                 not self._stoppage.wait(
@@ -34,26 +34,25 @@ class Power(Application):
                 )
         ):
             with self.environment.contexts() as contexts:
-                power_array_relay_status_input = (
+                array_relay_status_input = (
                     contexts.power_array_relay_status_input
                 )
-                power_battery_relay_status_input = (
+                battery_relay_status_input = (
                     contexts.power_battery_relay_status_input
                 )
 
             # TODO: fetch/check for over/under-voltage/temperature/current
+            # TODO: calculate SOC
 
             if (
-                    not previous_power_array_relay_status_input
-                    and power_array_relay_status_input
+                    not previous_array_relay_status_input
+                    and array_relay_status_input
             ):
-                self.environment.peripheries.power_pptmb_spi.transfer(
-                    [],  # TODO: close array relay
-                )
+                pass  # TODO: close array relay
 
             if (
-                    not previous_power_battery_relay_status_input
-                    and power_battery_relay_status_input
+                    not previous_battery_relay_status_input
+                    and battery_relay_status_input
             ):
                 self.environment.peripheries.power_battery_relay_ls_gpio.write(
                     True,
@@ -73,16 +72,14 @@ class Power(Application):
                     contexts.motor_status_input = True
 
             if (
-                    previous_power_array_relay_status_input
-                    and not power_array_relay_status_input
+                    previous_array_relay_status_input
+                    and not array_relay_status_input
             ):
-                self.environment.peripheries.power_pptmb_spi.transfer(
-                    [],  # TODO: open array relay
-                )
+                pass  # TODO: open array relay
 
             if (
-                    previous_power_battery_relay_status_input
-                    and not power_battery_relay_status_input
+                    previous_battery_relay_status_input
+                    and not battery_relay_status_input
             ):
                 with self.environment.contexts() as contexts:
                     contexts.motor_status_input = False
@@ -97,9 +94,5 @@ class Power(Application):
                     False,
                 )
 
-            previous_power_array_relay_status_input = (
-                power_array_relay_status_input
-            )
-            previous_power_battery_relay_status_input = (
-                power_battery_relay_status_input
-            )
+            previous_array_relay_status_input = array_relay_status_input
+            previous_battery_relay_status_input = battery_relay_status_input

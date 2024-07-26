@@ -16,108 +16,6 @@ class Miscellaneous(Application):
     def _setup(self) -> None:
         super()._setup()
 
-        (
-            self
-            .environment
-            .peripheries
-            .miscellaneous_indicator_lights_pwm
-            .period
-        ) = self.environment.settings.miscellaneous_indicator_lights_pwm_period
-        (
-            self
-            .environment
-            .peripheries
-            .miscellaneous_indicator_lights_pwm
-            .duty_cycle
-        ) = (
-            self
-            .environment
-            .settings
-            .miscellaneous_indicator_lights_pwm_duty_cycle
-        )
-        (
-            self
-            .environment
-            .peripheries
-            .miscellaneous_left_indicator_light_pwm
-            .period
-        ) = (
-            self
-            .environment
-            .settings
-            .miscellaneous_left_indicator_light_pwm_period
-        )
-        (
-            self
-            .environment
-            .peripheries
-            .miscellaneous_left_indicator_light_pwm
-            .duty_cycle
-        ) = (
-            self
-            .environment
-            .settings
-            .miscellaneous_left_indicator_light_pwm_duty_cycle
-        )
-        (
-            self
-            .environment
-            .peripheries
-            .miscellaneous_right_indicator_light_pwm
-            .period
-        ) = (
-            self
-            .environment
-            .settings
-            .miscellaneous_right_indicator_light_pwm_period
-        )
-        (
-            self
-            .environment
-            .peripheries
-            .miscellaneous_right_indicator_light_pwm
-            .duty_cycle
-        ) = (
-            self
-            .environment
-            .settings
-            .miscellaneous_right_indicator_light_pwm_duty_cycle
-        )
-        (
-            self
-            .environment
-            .peripheries
-            .miscellaneous_daytime_running_lights_pwm
-            .period
-        ) = (
-            self
-            .environment
-            .settings
-            .miscellaneous_daytime_running_lights_pwm_period
-        )
-        (
-            self
-            .environment
-            .peripheries
-            .miscellaneous_daytime_running_lights_pwm
-            .duty_cycle
-        ) = (
-            self
-            .environment
-            .settings
-            .miscellaneous_daytime_running_lights_pwm_duty_cycle
-        )
-        self.environment.peripheries.miscellaneous_brake_lights_pwm.period = (
-            self.environment.settings.miscellaneous_brake_lights_pwm_period
-        )
-        (
-            self
-            .environment
-            .peripheries
-            .miscellaneous_brake_lights_pwm
-            .duty_cycle
-        ) = self.environment.settings.miscellaneous_brake_lights_pwm_duty_cycle
-
         self._light_worker = Worker(target=self._light)
 
         self._light_worker.start()
@@ -144,11 +42,16 @@ class Miscellaneous(Application):
                 daytime_running_lights_status_input = (
                     contexts.miscellaneous_daytime_running_lights_status_input
                 )
+                horn_status_input = contexts.miscellaneous_horn_status_input
+                backup_camera_control_status_input = (
+                    contexts.miscellaneous_backup_camera_control_status_input
+                )
+                display_backlight_status_input = (
+                    contexts.miscellaneous_display_backlight_status_input
+                )
                 brake_lights_status_input = (
                     contexts.miscellaneous_brake_status_input
                 )
-                horn_status_input = contexts.miscellaneous_horn_status_input
-                fan_status_input = contexts.miscellaneous_fan_status_input
 
             if (
                     left_indicator_light_status_input
@@ -253,6 +156,13 @@ class Miscellaneous(Application):
                 self
                 .environment
                 .peripheries
-                .miscellaneous_fan_switch_gpio
-                .write(fan_status_input)
+                .miscellaneous_backup_camera_control_switch_gpio
+                .write(backup_camera_control_status_input)
+            )
+            (
+                self
+                .environment
+                .peripheries
+                .miscellaneous_display_backlight_switch_gpio
+                .write(display_backlight_status_input)
             )

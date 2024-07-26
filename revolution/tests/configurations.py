@@ -1,9 +1,8 @@
-from math import inf
 from unittest.mock import MagicMock
 
-from iclib.adc78h89 import ADC78H89, InputChannel
 from iclib.mcp23s17 import MCP23S17, PortRegisterBit as PRB
 from iclib.nhd_c12864a1z_fsw_fbw_htt import NHDC12864A1ZFSWFBWHTT
+from periphery import GPIO, PWM, Serial
 
 from revolution import (
     Application,
@@ -14,8 +13,10 @@ from revolution import (
     Driver,
     Miscellaneous,
     Motor,
+    MotorControllerSquared,
     Peripheries,
     Power,
+    PRBS,
     Settings,
     Telemetry,
 )
@@ -35,43 +36,33 @@ CONTEXTS: Contexts = Contexts(
 
     # Display
 
-    display_backup_camera_control_status_input=False,
-    display_steering_wheel_in_place_status_input=False,
-    display_left_directional_pad_input=False,
-    display_right_directional_pad_input=False,
-    display_up_directional_pad_input=False,
-    display_down_directional_pad_input=False,
-    display_center_directional_pad_input=False,
-
     # Driver
 
     # Miscellaneous
 
-    miscellaneous_thermistor_temperature=0,
     miscellaneous_left_indicator_light_status_input=False,
     miscellaneous_right_indicator_light_status_input=False,
     miscellaneous_hazard_lights_status_input=False,
     miscellaneous_daytime_running_lights_status_input=False,
     miscellaneous_horn_status_input=False,
-    miscellaneous_fan_status_input=False,
+    miscellaneous_backup_camera_control_status_input=False,
+    miscellaneous_display_backlight_status_input=False,
     miscellaneous_brake_status_input=False,
 
     # Motor
 
-    motor_acceleration_pedal_input=0,
-    motor_regeneration_pedal_input=0,
-    motor_acceleration_paddle_input=0,
-    motor_regeneration_paddle_input=0,
-    motor_acceleration_cruise_control_input=0,
-    motor_regeneration_cruise_control_input=0,
+    motor_acceleration_input=0,
+    motor_regeneration_input=0,
+    motor_cruise_control_acceleration_input=0,
+    motor_cruise_control_regeneration_input=0,
     motor_status_input=False,
     motor_direction_input=Direction.FORWARD,
     motor_economical_mode_input=True,
     motor_variable_field_magnet_up_input=0,
     motor_variable_field_magnet_down_input=0,
-    motor_revolution_period=inf,
     motor_speed=0,
-    motor_cruise_control_speed=None,
+    motor_cruise_control_status_input=False,
+    motor_cruise_control_speed=17,
 
     # Power
 
@@ -82,101 +73,144 @@ CONTEXTS: Contexts = Contexts(
     # Telemetry
 )
 
+NHD_C12864A1Z_FSW_FBW_HTT: NHDC12864A1ZFSWFBWHTT = (
+    NHDC12864A1ZFSWFBWHTT(
+        MagicMock(mode=0b11, max_speed=1e6, bit_order='msb', extra_flags=None),
+        MagicMock(direction='out', inverted=False),
+        MagicMock(direction='out', inverted=True),
+    )
+)
+
+STEERING_WHEEL_MCP23S17: MCP23S17 = MCP23S17(
+    MagicMock(),
+    MagicMock(),
+    MagicMock(),
+    MagicMock(
+        mode=0b11,
+        max_speed=1e6,
+        bit_order='msb',
+        bits_per_word=8,
+        extra_flags=None,
+        transfer=lambda data: [0] * len(data),
+    ),
+)
+
+SHIFT_SWITCH_PRB: PRB = MagicMock()
+
+LEFT_INDICATOR_LIGHT_SWITCH_PRBS: PRBS = MagicMock()
+RIGHT_INDICATOR_LIGHT_SWITCH_PRBS: PRBS = MagicMock()
+HAZARD_LIGHTS_SWITCH_PRBS: PRBS = MagicMock()
+DAYTIME_RUNNING_LIGHTS_SWITCH_PRBS: PRBS = MagicMock()
+HORN_SWITCH_PRBS: PRBS = MagicMock()
+BACKUP_CAMERA_CONTROL_SWITCH_PRBS: PRBS = MagicMock()
+DISPLAY_BACKLIGHT_SWITCH_PRBS: PRBS = MagicMock()
+BRAKE_SWITCH_GPIO: GPIO = MagicMock()
+
+ACCELERATION_INPUT_ROTARY_ENCODER_A_GPIO: GPIO = MagicMock(direction='in')
+ACCELERATION_INPUT_ROTARY_ENCODER_B_GPIO: GPIO = MagicMock(direction='in')
+DIRECTION_SWITCH_PRBS: PRBS = MagicMock()
+REGENERATION_SWITCH_PRBS: PRBS = MagicMock()
+VARIABLE_FIELD_MAGNET_UP_SWITCH_PRBS: PRBS = MagicMock()
+VARIABLE_FIELD_MAGNET_DOWN_SWITCH_PRBS: PRBS = MagicMock()
+CRUISE_CONTROL_SWITCH_PRBS: PRBS = MagicMock()
+
+ARRAY_RELAY_SWITCH_PRBS: PRBS = MagicMock()
+BATTERY_RELAY_SWITCH_PRBS: PRBS = MagicMock()
+
+INDICATOR_LIGHTS_PWM: PWM = MagicMock()
+LEFT_INDICATOR_LIGHT_PWM: PWM = MagicMock()
+RIGHT_INDICATOR_LIGHT_PWM: PWM = MagicMock()
+DAYTIME_RUNNING_LIGHTS_PWM: PWM = MagicMock()
+BRAKE_LIGHTS_PWM: PWM = MagicMock()
+HORN_SWITCH_GPIO: GPIO = MagicMock()
+BACKUP_CAMERA_CONTROL_SWITCH_GPIO: GPIO = MagicMock()
+DISPLAY_BACKLIGHT_SWITCH_GPIO: GPIO = MagicMock()
+
+MOTOR_CONTROLLER_SQUARED: MotorControllerSquared = MagicMock()
+
+BATTERY_RELAY_LS_GPIO: GPIO = MagicMock()
+BATTERY_RELAY_HS_GPIO: GPIO = MagicMock()
+BATTERY_RELAY_PC_GPIO: GPIO = MagicMock()
+
+RADIO_SERIAL: Serial = MagicMock()
+
 PERIPHERIES: Peripheries = Peripheries(
     # Debugger
 
     # Display
 
-    display_nhd_c12864a1z_fsw_fbw_htt=NHDC12864A1ZFSWFBWHTT(
-        MagicMock(mode=0b11, max_speed=1e6, bit_order='msb', extra_flags=None),
-        MagicMock(),
-        MagicMock(),
-    ),
+    display_nhd_c12864a1z_fsw_fbw_htt=NHD_C12864A1Z_FSW_FBW_HTT,
 
     # Driver
 
-    # TODO: put proper input channel/port-register-bit (prb)
+    driver_steering_wheel_mcp23s17=STEERING_WHEEL_MCP23S17,
 
-    driver_adc78h89=ADC78H89(
-        MagicMock(
-            mode=0b11,
-            max_speed=1e6,
-            bit_order='msb',
-            bits_per_word=8,
-            extra_flags=None,
-            transfer=lambda data: [0] * len(data),
-        ),
-        3.3,
+    driver_shift_switch_prb=SHIFT_SWITCH_PRB,
+
+    driver_miscellaneous_left_indicator_light_switch_prbs=(
+        LEFT_INDICATOR_LIGHT_SWITCH_PRBS
     ),
-
-    driver_motor_acceleration_pedal_input_channel=InputChannel.AIN1,
-    driver_motor_regeneration_pedal_input_channel=InputChannel.AIN1,
-    driver_motor_acceleration_paddle_input_channel=InputChannel.AIN1,
-    driver_motor_regeneration_paddle_input_channel=InputChannel.AIN1,
-    driver_miscellaneous_thermistor_input_channel=InputChannel.AIN1,
-
-    driver_mcp23s17=MCP23S17(
-        MagicMock(),
-        MagicMock(),
-        MagicMock(),
-        MagicMock(
-            mode=0b11,
-            max_speed=1e6,
-            bit_order='msb',
-            bits_per_word=8,
-            extra_flags=None,
-            transfer=lambda data: [0] * len(data),
-        ),
+    driver_miscellaneous_right_indicator_light_switch_prbs=(
+        RIGHT_INDICATOR_LIGHT_SWITCH_PRBS
     ),
+    driver_miscellaneous_hazard_lights_switch_prbs=HAZARD_LIGHTS_SWITCH_PRBS,
+    driver_miscellaneous_daytime_running_lights_switch_prbs=(
+        DAYTIME_RUNNING_LIGHTS_SWITCH_PRBS
+    ),
+    driver_miscellaneous_horn_switch_prbs=HORN_SWITCH_PRBS,
+    driver_miscellaneous_backup_camera_control_switch_prbs=(
+        BACKUP_CAMERA_CONTROL_SWITCH_PRBS
+    ),
+    driver_miscellaneous_display_backlight_switch_prbs=(
+        DISPLAY_BACKLIGHT_SWITCH_PRBS
+    ),
+    driver_miscellaneous_brake_switch_gpio=BRAKE_SWITCH_GPIO,
 
-    driver_motor_direction_switch_prb=PRB.GPIOA_GP0,
-    driver_motor_variable_field_magnet_up_switch_prb=PRB.GPIOA_GP0,
-    driver_motor_variable_field_magnet_down_switch_prb=PRB.GPIOA_GP0,
+    driver_motor_acceleration_input_rotary_encoder_a_gpio=(
+        ACCELERATION_INPUT_ROTARY_ENCODER_A_GPIO
+    ),
+    driver_motor_acceleration_input_rotary_encoder_b_gpio=(
+        ACCELERATION_INPUT_ROTARY_ENCODER_B_GPIO
+    ),
+    driver_motor_direction_switch_prbs=DIRECTION_SWITCH_PRBS,
+    driver_motor_regeneration_switch_prbs=REGENERATION_SWITCH_PRBS,
+    driver_motor_variable_field_magnet_up_switch_prbs=(
+        VARIABLE_FIELD_MAGNET_UP_SWITCH_PRBS
+    ),
+    driver_motor_variable_field_magnet_down_switch_prbs=(
+        VARIABLE_FIELD_MAGNET_DOWN_SWITCH_PRBS
+    ),
+    driver_motor_cruise_control_switch_prbs=CRUISE_CONTROL_SWITCH_PRBS,
 
-    driver_miscellaneous_left_indicator_light_switch_prb=PRB.GPIOA_GP0,
-    driver_miscellaneous_right_indicator_light_switch_prb=PRB.GPIOA_GP0,
-    driver_miscellaneous_hazard_lights_switch_prb=PRB.GPIOA_GP0,
-    driver_miscellaneous_daytime_running_lights_switch_prb=PRB.GPIOA_GP0,
-    driver_miscellaneous_horn_switch_prb=PRB.GPIOA_GP0,
-    driver_miscellaneous_fan_switch_prb=PRB.GPIOA_GP0,
-    driver_miscellaneous_backup_camera_control_switch_prb=PRB.GPIOA_GP0,
-    driver_miscellaneous_brake_pedal_switch_prb=PRB.GPIOA_GP0,
-
-    driver_power_array_relay_switch_prb=PRB.GPIOA_GP0,
-    driver_power_battery_relay_switch_prb=PRB.GPIOA_GP0,
-
-    driver_display_steering_wheel_in_place_switch_prb=PRB.GPIOA_GP0,
-    driver_display_left_directional_pad_switch_prb=PRB.GPIOA_GP0,
-    driver_display_right_directional_pad_switch_prb=PRB.GPIOA_GP0,
-    driver_display_up_directional_pad_switch_prb=PRB.GPIOA_GP0,
-    driver_display_down_directional_pad_switch_prb=PRB.GPIOA_GP0,
-    driver_display_center_directional_pad_switch_prb=PRB.GPIOA_GP0,
+    driver_power_array_relay_switch_prbs=ARRAY_RELAY_SWITCH_PRBS,
+    driver_power_battery_relay_switch_prbs=BATTERY_RELAY_SWITCH_PRBS,
 
     # Miscellaneous
 
-    miscellaneous_indicator_lights_pwm=MagicMock(),
-    miscellaneous_left_indicator_light_pwm=MagicMock(),
-    miscellaneous_right_indicator_light_pwm=MagicMock(),
-    miscellaneous_daytime_running_lights_pwm=MagicMock(),
-    miscellaneous_brake_lights_pwm=MagicMock(),
-    miscellaneous_horn_switch_gpio=MagicMock(),
-    miscellaneous_fan_switch_gpio=MagicMock(),
+    miscellaneous_indicator_lights_pwm=INDICATOR_LIGHTS_PWM,
+    miscellaneous_left_indicator_light_pwm=LEFT_INDICATOR_LIGHT_PWM,
+    miscellaneous_right_indicator_light_pwm=RIGHT_INDICATOR_LIGHT_PWM,
+    miscellaneous_daytime_running_lights_pwm=DAYTIME_RUNNING_LIGHTS_PWM,
+    miscellaneous_brake_lights_pwm=BRAKE_LIGHTS_PWM,
+    miscellaneous_horn_switch_gpio=HORN_SWITCH_GPIO,
+    miscellaneous_backup_camera_control_switch_gpio=(
+        BACKUP_CAMERA_CONTROL_SWITCH_GPIO
+    ),
+    miscellaneous_display_backlight_switch_gpio=DISPLAY_BACKLIGHT_SWITCH_GPIO,
 
     # Motor
 
-    motor_mc2=MagicMock(),
+    motor_controller_squared=MOTOR_CONTROLLER_SQUARED,
 
     # Power
 
-    power_pptmb_spi=MagicMock(),
-    power_bms_spi=MagicMock(),
-    power_battery_relay_ls_gpio=MagicMock(),
-    power_battery_relay_hs_gpio=MagicMock(),
-    power_battery_relay_pc_gpio=MagicMock(),
+    power_battery_relay_ls_gpio=BATTERY_RELAY_LS_GPIO,
+    power_battery_relay_hs_gpio=BATTERY_RELAY_HS_GPIO,
+    power_battery_relay_pc_gpio=BATTERY_RELAY_PC_GPIO,
 
     # Telemetry
 
-    telemetry_serial=MagicMock(),
+    telemetry_radio_serial=RADIO_SERIAL,
 )
 
 SETTINGS: Settings = Settings(
@@ -190,28 +224,9 @@ SETTINGS: Settings = Settings(
     # Driver
 
     driver_timeout=0.01,
-
-    # TODO: put proper values below
-
-    driver_motor_acceleration_pedal_input_range=(0, 1),
-    driver_motor_regeneration_pedal_input_range=(0, 1),
-    driver_motor_acceleration_paddle_input_range=(0, 1),
-    driver_motor_regeneration_paddle_input_range=(0, 1),
-    driver_miscellaneous_thermistor_input_range=(0, 1),
-    driver_miscellaneous_thermistor_output_range=(0, 1),
+    driver_acceleration_input_step=0.1,
 
     # Miscellaneous
-
-    miscellaneous_indicator_lights_pwm_period=0.8,
-    miscellaneous_indicator_lights_pwm_duty_cycle=0.5,
-    miscellaneous_left_indicator_light_pwm_period=0.001,
-    miscellaneous_left_indicator_light_pwm_duty_cycle=0.25,
-    miscellaneous_right_indicator_light_pwm_period=0.001,
-    miscellaneous_right_indicator_light_pwm_duty_cycle=0.25,
-    miscellaneous_daytime_running_lights_pwm_period=0.001,
-    miscellaneous_daytime_running_lights_pwm_duty_cycle=0.25,
-    miscellaneous_brake_lights_pwm_period=0.001,
-    miscellaneous_brake_lights_pwm_duty_cycle=0.25,
 
     miscellaneous_light_timeout=0.1,
 

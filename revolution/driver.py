@@ -1,11 +1,14 @@
+from collections import defaultdict
 from dataclasses import dataclass
 from logging import getLogger
 from typing import ClassVar
 
 from iclib.mcp23s17 import Port, PortRegister as PR, Register
+from iclib.rotary_encoder import RotaryEncoder
 
 from revolution.application import Application
 from revolution.environment import Endpoint
+from revolution.utilities import PRBS
 from revolution.worker import Worker
 
 _logger = getLogger(__name__)
@@ -14,115 +17,102 @@ _logger = getLogger(__name__)
 @dataclass
 class Driver(Application):
     endpoint: ClassVar[Endpoint] = Endpoint.DRIVER
-    INPUT_CHANNELS: ClassVar[dict[str, tuple[str, tuple[str, str | None]]]] = {
-        # 'driver_motor_acceleration_pedal_input_channel': (
-        #     'motor_acceleration_pedal_input',
-        #     ('driver_motor_acceleration_pedal_input_range', None),
-        # ),
-        # 'driver_motor_regeneration_pedal_input_channel': (
-        #     'motor_regeneration_pedal_input',
-        #     ('driver_motor_regeneration_pedal_input_range', None),
-        # ),
-        # 'driver_motor_acceleration_paddle_input_channel': (
-        #     'motor_acceleration_paddle_input',
-        #     ('driver_motor_acceleration_paddle_input_range', None),
-        # ),
-        # 'driver_motor_regeneration_paddle_input_channel': (
-        #     'motor_regeneration_paddle_input',
-        #     ('driver_motor_regeneration_paddle_input_range', None),
-        # ),
-
-        # 'driver_miscellaneous_thermistor_input_channel': (
-        #     'miscellaneous_thermistor_temperature',
-        #     (
-        #         'driver_miscellaneous_thermistor_input_range',
-        #         'driver_miscellaneous_thermistor_output_range',
-        #     ),
-        # ),
-    }
     MOMENTARY_SWITCHES: ClassVar[dict[str, str]] = {
-        'driver_motor_direction_switch_prb': (
+        'driver_miscellaneous_left_indicator_light_switch_prbs': (
+            'miscellaneous_left_indicator_light_status_input'
+        ),
+        'driver_miscellaneous_right_indicator_light_switch_prbs': (
+            'miscellaneous_right_indicator_light_status_input'
+        ),
+        'driver_miscellaneous_horn_switch_prbs': (
+            'miscellaneous_horn_status_input'
+        ),
+
+        'driver_motor_direction_switch_prbs': (
             'motor_direction_input'
         ),
-
-        # 'driver_miscellaneous_left_indicator_light_switch_prb': (
-        #     'miscellaneous_left_indicator_light_status_input'
-        # ),
-        # 'driver_miscellaneous_right_indicator_light_switch_prb': (
-        #     'miscellaneous_right_indicator_light_status_input'
-        # ),
-        # 'driver_miscellaneous_hazard_lights_switch_prb': (
-        #     'miscellaneous_hazard_lights_status_input'
-        # ),
-        # 'driver_miscellaneous_horn_switch_prb': (
-        #     'miscellaneous_horn_status_input'
-        # ),
-        # 'driver_miscellaneous_brake_pedal_switch_prb': (
-        #     'miscellaneous_brake_status_input'
-        # ),
-
-        # 'driver_display_steering_wheel_in_place_switch_prb': (
-        #     'display_steering_wheel_in_place_status_input'
-        # ),
-        # 'driver_display_left_directional_pad_switch_prb': (
-        #     'display_left_directional_pad_input'
-        # ),
-        # 'driver_display_right_directional_pad_switch_prb': (
-        #     'display_right_directional_pad_input'
-        # ),
-        # 'driver_display_up_directional_pad_switch_prb': (
-        #     'display_up_directional_pad_input'
-        # ),
-        # 'driver_display_down_directional_pad_switch_prb': (
-        #     'display_down_directional_pad_input'
-        # ),
-        # 'driver_display_center_directional_pad_switch_prb': (
-        #     'display_center_directional_pad_input'
-        # ),
-
-        'driver_power_battery_relay_switch_prb': (
-            'power_battery_relay_status_input'
+        'driver_motor_regeneration_switch_prbs': (
+            'motor_regeneration_input'
         ),
-        'driver_power_array_relay_switch_prb': (
+
+        'driver_power_array_relay_switch_prbs': (
             'power_array_relay_status_input'
+        ),
+        'driver_power_battery_relay_switch_prbs': (
+            'power_battery_relay_status_input'
         ),
     }
     TOGGLING_SWITCHES: ClassVar[dict[str, str]] = {
-        # 'driver_miscellaneous_daytime_running_lights_switch_prb': (
-        #     'miscellaneous_daytime_running_lights_status_input'
-        # ),
-        # 'driver_miscellaneous_fan_switch_prb': (
-        #     'miscellaneous_fan_status_input'
-        # ),
-        # 'driver_miscellaneous_backup_camera_control_switch_prb': (
-        #     'display_backup_camera_control_status_input'
-        # ),
+        'driver_miscellaneous_hazard_lights_switch_prbs': (
+            'miscellaneous_hazard_lights_status_input'
+        ),
+        'driver_miscellaneous_daytime_running_lights_switch_prbs': (
+            'miscellaneous_daytime_running_lights_status_input'
+        ),
+        'driver_miscellaneous_backup_camera_control_switch_prbs': (
+            'miscellaneous_backup_camera_control_status_input'
+        ),
+        'driver_miscellaneous_display_backlight_switch_prbs': (
+            'miscellaneous_display_backlight_status_input'
+        ),
+        'driver_motor_cruise_control_switch_prbs': (
+            'motor_cruise_control_status_input'
+        ),
     }
     ADDITIVE_SWITCHES: ClassVar[dict[str, str]] = {
-        # 'driver_motor_variable_field_magnet_up_switch_prb': (
-        #     'motor_variable_field_magnet_up_input'
-        # ),
-        # 'driver_motor_variable_field_magnet_down_switch_prb': (
-        #     'motor_variable_field_magnet_down_input'
-        # ),
+        'driver_motor_variable_field_magnet_up_switch_prbs': (
+            'motor_variable_field_magnet_up_input'
+        ),
+        'driver_motor_variable_field_magnet_down_switch_prbs': (
+            'motor_variable_field_magnet_down_input'
+        ),
     }
 
     def _setup(self) -> None:
         super()._setup()
+
+        def callback(direction: RotaryEncoder.Direction) -> None:
+            with self.environment.contexts() as contexts:
+                acceleration_input = contexts.motor_acceleration_input
+                acceleration_input += (
+                    direction
+                    * self.environment.settings.driver_acceleration_input_step
+                )
+
+                if acceleration_input < 0:
+                    acceleration_input = 0
+                elif acceleration_input > 1:
+                    acceleration_input = 1
+
+                contexts.motor_acceleration_input = acceleration_input
+
+        self._rotary_encoder = RotaryEncoder(
+            (
+                self
+                .environment
+                .peripheries
+                .driver_motor_acceleration_input_rotary_encoder_a_gpio
+            ),
+            (
+                self
+                .environment
+                .peripheries
+                .driver_motor_acceleration_input_rotary_encoder_b_gpio
+            ),
+            callback,
+            self.environment.settings.driver_timeout,
+        )
 
         self._driver_worker = Worker(target=self._driver)
 
         self._driver_worker.start()
 
     def _teardown(self) -> None:
+        self._rotary_encoder.stop()
         self._driver_worker.join()
 
     def _driver(self) -> None:
-        previous_lookup = {}
-
-        for i in range(8):
-            previous_lookup[Port.PORTA, Register.GPIO, i] = False
-            previous_lookup[Port.PORTB, Register.GPIO, i] = False
+        previous_lookup = defaultdict[PRBS, bool](bool)
 
         while (
                 not self._stoppage.wait(
@@ -130,87 +120,69 @@ class Driver(Application):
                 )
         ):
             gpioa_byte = (
-                self.environment.peripheries.driver_mcp23s17.read_register(
-                    *PR.GPIOA,
-                )[0]
+                self
+                .environment
+                .peripheries
+                .driver_steering_wheel_mcp23s17
+                .read_register(*PR.GPIOA)[0]
             )
             gpiob_byte = (
-                self.environment.peripheries.driver_mcp23s17.read_register(
-                    *PR.GPIOB,
-                )[0]
+                self
+                .environment
+                .peripheries
+                .driver_steering_wheel_mcp23s17
+                .read_register(*PR.GPIOB)[0]
             )
-            lookup = {}
+            bytes_ = {}
 
             for i in range(8):
-                lookup[Port.PORTA, Register.GPIO, i] = (
+                bytes_[Port.PORTA, Register.GPIO, i] = (
                     not bool(
                         gpioa_byte & (1 << i),
                     )
                 )
-                lookup[Port.PORTB, Register.GPIO, i] = (
+                bytes_[Port.PORTB, Register.GPIO, i] = (
                     not bool(
                         gpiob_byte & (1 << i),
                     )
                 )
 
-            voltages = (
-                self.environment.peripheries.driver_adc78h89.sample_all()
+            shift = bytes_.get(
+                self.environment.peripheries.driver_shift_switch_prb,
+                False,
+            )
+            lookup = defaultdict[PRBS, bool](bool)
+
+            for prb, bit in bytes_.items():
+                lookup[prb] = bit
+                lookup[prb, shift] = bit
+
+            brake_status_input = (
+                self
+                .environment
+                .peripheries
+                .driver_miscellaneous_brake_switch_gpio
+                .read()
             )
 
             with self.environment.contexts() as contexts:
-                for (
-                        key,
-                        (value_name, (input_range_name, output_range_name)),
-                ) in self.INPUT_CHANNELS.items():
-                    voltage = (
-                        voltages[getattr(self.environment.peripheries, key)]
-                    )
+                for raw_prbs, value in self.MOMENTARY_SWITCHES.items():
+                    prbs = getattr(self.environment.peripheries, raw_prbs)
 
-                    if input_range_name is None:
-                        input_range = None
-                    else:
-                        input_range = getattr(
-                            self.environment.settings,
-                            input_range_name,
-                        )
+                    setattr(contexts, value, lookup[prbs])
 
-                    if output_range_name is None:
-                        output_range = None
-                    else:
-                        output_range = getattr(
-                            self.environment.settings,
-                            output_range_name,
-                        )
+                for raw_prbs, value in self.TOGGLING_SWITCHES.items():
+                    prbs = getattr(self.environment.peripheries, raw_prbs)
 
-                    if input_range is not None:
-                        voltage = (
-                            (voltage - input_range[0])
-                            / (input_range[1] - input_range[0])
-                        )
-
-                    if output_range is not None:
-                        voltage = (
-                            voltage * (output_range[1] - output_range[0])
-                            + output_range[0]
-                        )
-
-                    setattr(contexts, value_name, voltage)
-
-                for key, value in self.MOMENTARY_SWITCHES.items():
-                    prb = getattr(self.environment.peripheries, key)
-
-                    setattr(contexts, value, lookup[prb])
-
-                for key, value in self.TOGGLING_SWITCHES.items():
-                    prb = getattr(self.environment.peripheries, key)
-
-                    if previous_lookup[prb] != lookup[prb] and lookup[prb]:
+                    if not previous_lookup[prbs] and lookup[prbs]:
                         setattr(contexts, value, not getattr(contexts, value))
 
-                for key, value in self.ADDITIVE_SWITCHES.items():
-                    prb = getattr(self.environment.peripheries, key)
+                for raw_prbs, value in self.ADDITIVE_SWITCHES.items():
+                    prbs = getattr(self.environment.peripheries, raw_prbs)
 
-                    if previous_lookup[prb] != lookup[prb] and lookup[prb]:
+                    if not previous_lookup[prbs] and lookup[prbs]:
                         setattr(contexts, value, 1 + getattr(contexts, value))
+
+                contexts.miscellaneous_brake_status_input = brake_status_input
 
             previous_lookup = lookup
