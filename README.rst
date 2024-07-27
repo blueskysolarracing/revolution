@@ -2,8 +2,7 @@
 Revolution
 ==========
 
-Revolution is the software for the next generation electrical system
-for Blue Sky Solar Racing.
+Revolution is the software for the next generation electrical system for Blue Sky Solar Racing.
 
 Project Setup
 =============
@@ -85,7 +84,7 @@ Build the docker image.
 
 .. code-block:: sh
 
-   docker build -t blueskysolarracing/revolution:<version> .
+   docker build --no-cache -t blueskysolarracing/revolution:<version> .
 
 Push the docker image.
 
@@ -93,9 +92,8 @@ Push the docker image.
 
    docker push blueskysolarracing/revolution:<version>
 
-In deployment platform, pull the docker image and run as a docker
-container in detached mode.
+In deployment platform, pull the docker image and run as a docker container in detached mode and make it always restart.
 
 .. code-block:: sh
 
-   docker run -d -v /dev:/dev -v /sys/class/pwm:/sys/class/pwm blueskysolarracing/revolution:<version>
+   docker run -d --name revolution --privileged --restart always -v /dev:/dev -v /sys/class/pwm:/sys/class/pwm blueskysolarracing/revolution:<version>

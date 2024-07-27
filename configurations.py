@@ -12,16 +12,16 @@ from revolution import (
     Contexts,
     Debugger,
     Direction,
-    Display,
+    # Display,
     Driver,
-    Miscellaneous,
+    # Miscellaneous,
     Motor,
     MotorControllerSquared,
     Peripheries,
     Power,
     PRBS,
     Settings,
-    Telemetry,
+    # Telemetry,
 )
 
 APPLICATION_TYPES: tuple[type[Application], ...] = (

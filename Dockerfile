@@ -1,7 +1,9 @@
-FROM --platform=linux/arm64 python:3.11
+FROM python:3.11-alpine
 
-COPY . .
+RUN apk update && apk add --no-cache build-base git libffi-dev
+RUN git clone https://github.com/blueskysolarracing/revolution.git
+WORKDIR /revolution
 RUN pip install --upgrade pip && pip install -r requirements.txt
-ARG REVOLUTION_CONFIGURATIONS_MODULE=configurations
+ENV REVOLUTION_CONFIGURATIONS_MODULE=configurations
 
-CMD ["python3", "-m", "revolution"]
+CMD ["python", "-m", "revolution"]
