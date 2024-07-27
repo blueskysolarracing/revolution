@@ -106,8 +106,8 @@ BACKUP_CAMERA_CONTROL_SWITCH_PRBS: PRBS = MagicMock()
 DISPLAY_BACKLIGHT_SWITCH_PRBS: PRBS = MagicMock()
 BRAKE_SWITCH_GPIO: GPIO = MagicMock()
 
-ACCELERATION_INPUT_ROTARY_ENCODER_A_GPIO: GPIO = MagicMock(direction='in')
-ACCELERATION_INPUT_ROTARY_ENCODER_B_GPIO: GPIO = MagicMock(direction='in')
+ACCELERATION_INPUT_ROTARY_ENCODER_A_PRBS: PRBS = MagicMock()
+ACCELERATION_INPUT_ROTARY_ENCODER_B_PRBS: PRBS = MagicMock()
 DIRECTION_SWITCH_PRBS: PRBS = MagicMock()
 REGENERATION_SWITCH_PRBS: PRBS = MagicMock()
 VARIABLE_FIELD_MAGNET_UP_SWITCH_PRBS: PRBS = MagicMock()
@@ -166,11 +166,11 @@ PERIPHERIES: Peripheries = Peripheries(
     ),
     driver_miscellaneous_brake_switch_gpio=BRAKE_SWITCH_GPIO,
 
-    driver_motor_acceleration_input_rotary_encoder_a_gpio=(
-        ACCELERATION_INPUT_ROTARY_ENCODER_A_GPIO
+    driver_motor_acceleration_input_rotary_encoder_a_prbs=(
+        ACCELERATION_INPUT_ROTARY_ENCODER_A_PRBS
     ),
-    driver_motor_acceleration_input_rotary_encoder_b_gpio=(
-        ACCELERATION_INPUT_ROTARY_ENCODER_B_GPIO
+    driver_motor_acceleration_input_rotary_encoder_b_prbs=(
+        ACCELERATION_INPUT_ROTARY_ENCODER_B_PRBS
     ),
     driver_motor_direction_switch_prbs=DIRECTION_SWITCH_PRBS,
     driver_motor_regeneration_switch_prbs=REGENERATION_SWITCH_PRBS,

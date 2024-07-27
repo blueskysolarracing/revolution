@@ -26,12 +26,12 @@ from revolution import (
 
 APPLICATION_TYPES: tuple[type[Application], ...] = (
     Debugger,
-    Display,
+    # Display,
     Driver,
-    Miscellaneous,
+    # Miscellaneous,
     Motor,
     Power,
-    Telemetry,
+    # Telemetry,
 )
 
 CONTEXTS: Contexts = Contexts(
@@ -96,25 +96,12 @@ NHD_C12864A1Z_FSW_FBW_HTT: NHDC12864A1ZFSWFBWHTT = (
         cast(
             SPI,
             ManualCSSPI(
-                MagicMock(),  # TODO
+                MagicMock(inverted=True),  # TODO
                 STEERING_WHEEL_SPI,
             ),
         ),
-        cast(
-            GPIO,
-            STEERING_WHEEL_MCP23S17.get_line(  # type: ignore[call-arg]
-                *PRB.GPIOA_GP5,
-                'out',
-            ),
-        ),
-        cast(
-            GPIO,
-            STEERING_WHEEL_MCP23S17.get_line(  # type: ignore[call-arg, misc]
-                *PRB.GPIOB_GP6,
-                'out',
-                inverted=True,
-            ),
-        ),
+        MagicMock(direction='out', inverted=False),  # PRB.GPIOA_GP5
+        MagicMock(direction='out', inverted=True),  # PRB.GPIOA_GP6
     )
 )
 
@@ -129,22 +116,8 @@ BACKUP_CAMERA_CONTROL_SWITCH_PRBS: PRBS = PRB.GPIOA_GP0, True
 DISPLAY_BACKLIGHT_SWITCH_PRBS: PRBS = PRB.GPIOA_GP1, False
 BRAKE_SWITCH_GPIO: GPIO = MagicMock()  # TODO
 
-ACCELERATION_INPUT_ROTARY_ENCODER_A_GPIO: GPIO = cast(
-    GPIO,
-    STEERING_WHEEL_MCP23S17.get_line(  # type: ignore[call-arg, misc]
-        *PRB.GPIOA_GP2,
-        'in',
-        inverted=True,
-    ),
-)
-ACCELERATION_INPUT_ROTARY_ENCODER_B_GPIO: GPIO = cast(
-    GPIO,
-    STEERING_WHEEL_MCP23S17.get_line(  # type: ignore[call-arg, misc]
-        *PRB.GPIOB_GP3,
-        'in',
-        inverted=True,
-    ),
-)
+ACCELERATION_INPUT_ROTARY_ENCODER_A_PRBS: PRBS = PRB.GPIOA_GP2
+ACCELERATION_INPUT_ROTARY_ENCODER_B_PRBS: PRBS = PRB.GPIOA_GP3
 DIRECTION_SWITCH_PRBS: PRBS = PRB.GPIOB_GP3
 REGENERATION_SWITCH_PRBS: PRBS = PRB.GPIOA_GP0, False
 VARIABLE_FIELD_MAGNET_UP_SWITCH_PRBS: PRBS = PRB.GPIOB_GP2
@@ -245,11 +218,11 @@ PERIPHERIES: Peripheries = Peripheries(
     ),
     driver_miscellaneous_brake_switch_gpio=BRAKE_SWITCH_GPIO,
 
-    driver_motor_acceleration_input_rotary_encoder_a_gpio=(
-        ACCELERATION_INPUT_ROTARY_ENCODER_A_GPIO
+    driver_motor_acceleration_input_rotary_encoder_a_prbs=(
+        ACCELERATION_INPUT_ROTARY_ENCODER_A_PRBS
     ),
-    driver_motor_acceleration_input_rotary_encoder_b_gpio=(
-        ACCELERATION_INPUT_ROTARY_ENCODER_B_GPIO
+    driver_motor_acceleration_input_rotary_encoder_b_prbs=(
+        ACCELERATION_INPUT_ROTARY_ENCODER_B_PRBS
     ),
     driver_motor_direction_switch_prbs=DIRECTION_SWITCH_PRBS,
     driver_motor_regeneration_switch_prbs=REGENERATION_SWITCH_PRBS,
@@ -302,7 +275,7 @@ SETTINGS: Settings = Settings(
 
     # Driver
 
-    driver_timeout=0.01,
+    driver_timeout=0.001,
     driver_acceleration_input_step=0.1,
 
     # Miscellaneous

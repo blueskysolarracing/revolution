@@ -4,7 +4,6 @@ from logging import getLogger
 from typing import ClassVar
 
 from iclib.mcp23s17 import Port, PortRegister as PR, Register
-from iclib.rotary_encoder import RotaryEncoder
 
 from revolution.application import Application
 from revolution.environment import Endpoint
@@ -67,48 +66,23 @@ class Driver(Application):
             'motor_variable_field_magnet_down_input'
         ),
     }
+    ROTARY_ENCODERS: ClassVar[
+        dict[tuple[str, str], tuple[str, tuple[float, float, float]]]
+    ] = {
+        (
+            'driver_motor_acceleration_input_rotary_encoder_a_prbs',
+            'driver_motor_acceleration_input_rotary_encoder_b_prbs',
+        ): ('motor_acceleration_input', (0, 1, 0.1)),
+    }
 
     def _setup(self) -> None:
         super()._setup()
-
-        def callback(direction: RotaryEncoder.Direction) -> None:
-            with self.environment.contexts() as contexts:
-                acceleration_input = contexts.motor_acceleration_input
-                acceleration_input += (
-                    direction
-                    * self.environment.settings.driver_acceleration_input_step
-                )
-
-                if acceleration_input < 0:
-                    acceleration_input = 0
-                elif acceleration_input > 1:
-                    acceleration_input = 1
-
-                contexts.motor_acceleration_input = acceleration_input
-
-        self._rotary_encoder = RotaryEncoder(
-            (
-                self
-                .environment
-                .peripheries
-                .driver_motor_acceleration_input_rotary_encoder_a_gpio
-            ),
-            (
-                self
-                .environment
-                .peripheries
-                .driver_motor_acceleration_input_rotary_encoder_b_gpio
-            ),
-            callback,
-            self.environment.settings.driver_timeout,
-        )
 
         self._driver_worker = Worker(target=self._driver)
 
         self._driver_worker.start()
 
     def _teardown(self) -> None:
-        self._rotary_encoder.stop()
         self._driver_worker.join()
 
     def _driver(self) -> None:
@@ -137,14 +111,10 @@ class Driver(Application):
 
             for i in range(8):
                 bytes_[Port.PORTA, Register.GPIO, i] = (
-                    not bool(
-                        gpioa_byte & (1 << i),
-                    )
+                    not bool(gpioa_byte & (1 << i))
                 )
                 bytes_[Port.PORTB, Register.GPIO, i] = (
-                    not bool(
-                        gpiob_byte & (1 << i),
-                    )
+                    not bool(gpiob_byte & (1 << i))
                 )
 
             shift = bytes_.get(
@@ -184,5 +154,28 @@ class Driver(Application):
                         setattr(contexts, value, 1 + getattr(contexts, value))
 
                 contexts.miscellaneous_brake_status_input = brake_status_input
+
+                for (raw_a_prbs, raw_b_prbs), (value, (min_, max_, step)) in (
+                        self.ROTARY_ENCODERS.items()
+                ):
+                    a_prbs = getattr(self.environment.peripheries, raw_a_prbs)
+                    b_prbs = getattr(self.environment.peripheries, raw_b_prbs)
+                    direction = 0
+
+                    if previous_lookup[a_prbs] and previous_lookup[b_prbs]:
+                        if not lookup[a_prbs] and lookup[b_prbs]:
+                            direction = 1
+                        elif lookup[a_prbs] and not lookup[b_prbs]:
+                            direction = -1
+
+                    if direction:
+                        input_ = getattr(contexts, value) + direction * step
+
+                        if input_ < min_:
+                            input_ = min_
+                        elif input_ > max_:
+                            input_ = max_
+
+                        setattr(contexts, value, input_)
 
             previous_lookup = lookup
