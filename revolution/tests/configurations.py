@@ -62,7 +62,7 @@ CONTEXTS: Contexts = Contexts(
     motor_variable_field_magnet_down_input=0,
     motor_speed=0,
     motor_cruise_control_status_input=False,
-    motor_cruise_control_speed=17,
+    motor_cruise_control_speed=0,
 
     # Power
 

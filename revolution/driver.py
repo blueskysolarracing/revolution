@@ -155,6 +155,10 @@ class Driver(Application):
 
                 contexts.miscellaneous_brake_status_input = brake_status_input
 
+                if brake_status_input:
+                    contexts.motor_acceleration_input = 0
+                    contexts.motor_cruise_control_status_input = False
+
                 for (raw_a_prbs, raw_b_prbs), (value, (min_, max_, step)) in (
                         self.ROTARY_ENCODERS.items()
                 ):

@@ -57,12 +57,16 @@ class MotorControllerSquared:
         if not self.revolution_gpio.poll(self.revolution_timeout):
             return inf
 
+        self.revolution_gpio.read_event()
+
         timestamp = time()
 
         if not self.revolution_gpio.poll(self.revolution_timeout):
             return inf
 
-        return 24 * (time() - timestamp)
+        self.revolution_gpio.read_event()
+
+        return 32 * (time() - timestamp)
 
     @property
     def status(self) -> bool:

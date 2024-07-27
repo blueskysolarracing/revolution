@@ -65,7 +65,7 @@ CONTEXTS: Contexts = Contexts(
     motor_variable_field_magnet_down_input=0,
     motor_speed=0,
     motor_cruise_control_status_input=False,
-    motor_cruise_control_speed=17,
+    motor_cruise_control_speed=0,
 
     # Power
 
@@ -114,7 +114,7 @@ DAYTIME_RUNNING_LIGHTS_SWITCH_PRBS: PRBS = PRB.GPIOA_GP1, True
 HORN_SWITCH_PRBS: PRBS = PRB.GPIOB_GP7, False
 BACKUP_CAMERA_CONTROL_SWITCH_PRBS: PRBS = PRB.GPIOA_GP0, True
 DISPLAY_BACKLIGHT_SWITCH_PRBS: PRBS = PRB.GPIOA_GP1, False
-BRAKE_SWITCH_GPIO: GPIO = MagicMock()  # TODO
+BRAKE_SWITCH_GPIO: GPIO = GPIO('/dev/gpiochip6', 20, 'in', inverted=True)
 
 ACCELERATION_INPUT_ROTARY_ENCODER_A_PRBS: PRBS = PRB.GPIOA_GP2
 ACCELERATION_INPUT_ROTARY_ENCODER_B_PRBS: PRBS = PRB.GPIOA_GP3
@@ -177,7 +177,7 @@ MOTOR_CONTROLLER_SQUARED: MotorControllerSquared = MotorControllerSquared(
     GPIO('/dev/gpiochip6', 17, 'out'),
     GPIO('/dev/gpiochip6', 12, 'out'),
     GPIO('/dev/gpiochip6', 10, 'out'),
-    MagicMock(edge='both', inverted=False),
+    GPIO('/dev/gpiochip4', 17, 'in', edge='both'),
 )
 
 BATTERY_RELAY_LS_GPIO: GPIO = GPIO('/dev/gpiochip4', 2, 'out')
