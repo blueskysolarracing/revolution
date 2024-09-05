@@ -4,7 +4,7 @@ from iclib.mcp23s17 import MCP23S17, PortRegisterBit as PRB
 from iclib.nhd_c12864a1z_fsw_fbw_htt import NHDC12864A1ZFSWFBWHTT
 from periphery import GPIO, PWM, Serial
 
-from revolution import (
+from revolution import (  # noqa: F401
     Application,
     Contexts,
     Debugger,
@@ -28,7 +28,7 @@ APPLICATION_TYPES: tuple[type[Application], ...] = (
     Miscellaneous,
     Motor,
     Power,
-    Telemetry,
+    # Telemetry,
 )
 
 CONTEXTS: Contexts = Contexts(
@@ -81,18 +81,8 @@ NHD_C12864A1Z_FSW_FBW_HTT: NHDC12864A1ZFSWFBWHTT = (
     )
 )
 
-STEERING_WHEEL_MCP23S17: MCP23S17 = MCP23S17(
-    MagicMock(),
-    MagicMock(),
-    MagicMock(),
-    MagicMock(
-        mode=0b11,
-        max_speed=1e6,
-        bit_order='msb',
-        bits_per_word=8,
-        extra_flags=None,
-        transfer=lambda data: [0] * len(data),
-    ),
+STEERING_WHEEL_MCP23S17: MCP23S17 = MagicMock(
+    read_register=lambda *_: [0xFF],
 )
 
 SHIFT_SWITCH_PRB: PRB = MagicMock()
@@ -114,7 +104,7 @@ VARIABLE_FIELD_MAGNET_UP_SWITCH_PRBS: PRBS = MagicMock()
 VARIABLE_FIELD_MAGNET_DOWN_SWITCH_PRBS: PRBS = MagicMock()
 CRUISE_CONTROL_SWITCH_PRBS: PRBS = MagicMock()
 
-ARRAY_RELAY_SWITCH_PRBS: PRBS = MagicMock()
+ARRAY_RELAY_SWITCH_PRBS: PRBS = PRB.GPIOA_GP0
 BATTERY_RELAY_SWITCH_PRBS: PRBS = MagicMock()
 
 INDICATOR_LIGHTS_PWM: PWM = MagicMock()
