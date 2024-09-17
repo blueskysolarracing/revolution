@@ -13,18 +13,24 @@ from revolution.tests import configurations
 class DriverTestCase(TestCase):
     TIMEOUT: ClassVar[float] = 1
 
-    def test_array_relay_status(self) -> None:
-        environment = Environment(
+    def setUp(self) -> None:
+        self.environment = Environment(
             AcquirableDoor(configurations.CONTEXTS),
             configurations.PERIPHERIES,
             configurations.SETTINGS,
         )
-        driver_thread = Thread(target=Driver.main, args=(environment,))
+        self.driver_thread = Thread(target=Driver.main,
+                                    args=(self.environment,))
 
-        driver_thread.start()
+        self.driver_thread.start()
         sleep(self.TIMEOUT)
 
-        with environment.contexts() as contexts:
+    def tearDown(self) -> None:
+        self.environment.send_all(Message(Header.STOP))
+        self.driver_thread.join()
+
+    def test_array_relay_status(self) -> None:
+        with self.environment.contexts() as contexts:
             self.assertFalse(contexts.power_array_relay_status_input)
 
         (
@@ -35,12 +41,8 @@ class DriverTestCase(TestCase):
 
         sleep(self.TIMEOUT)
 
-        with environment.contexts() as contexts:
+        with self.environment.contexts() as contexts:
             self.assertTrue(contexts.power_array_relay_status_input)
-
-        environment.send_all(Message(Header.STOP))
-
-        driver_thread.join()
 
 
 if __name__ == '__main__':
