@@ -44,6 +44,21 @@ class DriverTestCase(TestCase):
         with self.environment.contexts() as contexts:
             self.assertTrue(contexts.power_array_relay_status_input)
 
+    def test_battery_relay_status(self) -> None:
+        with self.environment.contexts() as contexts:
+            self.assertFalse(contexts.power_battery_relay_status_input)
+
+        (
+            configurations  # type: ignore[method-assign]
+            .STEERING_WHEEL_MCP23S17
+            .read_register
+        ) = lambda *_: [0]
+
+        sleep(self.TIMEOUT)
+
+        with self.environment.contexts() as contexts:
+            self.assertTrue(contexts.power_battery_relay_status_input)
+
 
 if __name__ == '__main__':
     main()  # pragma: no cover
