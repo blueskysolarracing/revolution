@@ -57,6 +57,114 @@ class DriverTestCase(TestCase):
 
         with self.environment.contexts() as contexts:
             self.assertFalse(contexts.power_array_relay_status_input)
+    
+    def test_left_light_status(self) -> None: 
+        with self.environment.contexts() as contexts:
+            self.assertFalse(contexts.miscellaneous_left_indicator_light_status_input)
+
+        (
+            configurations  # type: ignore[method-assign]
+            .STEERING_WHEEL_MCP23S17
+            .read_register
+        ) = lambda *_: [0]
+
+        sleep(self.TIMEOUT)
+
+        with self.environment.contexts() as contexts:
+            self.assertTrue(contexts.miscellaneous_left_indicator_light_status_input)
+
+        (
+            configurations  # type: ignore[method-assign]
+            .STEERING_WHEEL_MCP23S17
+            .read_register
+        ) = lambda *_: [0xFF]
+
+        sleep(self.TIMEOUT)
+
+        with self.environment.contexts() as contexts:
+            self.assertFalse(contexts.miscellaneous_left_indicator_light_status_input)
+
+    
+    def test_right_light_status(self) -> None: 
+        with self.environment.contexts() as contexts:
+            self.assertFalse(contexts.miscellaneous_right_indicator_light_status_input)
+
+        (
+            configurations  # type: ignore[method-assign]
+            .STEERING_WHEEL_MCP23S17
+            .read_register
+        ) = lambda *_: [0]
+
+        sleep(self.TIMEOUT)
+
+        with self.environment.contexts() as contexts:
+            self.assertTrue(contexts.miscellaneous_right_indicator_light_status_input)
+
+        (
+            configurations  # type: ignore[method-assign]
+            .STEERING_WHEEL_MCP23S17
+            .read_register
+        ) = lambda *_: [0xFF]
+
+        sleep(self.TIMEOUT)
+
+        with self.environment.contexts() as contexts:
+            self.assertFalse(contexts.miscellaneous_right_indicator_light_status_input)
+
+    
+    def motor_variable_field_magnet_up_input(self) -> None: 
+        with self.environment.contexts() as contexts:
+            self.assertFalse(contexts.motor_variable_field_magnet_up_input)
+
+        (
+            configurations  # type: ignore[method-assign]
+            .STEERING_WHEEL_MCP23S17
+            .read_register
+        ) = lambda *_: [0]
+
+        sleep(self.TIMEOUT)
+
+        with self.environment.contexts() as contexts:
+            self.assertTrue(contexts.motor_variable_field_magnet_up_input)
+
+        (
+            configurations  # type: ignore[method-assign]
+            .STEERING_WHEEL_MCP23S17
+            .read_register
+        ) = lambda *_: [0xFF]
+
+        sleep(self.TIMEOUT)
+
+        with self.environment.contexts() as contexts:
+            self.assertFalse(contexts.motor_variable_field_magnet_up_input)
+    
+    
+
+    def motor_variable_field_magnet_down_input(self) -> None: 
+        with self.environment.contexts() as contexts:
+            self.assertFalse(contexts.motor_variable_field_magnet_down_input)
+
+        (
+            configurations  # type: ignore[method-assign]
+            .STEERING_WHEEL_MCP23S17
+            .read_register
+        ) = lambda *_: [0]
+
+        sleep(self.TIMEOUT)
+
+        with self.environment.contexts() as contexts:
+            self.assertTrue(contexts.motor_variable_field_magnet_down_input)
+
+        (
+            configurations  # type: ignore[method-assign]
+            .STEERING_WHEEL_MCP23S17
+            .read_register
+        ) = lambda *_: [0xFF]
+
+        sleep(self.TIMEOUT)
+
+        with self.environment.contexts() as contexts:
+            self.assertFalse(contexts.motor_variable_field_magnet_down_input)
 
     def test_motor_cruise_control_status(self) -> None:
         with self.environment.contexts() as contexts:
