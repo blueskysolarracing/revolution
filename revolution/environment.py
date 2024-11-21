@@ -1,6 +1,5 @@
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from enum import auto, Enum
-from json import dumps
 from logging import getLogger
 from queue import Queue
 from typing import Any
@@ -12,6 +11,8 @@ from periphery import GPIO, PWM, Serial
 
 from revolution.motor_controller_squared import MotorControllerSquared
 from revolution.utilities import Direction, PRBS
+
+import struct
 
 _logger = getLogger(__name__)
 
@@ -79,8 +80,80 @@ class Contexts:
 
     # Telemetry
 
-    def serialize(self) -> str:
-        return dumps(asdict(self))
+    def encode(self) -> bytes:
+        bools = (
+            self.miscellaneous_left_indicator_light_status_input,
+            self.miscellaneous_right_indicator_light_status_input,
+            self.miscellaneous_hazard_lights_status_input,
+            self.miscellaneous_daytime_running_lights_status_input,
+            self.miscellaneous_horn_status_input,
+            self.miscellaneous_backup_camera_control_status_input,
+            self.miscellaneous_display_backlight_status_input,
+            self.miscellaneous_brake_status_input,
+            self.motor_status_input,
+            self.motor_direction_input == Direction.BACKWARD,
+            self.motor_economical_mode_input,
+            self.motor_cruise_control_status_input,
+            self.power_array_relay_status_input,
+            self.power_battery_relay_status_input,
+        )
+        bool_byte = sum(1 << i for i, b in enumerate(bools) if b)
+
+        return struct.pack(
+            '<Bfffffffff',
+            bool_byte,
+            self.motor_acceleration_input,
+            self.motor_regeneration_input,
+            self.motor_cruise_control_acceleration_input,
+            self.motor_cruise_control_regeneration_input,
+            float(self.motor_variable_field_magnet_up_input),
+            float(self.motor_variable_field_magnet_down_input),
+            self.motor_speed,
+            self.motor_cruise_control_speed,
+            self.power_state_of_charge
+        )
+
+    def decode(self, raw_data: bytes) -> None:
+        (
+            bool_byte,
+            self.motor_acceleration_input,
+            self.motor_regeneration_input,
+            self.motor_cruise_control_acceleration_input,
+            self.motor_cruise_control_regeneration_input,
+            motor_variable_field_magnet_up_input,
+            motor_variable_field_magnet_down_input,
+            self.motor_speed,
+            self.motor_cruise_control_speed,
+            self.power_state_of_charge
+        ) = struct.unpack('<Bfffff?ff', raw_data)
+
+        bools = [(bool_byte >> i) & 1 for i in range(14)]
+        (
+            self.miscellaneous_left_indicator_light_status_input,
+            self.miscellaneous_right_indicator_light_status_input,
+            self.miscellaneous_hazard_lights_status_input,
+            self.miscellaneous_daytime_running_lights_status_input,
+            self.miscellaneous_horn_status_input,
+            self.miscellaneous_backup_camera_control_status_input,
+            self.miscellaneous_display_backlight_status_input,
+            self.miscellaneous_brake_status_input,
+            self.motor_status_input,
+            motor_direction_input,
+            self.motor_economical_mode_input,
+            self.motor_cruise_control_status_input,
+            self.power_array_relay_status_input,
+            self.power_battery_relay_status_input,
+        ) = bools
+
+        self.motor_direction_input = (
+            Direction.BACKWARD if motor_direction_input else Direction.FORWARD
+        )
+        self.motor_variable_field_magnet_up_input = int(
+            motor_variable_field_magnet_up_input
+        )
+        self.motor_variable_field_magnet_down_input = int(
+            motor_variable_field_magnet_down_input
+        )
 
 
 @dataclass(frozen=True)

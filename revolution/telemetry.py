@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from hashlib import md5
 from logging import getLogger
 from typing import ClassVar
 
@@ -30,20 +29,6 @@ class Telemetry(Application):
                     self.environment.settings.telemetry_timeout,
                 )
         ):
-            with self.environment.contexts() as contexts:
-                assert hasattr(contexts, '_resource')
-
-                data = contexts._resource.serialize()
-
-            data_token = data.encode()
-            checksum_token = md5(data_token).digest()
-            tokens = (
-                self.environment.settings.telemetry_begin_token,
-                data_token,
-                self.environment.settings.telemetry_separator_token,
-                checksum_token,
-                self.environment.settings.telemetry_end_token,
-            )
-            raw_data = b''.join(tokens)
+            raw_data = self.environment.contexts.encode()
 
             self.environment.peripheries.telemetry_radio_serial.write(raw_data)
