@@ -4,14 +4,11 @@ from unittest.mock import MagicMock, patch
 from revolution.telemetry import Telemetry
 
 class TestTelemetry(unittest.TestCase):
-    @patch('revolution.Worker')
-    def setUp(self, MockWorker):
+    def setUp(self):
         self.telemetry = Telemetry()
-        self.mock_worker = MockWorker.return_value
-        self.telemetry._telemetry_worker = self.mock_worker
+        self.telemetry._telemetry_worker = MagicMock()
 
-    @patch('telemetry.md5')
-    def test_telemetry(self, mock_md5):
+    def test_telemetry(self):
         mock_settings = MagicMock()
         mock_settings.telemetry_timeout = 1
         mock_settings.telemetry_begin_token = b'__BEGIN__'
@@ -29,10 +26,11 @@ class TestTelemetry(unittest.TestCase):
         self.telemetry.environment.contexts.return_value = mock_contexts
         self.telemetry.environment.peripheries.telemetry_radio_serial = MagicMock()
 
-        mock_md5.return_value.digest.return_value = b'checksum'
+        with patch('telemetry.md5') as mock_md5:
+            mock_md5.return_value.digest.return_value = b'checksum'
 
-        with patch.object(self.telemetry._stoppage, 'wait', return_value=True):
-            self.telemetry._telemetry()
+            with patch.object(self.telemetry._stoppage, 'wait', return_value=True):
+                self.telemetry._telemetry()
 
         raw_data = b'__BEGIN__["key": "value"]|checksum__END__'
         self.telemetry.environment.peripheries.telemetry_radio_serial.write.assert_called_with(raw_data)
