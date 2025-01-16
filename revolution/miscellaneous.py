@@ -79,8 +79,14 @@ class Miscellaneous(Application):
                     .peripheries
                     .miscellaneous_left_indicator_light_pwm
                 ),
-                previous_left_indicator_light_status_input,
-                left_indicator_light_status_input,
+                (
+                    previous_left_indicator_light_status_input
+                    or previous_hazard_lights_status_input
+                ),
+                (
+                    left_indicator_light_status_input
+                    or hazard_lights_status_input
+                ),
             )
 
             update_pwm(
@@ -90,8 +96,14 @@ class Miscellaneous(Application):
                     .peripheries
                     .miscellaneous_right_indicator_light_pwm
                 ),
-                previous_right_indicator_light_status_input,
-                right_indicator_light_status_input,
+                (
+                    previous_right_indicator_light_status_input
+                    or previous_hazard_lights_status_input
+                ),
+                (
+                    right_indicator_light_status_input
+                    or hazard_lights_status_input
+                ),
             )
 
             update_pwm(
@@ -101,8 +113,16 @@ class Miscellaneous(Application):
                     .peripheries
                     .miscellaneous_indicator_lights_pwm
                 ),
-                previous_hazard_lights_status_input,
-                hazard_lights_status_input,
+                (
+                    previous_hazard_lights_status_input
+                    or previous_left_indicator_light_status_input
+                    or previous_right_indicator_light_status_input
+                ),
+                (
+                    hazard_lights_status_input
+                    or left_indicator_light_status_input
+                    or right_indicator_light_status_input
+                ),
             )
 
             update_pwm(
