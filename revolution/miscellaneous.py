@@ -59,9 +59,7 @@ class Miscellaneous(Application):
                 daytime_running_lights_status_input = (
                     contexts.miscellaneous_daytime_running_lights_status_input
                 )
-                horn_status_input = (
-                    contexts.miscellaneous_horn_status_input
-                )
+                horn_status_input = contexts.miscellaneous_horn_status_input
                 backup_camera_control_status_input = (
                     contexts.miscellaneous_backup_camera_control_status_input
                 )
