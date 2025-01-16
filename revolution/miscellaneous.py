@@ -121,17 +121,6 @@ class Miscellaneous(Application):
                     self
                     .environment
                     .peripheries
-                    .miscellaneous_daytime_running_lights_pwm
-                ),
-                previous_daytime_running_lights_status_input,
-                daytime_running_lights_status_input,
-            )
-
-            update_pwm(
-                (
-                    self
-                    .environment
-                    .peripheries
                     .miscellaneous_brake_lights_pwm
                 ),
                 previous_brake_lights_status_input,
