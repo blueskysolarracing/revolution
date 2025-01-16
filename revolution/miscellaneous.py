@@ -42,9 +42,9 @@ class Miscellaneous(Application):
                 pwm.disable()
 
         while (
-            not self._stoppage.wait(
-                self.environment.settings.miscellaneous_light_timeout,
-            )
+                not self._stoppage.wait(
+                    self.environment.settings.miscellaneous_light_timeout,
+                )
         ):
             with self.environment.contexts() as contexts:
                 left_indicator_light_status_input = (
