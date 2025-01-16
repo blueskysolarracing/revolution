@@ -136,8 +136,10 @@ class Miscellaneous(Application):
                     .write(horn_status_input)
                 )
 
-            if (backup_camera_control_status_input
-                    != previous_backup_camera_control_status_input):
+            if (
+                    backup_camera_control_status_input
+                    != previous_backup_camera_control_status_input
+            ):
                 (
                     self
                     .environment
@@ -146,8 +148,10 @@ class Miscellaneous(Application):
                     .write(backup_camera_control_status_input)
                 )
 
-            if (display_backlight_status_input
-                    != previous_display_backlight_status_input):
+            if (
+                    display_backlight_status_input
+                    != previous_display_backlight_status_input
+            ):
                 (
                     self
                     .environment.peripheries
