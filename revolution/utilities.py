@@ -4,8 +4,8 @@ from iclib.mcp23s17 import Port, PortRegisterBit, Register
 
 
 class Direction(IntEnum):
-    FORWARD: int = 0
-    BACKWARD: int = 1
+    FORWARD = 0
+    BACKWARD = 1
 
 
 PRBS = (

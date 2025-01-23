@@ -5,7 +5,7 @@ from iclib.mcp23s17 import MCP23S17, PortRegisterBit as PRB
 from iclib.mcp4161 import MCP4161
 from iclib.nhd_c12864a1z_fsw_fbw_htt import NHDC12864A1ZFSWFBWHTT
 from iclib.utilities import ManualCSSPI
-from periphery import GPIO, PWM, Serial, SPI
+from periphery import GPIO, PWM, LockedSPI, Serial, SPI
 
 from revolution import (
     Application,
@@ -76,7 +76,10 @@ CONTEXTS: Contexts = Contexts(
     # Telemetry
 )
 
-STEERING_WHEEL_SPI: SPI = SPI('/dev/spidev0.0', 0b11, 1e6)
+STEERING_WHEEL_SPI: SPI = cast(
+    SPI,
+    LockedSPI(SPI('/dev/spidev0.0', 0b11, 1e6)),
+)
 
 STEERING_WHEEL_MCP23S17: MCP23S17 = MCP23S17(
     MagicMock(),
