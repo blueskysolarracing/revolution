@@ -19,7 +19,6 @@ class Worker(Thread):
     ...     counter += 1
     ...     if counter < 5:
     ...         raise ValueError
-    ... 
     >>> worker = Worker(target=target)
     >>> worker.start()
     >>> worker.join()
