@@ -4,8 +4,8 @@ from unittest.mock import MagicMock
 from iclib.mcp23s17 import MCP23S17, PortRegisterBit as PRB
 from iclib.mcp4161 import MCP4161
 from iclib.nhd_c12864a1z_fsw_fbw_htt import NHDC12864A1ZFSWFBWHTT
-from iclib.utilities import ManualCSSPI
-from periphery import GPIO, PWM, LockedSPI, Serial, SPI
+from iclib.utilities import LockedSPI, ManualCSSPI
+from periphery import GPIO, PWM, Serial, SPI
 
 from revolution import (
     Application,
@@ -21,7 +21,7 @@ from revolution import (
     Power,
     PRBS,
     Settings,
-    # Telemetry,
+    Telemetry,
 )
 
 APPLICATION_TYPES: tuple[type[Application], ...] = (
@@ -31,7 +31,7 @@ APPLICATION_TYPES: tuple[type[Application], ...] = (
     # Miscellaneous,
     Motor,
     Power,
-    # Telemetry,
+    Telemetry,
 )
 
 CONTEXTS: Contexts = Contexts(

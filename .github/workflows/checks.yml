@@ -10,9 +10,9 @@ jobs:
           python-version: '3.11'
       - run: pip install -r requirements.txt
       - name: Run style checking
-        run: flake8 revolution
+        run: flake8 revolution configurations.py
       - name: Run static type checking
-        run: mypy --strict revolution
+        run: mypy --strict revolution configurations.py
       - name: Run unit tests
         run: python -m unittest
       - name: Run doctests

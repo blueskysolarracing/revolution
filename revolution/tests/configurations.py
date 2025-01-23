@@ -28,7 +28,7 @@ APPLICATION_TYPES: tuple[type[Application], ...] = (
     Miscellaneous,
     Motor,
     Power,
-    # Telemetry,
+    Telemetry,
 )
 
 CONTEXTS: Contexts = Contexts(
