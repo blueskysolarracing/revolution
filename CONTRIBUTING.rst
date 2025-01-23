@@ -33,7 +33,7 @@ When making changes, please follow these guidelines:
 2. Run static type checking with ``--strict`` flag: ``mypy --strict revolution``
 3. Run checks for missing docstrings: ``interrogate -f 100 -i -m -n -p -s -r '^\w+TestCase' revolution``
 4. Run unit tests: ``python -m unittest``
-5. Run doctests: ``python -m doctest revolution/*.py``
+5. Run doctests: ``find revolution -name '*.py' ! -name '__main__.py' | xargs python -m doctest``
 
 Submitting a Pull Request
 -------------------------

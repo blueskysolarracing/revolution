@@ -7,6 +7,25 @@ _logger = getLogger(__name__)
 
 
 class Worker(Thread):
+    """A worker is an extension to Python's ``threading.Thread``.
+
+    The worker method restarts automatically when an error is raised.
+
+    >>> from logging import basicConfig, CRITICAL
+    >>> basicConfig(level=CRITICAL)
+    >>> counter = 0
+    >>> def target():
+    ...     global counter
+    ...     counter += 1
+    ...     if counter < 5:
+    ...         raise ValueError
+    ... 
+    >>> worker = Worker(target=target)
+    >>> worker.start()
+    >>> worker.join()
+    >>> counter
+    5
+    """
     @staticmethod
     def wrap(function: Callable[..., object]) -> Callable[..., object]:
         def wrapper(*args: Any, **kwargs: Any) -> object:

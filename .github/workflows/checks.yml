@@ -16,4 +16,4 @@ jobs:
       - name: Run unit tests
         run: python -m unittest
       - name: Run doctests
-        run: python -m doctest revolution/*.py
+        run: find revolution -name '*.py' ! -name '__main__.py' | xargs python -m doctest
