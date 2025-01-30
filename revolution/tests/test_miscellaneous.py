@@ -93,7 +93,7 @@ class MiscellaneousTestCase(TestCase):
     def test_daytime_running_lights(self) -> None:
         with self.environment.contexts() as contexts:
             contexts.miscellaneous_daytime_running_lights_status_input = True
-    
+
         sleep(self.TIMEOUT)
 
         (
