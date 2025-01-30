@@ -36,6 +36,13 @@ class Message:
     args: tuple[Any, ...] = field(default_factory=tuple)
     kwargs: dict[str, Any] = field(default_factory=dict)
 
+    def serialize(self) -> bytes:
+        return dump(self)
+
+    @staticmethod
+    def deserialize(data: bytes) -> "Message":
+        return load(data, Message)
+
 
 @dataclass
 class Contexts:
@@ -81,6 +88,10 @@ class Contexts:
 
     def serialize(self) -> bytes:
         return dump(self)
+
+    @staticmethod
+    def deserialize(data: bytes) -> "Contexts"
+        return load(data, Contexts)
 
 
 @dataclass(frozen=True)
@@ -194,6 +205,13 @@ class Settings:
     telemetry_separator_token: bytes
     telemetry_end_token: bytes
 
+    def serialize(self) -> bytes:
+        return dump(self)
+
+    @staticmethod
+    def deserialize(data: bytes) -> "Settings":
+        return load(data, Settings)
+
 
 @dataclass(frozen=True)
 class Environment:
@@ -234,3 +252,10 @@ class Environment:
     ) -> None:
         for queue in self.__queues.values():
             queue.put(message, block, timeout)
+
+    def serialize(self) -> bytes:
+        return dump(self)
+
+    @staticmethod
+    def deserialize(data: bytes) -> "Environment":
+        return load(data, Environment)
