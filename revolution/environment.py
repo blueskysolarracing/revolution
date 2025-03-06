@@ -2,9 +2,9 @@ from dataclasses import dataclass, field
 from enum import auto, Enum
 from logging import getLogger
 from queue import Queue
-from typing import Any
+from typing import Any, cast
 
-from databrief import dump
+from databrief import dump, load
 from door.threading2 import AcquirableDoor
 from iclib.mcp23s17 import MCP23S17, PortRegisterBit as PRB
 from iclib.nhd_c12864a1z_fsw_fbw_htt import NHDC12864A1ZFSWFBWHTT
@@ -35,6 +35,13 @@ class Message:
     header: Header
     args: tuple[Any, ...] = field(default_factory=tuple)
     kwargs: dict[str, Any] = field(default_factory=dict)
+
+    def serialize(self) -> bytes:
+        return dump(self)
+
+    @staticmethod
+    def deserialize(data: bytes) -> "Message":
+        return cast(Message, load(data, Message))
 
 
 @dataclass
@@ -81,6 +88,10 @@ class Contexts:
 
     def serialize(self) -> bytes:
         return dump(self)
+
+    @staticmethod
+    def deserialize(data: bytes) -> "Contexts":
+        return cast(Contexts, load(data, Contexts))
 
 
 @dataclass(frozen=True)
@@ -194,6 +205,13 @@ class Settings:
     telemetry_separator_token: bytes
     telemetry_end_token: bytes
 
+    def serialize(self) -> bytes:
+        return dump(self)
+
+    @staticmethod
+    def deserialize(data: bytes) -> "Settings":
+        return cast(Settings, load(data, Settings))
+
 
 @dataclass(frozen=True)
 class Environment:
@@ -234,3 +252,10 @@ class Environment:
     ) -> None:
         for queue in self.__queues.values():
             queue.put(message, block, timeout)
+
+    def serialize(self) -> bytes:
+        return dump(self)
+
+    @staticmethod
+    def deserialize(data: bytes) -> "Environment":
+        return cast(Environment, load(data, Environment))
