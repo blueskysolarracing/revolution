@@ -1,8 +1,10 @@
 import unittest
 from databrief import load, dump
+from dataclasses import replace
 
 from door.threading2 import AcquirableDoor
 from revolution.utilities import Direction
+from revolution.tests import configurations
 from revolution.environment import (
     Environment,
     Header,
@@ -16,7 +18,7 @@ from revolution.environment import (
 class TestSerialization(unittest.TestCase):
 
     @staticmethod
-    def create_sample_contexts():
+    def create_sample_contexts() -> Contexts:
         """Helper function to generate sample Contexts for testing."""
         return Contexts(
             miscellaneous_left_indicator_light_status_input=True,
@@ -45,7 +47,7 @@ class TestSerialization(unittest.TestCase):
         )
 
     @staticmethod
-    def create_sample_settings():
+    def create_sample_settings() -> Settings:
         """Helper function to generate sample Settings for testing."""
         return Settings(
             display_frame_rate=60.0,
@@ -75,7 +77,7 @@ class TestSerialization(unittest.TestCase):
             telemetry_end_token=b"END",
         )
 
-    def test_message_serialization(self):
+    def test_message_serialization(self) -> None:
         """Test serialization and deserialization of a Message object."""
         msg = Message(
             header=Header.STOP,
@@ -93,7 +95,7 @@ class TestSerialization(unittest.TestCase):
             )
         )
 
-    def test_contexts_serialization(self):
+    def test_contexts_serialization(self) -> None:
         """Test serialization and deserialization of Contexts."""
         contexts = self.create_sample_contexts()
         serialized = dump(contexts)
@@ -107,7 +109,7 @@ class TestSerialization(unittest.TestCase):
             )
         )
 
-    def test_settings_serialization(self):
+    def test_settings_serialization(self) -> None:
         """Test serialization and deserialization of Settings."""
         settings = self.create_sample_settings()
         serialized = dump(settings)
@@ -121,11 +123,11 @@ class TestSerialization(unittest.TestCase):
             )
         )
 
-    def test_environment_serialization(self):
+    def test_environment_serialization(self) -> None:
         """Test serialization and deserialization of an Environment object."""
         contexts = AcquirableDoor(self.create_sample_contexts())
         settings = self.create_sample_settings()
-        peripheries = Peripheries()
+        peripheries = replace(configurations.PERIPHERIES)
 
         env = Environment(
             contexts=contexts,

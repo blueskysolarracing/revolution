@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from enum import auto, Enum
 from logging import getLogger
 from queue import Queue
-from typing import Any
+from typing import Any, cast
 
 from databrief import dump, load
 from door.threading2 import AcquirableDoor
@@ -41,7 +41,7 @@ class Message:
 
     @staticmethod
     def deserialize(data: bytes) -> "Message":
-        return load(data, Message)
+        return cast(Message, load(data, Message))
 
 
 @dataclass
@@ -91,7 +91,7 @@ class Contexts:
 
     @staticmethod
     def deserialize(data: bytes) -> "Contexts":
-        return load(data, Contexts)
+        return cast(Contexts, load(data, Contexts))
 
 
 @dataclass(frozen=True)
@@ -210,7 +210,7 @@ class Settings:
 
     @staticmethod
     def deserialize(data: bytes) -> "Settings":
-        return load(data, Settings)
+        return cast(Settings, load(data, Settings))
 
 
 @dataclass(frozen=True)
@@ -258,4 +258,4 @@ class Environment:
 
     @staticmethod
     def deserialize(data: bytes) -> "Environment":
-        return load(data, Environment)
+        return cast(Environment, load(data, Environment))
