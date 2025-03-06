@@ -1,7 +1,5 @@
 import unittest
-from databrief import load, dump
 from dataclasses import replace
-
 from door.threading2 import AcquirableDoor
 from revolution.utilities import Direction
 from revolution.tests import configurations
@@ -10,8 +8,7 @@ from revolution.environment import (
     Header,
     Message,
     Contexts,
-    Settings,
-    Peripheries
+    Settings
 )
 
 
@@ -72,9 +69,9 @@ class TestSerialization(unittest.TestCase):
             power_monitor_timeout=4.0,
             power_battery_relay_timeout=3.5,
             telemetry_timeout=1.0,
-            telemetry_begin_token=b"BEGIN",
-            telemetry_separator_token=b"SEP",
-            telemetry_end_token=b"END",
+            telemetry_begin_token=b'__BEGIN__',
+            telemetry_separator_token=b'__SEPARATOR__',
+            telemetry_end_token=b'__END__',
         )
 
     def test_message_serialization(self) -> None:
@@ -84,8 +81,8 @@ class TestSerialization(unittest.TestCase):
             args=(1, 2, 3),
             kwargs={'key': 'value'}
         )
-        serialized = dump(msg)
-        deserialized = load(serialized, Message)
+        serialized = msg.serialize()
+        deserialized = Message.deserialize(serialized)
         self.assertEqual(
             msg,
             deserialized,
@@ -98,8 +95,8 @@ class TestSerialization(unittest.TestCase):
     def test_contexts_serialization(self) -> None:
         """Test serialization and deserialization of Contexts."""
         contexts = self.create_sample_contexts()
-        serialized = dump(contexts)
-        deserialized = load(serialized, Contexts)
+        serialized = contexts.serialize()
+        deserialized = Contexts.deserialize(serialized)
         self.assertEqual(
             contexts,
             deserialized,
@@ -112,8 +109,8 @@ class TestSerialization(unittest.TestCase):
     def test_settings_serialization(self) -> None:
         """Test serialization and deserialization of Settings."""
         settings = self.create_sample_settings()
-        serialized = dump(settings)
-        deserialized = load(serialized, Settings)
+        serialized = settings.serialize()
+        deserialized = Settings.deserialize(serialized)
         self.assertEqual(
             settings,
             deserialized,
@@ -134,8 +131,8 @@ class TestSerialization(unittest.TestCase):
             peripheries=peripheries,
             settings=settings
         )
-        serialized = dump(env)
-        deserialized = load(serialized, Environment)
+        serialized = env.serialize()
+        deserialized = Environment.deserialize(serialized)
 
         self.assertEqual(
             env.settings,
