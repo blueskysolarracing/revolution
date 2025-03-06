@@ -4,7 +4,7 @@ from logging import getLogger
 from queue import Queue
 from typing import Any
 
-from databrief import dump
+from databrief import dump, load
 from door.threading2 import AcquirableDoor
 from iclib.mcp23s17 import MCP23S17, PortRegisterBit as PRB
 from iclib.nhd_c12864a1z_fsw_fbw_htt import NHDC12864A1ZFSWFBWHTT
@@ -90,7 +90,7 @@ class Contexts:
         return dump(self)
 
     @staticmethod
-    def deserialize(data: bytes) -> "Contexts"
+    def deserialize(data: bytes) -> "Contexts":
         return load(data, Contexts)
 
 
