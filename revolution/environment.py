@@ -4,13 +4,14 @@ from logging import getLogger
 from queue import Queue
 from typing import Any
 
+from can import BusABC
 from databrief import dump
 from door.threading2 import AcquirableDoor
 from iclib.mcp23s17 import MCP23S17, PortRegisterBit as PRB
 from iclib.nhd_c12864a1z_fsw_fbw_htt import NHDC12864A1ZFSWFBWHTT
+from iclib.wavesculptor22 import WaveSculptor22
 from periphery import GPIO, PWM, Serial
 
-from revolution.motor_controller_squared import MotorControllerSquared
 from revolution.utilities import Direction, PRBS
 
 _logger = getLogger(__name__)
@@ -28,6 +29,7 @@ class Endpoint(Enum):
 
 class Header(Enum):
     STOP = auto()
+    CAN = auto()
 
 
 @dataclass(frozen=True)
@@ -58,18 +60,14 @@ class Contexts:
 
     # Motor
 
-    motor_acceleration_input: float
-    motor_regeneration_input: float
-    motor_cruise_control_acceleration_input: float
-    motor_cruise_control_regeneration_input: float
     motor_status_input: bool
+    motor_acceleration_input: float
     motor_direction_input: Direction
-    motor_economical_mode_input: bool
+    motor_cruise_control_status_input: bool
+    motor_cruise_control_velocity: float
     motor_variable_field_magnet_up_input: int
     motor_variable_field_magnet_down_input: int
-    motor_speed: float
-    motor_cruise_control_status_input: bool
-    motor_cruise_control_speed: float
+    motor_velocity: float
 
     # Power
 
@@ -85,6 +83,10 @@ class Contexts:
 
 @dataclass(frozen=True)
 class Peripheries:
+    # General
+
+    can_bus: BusABC
+
     # Debugger
 
     # Display
@@ -131,7 +133,7 @@ class Peripheries:
 
     # Motor
 
-    motor_controller_squared: MotorControllerSquared
+    motor_wavesculptor22: WaveSculptor22
 
     # Power
 
@@ -146,6 +148,10 @@ class Peripheries:
 
 @dataclass(frozen=True)
 class Settings:
+    # General
+
+    wheel_diameter: float
+
     # Debugger
 
     # Display
@@ -166,21 +172,8 @@ class Settings:
 
     # Motor
 
-    motor_wheel_circumference: float
     motor_control_timeout: float
     motor_variable_field_magnet_timeout: float
-    motor_revolution_timeout: float
-
-    motor_cruise_control_k_p: float
-    motor_cruise_control_k_i: float
-    motor_cruise_control_k_d: float
-    motor_cruise_control_min_integral: float
-    motor_cruise_control_max_integral: float
-    motor_cruise_control_min_derivative: float
-    motor_cruise_control_max_derivative: float
-    motor_cruise_control_min_output: float
-    motor_cruise_control_max_output: float
-    motor_cruise_control_timeout: float
 
     # Power
 
@@ -234,3 +227,6 @@ class Environment:
     ) -> None:
         for queue in self.__queues.values():
             queue.put(message, block, timeout)
+
+    def stop(self, block: bool = True, timeout: float | None = None) -> None:
+        self.send_all(Message(Header.STOP))

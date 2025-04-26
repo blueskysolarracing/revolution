@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from logging import getLogger
+from math import pi
 from typing import ClassVar
 
 from revolution.application import Application
@@ -30,23 +31,38 @@ class Display(Application):
         self._display_worker.join()
 
     def _display(self) -> None:
+
+        def rpm2kph(rpm: float) -> float:
+            return (
+                pi
+                * self.environment.settings.wheel_diameter
+                * rpm
+                * 60
+                / 1000
+            )
+
         timeout = 1 / self.environment.settings.display_frame_rate
 
         while not self._stoppage.wait(timeout):
             with self.environment.contexts() as contexts:
-                motor_speed = contexts.motor_speed
-                power_state_of_charge = contexts.power_state_of_charge
-                hazard_lights_status = (
-                    contexts.miscellaneous_hazard_lights_status_input
-                )
-                left_indicator_light_status = (
+                miscellaneous_left_indicator_light_status = (
                     contexts.miscellaneous_left_indicator_light_status_input
                 )
-                right_indicator_light_status = (
+                miscellaneous_right_indicator_light_status = (
                     contexts.miscellaneous_right_indicator_light_status_input
                 )
-                battery_warning_status = False  # TODO
-                motor_target_speed = None  # TODO
+                miscellaneous_hazard_lights_status = (
+                    contexts.miscellaneous_hazard_lights_status_input
+                )
+                motor_velocity = contexts.motor_velocity
+                motor_cruise_control_status_input = (
+                    contexts.motor_cruise_control_status_input
+                )
+                motor_cruise_control_velocity = (
+                    contexts.motor_cruise_control_velocity
+                )
+                power_state_of_charge = contexts.power_state_of_charge
+                power_battery_warning_status = False  # TODO
 
             periphery = (
                 self.environment.peripheries.display_nhd_c12864a1z_fsw_fbw_htt
@@ -54,26 +70,17 @@ class Display(Application):
 
             periphery.clear_screen()
 
-            # Motor speed
+            # Miscellaneous
 
-            motor_speed = (motor_speed * 3600) / 1000
-
-            periphery.set_size(22, 24)
-            periphery.draw_word(f'{motor_speed:3.0f}', 52, 26)
-            periphery.set_size(16, 20)
-            periphery.draw_word('km/h', 100, 36)
-
-            # Indicator status
-
-            if left_indicator_light_status:
+            if miscellaneous_left_indicator_light_status:
                 periphery.set_size(10, 12)
                 periphery.draw_word('<', 5, 5)
 
-            if right_indicator_light_status:
+            if miscellaneous_right_indicator_light_status:
                 periphery.set_size(10, 12)
                 periphery.draw_word('>', 18, 5)
 
-            if hazard_lights_status:
+            if miscellaneous_hazard_lights_status:
                 periphery.set_size(6, 12)
                 periphery.draw_word('(', 31, 5)
                 periphery.set_size(10, 12)
@@ -81,27 +88,34 @@ class Display(Application):
                 periphery.set_size(6, 12)
                 periphery.draw_word(')', 59, 5)
 
-            # SOC
+            # Motor
+
+            motor_velocity = rpm2kph(motor_velocity)
+
+            periphery.set_size(22, 24)
+            periphery.draw_word(f'{motor_velocity:3.0f}', 52, 26)
+            periphery.set_size(16, 20)
+            periphery.draw_word('km/h', 100, 36)
+
+            if motor_cruise_control_status_input:
+                motor_cruise_control_velocity = rpm2kph(
+                    motor_cruise_control_velocity,
+                )
+
+                periphery.set_size(8, 10)
+                periphery.draw_word(
+                    f'Target: {motor_cruise_control_velocity:3.0f}',
+                    30,
+                    52,
+                )
+
+            # Power
 
             periphery.set_size(10, 12)
             periphery.draw_word(f'{power_state_of_charge * 100:.0f}%', 82, 5)
 
-            # Battery warning
-
-            if battery_warning_status:
+            if power_battery_warning_status:
                 periphery.set_size(6, 6)
                 periphery.draw_word('[-+]!', 5, 56)
-
-            # Motor target speed
-
-            if motor_target_speed is not None:
-                motor_target_speed = (motor_target_speed * 3600) / 1000
-
-                periphery.set_size(8, 10)
-                periphery.draw_word(
-                    f'Target: {motor_target_speed:3.0f}',
-                    30,
-                    52,
-                )
 
             periphery.display()

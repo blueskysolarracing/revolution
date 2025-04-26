@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from logging import getLogger
-from time import sleep
 from typing import ClassVar
 
 from revolution.application import Application
@@ -54,19 +53,7 @@ class Power(Application):
                     not previous_battery_relay_status_input
                     and battery_relay_status_input
             ):
-                self.environment.peripheries.power_battery_relay_ls_gpio.write(
-                    True,
-                )
-                self.environment.peripheries.power_battery_relay_pc_gpio.write(
-                    True,
-                )
-                sleep(self.environment.settings.power_battery_relay_timeout)
-                self.environment.peripheries.power_battery_relay_hs_gpio.write(
-                    True,
-                )
-                self.environment.peripheries.power_battery_relay_pc_gpio.write(
-                    False,
-                )
+                pass  # TODO: close battery relay
 
                 with self.environment.contexts() as contexts:
                     contexts.motor_status_input = True
@@ -84,15 +71,7 @@ class Power(Application):
                 with self.environment.contexts() as contexts:
                     contexts.motor_status_input = False
 
-                self.environment.peripheries.power_battery_relay_ls_gpio.write(
-                    False,
-                )
-                self.environment.peripheries.power_battery_relay_hs_gpio.write(
-                    False,
-                )
-                self.environment.peripheries.power_battery_relay_pc_gpio.write(
-                    False,
-                )
+                pass  # TODO: open battery relay
 
             previous_array_relay_status_input = array_relay_status_input
             previous_battery_relay_status_input = battery_relay_status_input

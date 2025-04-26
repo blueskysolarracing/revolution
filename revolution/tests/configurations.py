@@ -1,7 +1,9 @@
 from unittest.mock import MagicMock
 
+from can import BusABC
 from iclib.mcp23s17 import MCP23S17, PortRegisterBit as PRB
 from iclib.nhd_c12864a1z_fsw_fbw_htt import NHDC12864A1ZFSWFBWHTT
+from iclib.wavesculptor22 import WaveSculptor22
 from periphery import GPIO, PWM, Serial
 
 from revolution import (  # noqa: F401
@@ -13,7 +15,6 @@ from revolution import (  # noqa: F401
     Driver,
     Miscellaneous,
     Motor,
-    MotorControllerSquared,
     Peripheries,
     Power,
     PRBS,
@@ -51,18 +52,14 @@ CONTEXTS: Contexts = Contexts(
 
     # Motor
 
-    motor_acceleration_input=0,
-    motor_regeneration_input=0,
-    motor_cruise_control_acceleration_input=0,
-    motor_cruise_control_regeneration_input=0,
     motor_status_input=False,
+    motor_acceleration_input=0,
     motor_direction_input=Direction.FORWARD,
-    motor_economical_mode_input=True,
+    motor_cruise_control_status_input=False,
+    motor_cruise_control_velocity=0,
     motor_variable_field_magnet_up_input=0,
     motor_variable_field_magnet_down_input=0,
-    motor_speed=0,
-    motor_cruise_control_status_input=False,
-    motor_cruise_control_speed=0,
+    motor_velocity=0,
 
     # Power
 
@@ -72,6 +69,8 @@ CONTEXTS: Contexts = Contexts(
 
     # Telemetry
 )
+
+CAN_BUS: BusABC = MagicMock()
 
 NHD_C12864A1Z_FSW_FBW_HTT: NHDC12864A1ZFSWFBWHTT = (
     NHDC12864A1ZFSWFBWHTT(
@@ -116,15 +115,19 @@ HORN_SWITCH_GPIO: GPIO = MagicMock()
 BACKUP_CAMERA_CONTROL_SWITCH_GPIO: GPIO = MagicMock()
 DISPLAY_BACKLIGHT_SWITCH_GPIO: GPIO = MagicMock()
 
-MOTOR_CONTROLLER_SQUARED: MotorControllerSquared = MagicMock()
-
 BATTERY_RELAY_LS_GPIO: GPIO = MagicMock()
 BATTERY_RELAY_HS_GPIO: GPIO = MagicMock()
 BATTERY_RELAY_PC_GPIO: GPIO = MagicMock()
 
 RADIO_SERIAL: Serial = MagicMock()
 
+WAVESCULPTOR22: WaveSculptor22 = MagicMock()
+
 PERIPHERIES: Peripheries = Peripheries(
+    # General
+
+    can_bus=CAN_BUS,
+
     # Debugger
 
     # Display
@@ -190,7 +193,7 @@ PERIPHERIES: Peripheries = Peripheries(
 
     # Motor
 
-    motor_controller_squared=MOTOR_CONTROLLER_SQUARED,
+    motor_wavesculptor22=WAVESCULPTOR22,
 
     # Power
 
@@ -204,6 +207,10 @@ PERIPHERIES: Peripheries = Peripheries(
 )
 
 SETTINGS: Settings = Settings(
+    # General
+
+    wheel_diameter=1,  # TODO
+
     # Debugger
 
     # Display
@@ -222,21 +229,8 @@ SETTINGS: Settings = Settings(
 
     # Motor
 
-    motor_wheel_circumference=1,
-    motor_control_timeout=0.01,
+    motor_control_timeout=0.1,
     motor_variable_field_magnet_timeout=0.1,
-    motor_revolution_timeout=0.5,
-
-    motor_cruise_control_k_p=250,
-    motor_cruise_control_k_i=15000,
-    motor_cruise_control_k_d=0,
-    motor_cruise_control_min_integral=-200,
-    motor_cruise_control_max_integral=200,
-    motor_cruise_control_min_derivative=-100,
-    motor_cruise_control_max_derivative=100,
-    motor_cruise_control_min_output=-255,
-    motor_cruise_control_max_output=255,
-    motor_cruise_control_timeout=0.02,
 
     # Power
 

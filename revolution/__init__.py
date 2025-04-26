@@ -12,7 +12,6 @@ __all__ = (
     'Message',
     'Miscellaneous',
     'Motor',
-    'MotorControllerSquared',
     'parse_args',
     'Peripheries',
     'Power',
@@ -37,7 +36,6 @@ from revolution.environment import (
 )
 from revolution.main import main, parse_args
 from revolution.miscellaneous import Miscellaneous
-from revolution.motor_controller_squared import MotorControllerSquared
 from revolution.motor import Motor
 from revolution.power import Power
 from revolution.telemetry import Telemetry

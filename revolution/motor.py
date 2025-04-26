@@ -2,10 +2,12 @@ from dataclasses import dataclass
 from logging import getLogger
 from typing import ClassVar
 
-import numpy as np
+from can import Message
+from iclib.wavesculptor22 import VelocityMeasurement
 
 from revolution.application import Application
 from revolution.environment import Endpoint
+from revolution.utilities import Direction
 from revolution.worker import Worker
 
 _logger = getLogger(__name__)
@@ -22,21 +24,17 @@ class Motor(Application):
         self._variable_field_magnet_worker = Worker(
             target=self._variable_field_magnet,
         )
-        self._revolution_worker = Worker(target=self._revolution)
-        self._cruise_control_worker = Worker(target=self._cruise_control)
 
         self._control_worker.start()
         self._variable_field_magnet_worker.start()
-        self._revolution_worker.start()
-        self._cruise_control_worker.start()
 
     def _teardown(self) -> None:
         self._control_worker.join()
         self._variable_field_magnet_worker.join()
-        self._revolution_worker.join()
-        self._cruise_control_worker.join()
 
     def _control(self) -> None:
+        previous_status_input = False
+
         while (
                 not self._stoppage.wait(
                     self.environment.settings.motor_control_timeout,
@@ -44,35 +42,56 @@ class Motor(Application):
         ):
             with self.environment.contexts() as contexts:
                 status_input = contexts.motor_status_input
-                acceleration_input = max(
-                    contexts.motor_acceleration_input,
-                    contexts.motor_cruise_control_acceleration_input,
-                )
-                regeneration_input = max(
-                    contexts.motor_regeneration_input,
-                    contexts.motor_cruise_control_regeneration_input,
-                )
+                acceleration_input = contexts.motor_acceleration_input
                 direction_input = contexts.motor_direction_input
-                economical_mode_input = contexts.motor_economical_mode_input
+                cruise_control_status_input = (
+                    contexts.motor_cruise_control_status_input
+                )
+                cruise_control_velocity = (
+                    contexts.motor_cruise_control_velocity
+                )
 
-            self.environment.peripheries.motor_controller_squared.state(
-                status_input,
-            )
-            self.environment.peripheries.motor_controller_squared.accelerate(
-                acceleration_input,
-            )
-            self.environment.peripheries.motor_controller_squared.regenerate(
-                regeneration_input,
-            )
-            self.environment.peripheries.motor_controller_squared.direct(
-                direction_input,
-            )
-            self.environment.peripheries.motor_controller_squared.economize(
-                economical_mode_input,
-            )
+            if status_input:
+                if not previous_status_input:
+                    self.environment.peripheries.motor_wavesculptor22.reset()
+                else:
+                    (
+                        self
+                        .environment
+                        .peripheries
+                        .motor_wavesculptor22
+                        .motor_power(1)
+                    )
+
+                    if direction_input == Direction.BACKWARD:
+                        acceleration_input *= -1
+                        cruise_control_velocity *= -1
+
+                    if cruise_control_status_input:
+                        (
+                            self
+                            .environment
+                            .peripheries
+                            .motor_wavesculptor22
+                            .motor_drive_velocity_control_mode(
+                                cruise_control_velocity,
+                            )
+                        )
+                    else:
+                        (
+                            self
+                            .environment
+                            .peripheries
+                            .motor_wavesculptor22
+                            .motor_drive_torque_control_mode(
+                                acceleration_input,
+                            )
+                        )
+
+            previous_status_input = status_input
 
     def _variable_field_magnet(self) -> None:
-        previous_motor_status = False
+        previous_status_input = False
 
         while (
                 not self._stoppage.wait(
@@ -84,22 +103,8 @@ class Motor(Application):
                     ),
                 )
         ):
-            motor_status = (
-                self.environment.peripheries.motor_controller_squared.status
-            )
-
-            if motor_status and not previous_motor_status:
-                (
-                    self
-                    .environment
-                    .peripheries
-                    .motor_controller_squared
-                    .variable_field_magnet_reset()
-                )
-
-            previous_motor_status = motor_status
-
             with self.environment.contexts() as contexts:
+                status_input = contexts.motor_status_input
                 min_value = min(
                     contexts.motor_variable_field_magnet_up_input,
                     contexts.motor_variable_field_magnet_down_input,
@@ -116,106 +121,24 @@ class Motor(Application):
                 else:
                     variable_field_magnet_input = 0
 
-            if variable_field_magnet_input > 0:
-                (
-                    self
-                    .environment
-                    .peripheries
-                    .motor_controller_squared
-                    .variable_field_magnet_up()
-                )
-            elif variable_field_magnet_input < 0:
-                (
-                    self
-                    .environment
-                    .peripheries
-                    .motor_controller_squared
-                    .variable_field_magnet_down()
-                )
+            if status_input:
+                if not previous_status_input:
+                    pass  # TODO: variable field magnet reset
 
-    def _revolution(self) -> None:
-        while (
-                not self._stoppage.wait(
-                    self.environment.settings.motor_revolution_timeout,
-                )
-        ):
-            revolution_period = 1  # TODO
-            motor_speed = (
-                self.environment.settings.motor_wheel_circumference
-                / revolution_period
-            )
+                if variable_field_magnet_input > 0:
+                    pass  # TODO: variable field magnet up
+                elif variable_field_magnet_input < 0:
+                    pass  # TODO: variable field magnet down
 
-            with self.environment.contexts() as contexts:
-                contexts.motor_speed = motor_speed
+            previous_status_input = status_input
 
-    def _cruise_control(self) -> None:
-        k_p = self.environment.settings.motor_cruise_control_k_p
-        k_i = self.environment.settings.motor_cruise_control_k_i
-        k_d = self.environment.settings.motor_cruise_control_k_d
-        min_integral = (
-            self.environment.settings.motor_cruise_control_min_integral
+    def _handle_can(self, message: Message) -> None:
+        super()._handle_can(message)
+
+        broadcast_message = (
+            self.environment.peripheries.motor_wavesculptor22.parse(message)
         )
-        max_integral = (
-            self.environment.settings.motor_cruise_control_max_integral
-        )
-        min_derivative = (
-            self.environment.settings.motor_cruise_control_min_derivative
-        )
-        max_derivative = (
-            self.environment.settings.motor_cruise_control_max_derivative
-        )
-        min_output = self.environment.settings.motor_cruise_control_min_output
-        max_output = self.environment.settings.motor_cruise_control_max_output
-        timeout = self.environment.settings.motor_cruise_control_timeout
-        integral = 0.0
-        error = 0.0
 
-        while not self._stoppage.wait(timeout):
-            with self.environment.contexts() as contexts:
-                cruise_control_status_input = (
-                    contexts.motor_cruise_control_status_input
-                )
-                cruise_control_speed = contexts.motor_cruise_control_speed
-                motor_speed = contexts.motor_speed
-
-            acceleration_input: float
-            regeneration_input: float
-
-            if cruise_control_status_input:
-                previous_error = error
-                error = cruise_control_speed - motor_speed
-                integral += k_i * (error + previous_error) / 2 * timeout
-                derivative = k_d * (error - previous_error) / timeout
-
-                integral = np.clip(integral, min_integral, max_integral)
-                derivative = np.clip(
-                    derivative,
-                    min_derivative,
-                    max_derivative,
-                )
-
-                output = integral + derivative + k_p * error
-                output = np.clip(output, min_output, max_output)
-
-                if output > 0:
-                    acceleration_input = output / max_output
-                    regeneration_input = 0
-                elif output < 0:
-                    acceleration_input = 0
-                    regeneration_input = abs(output / min_output)
-                else:
-                    acceleration_input = 0
-                    regeneration_input = 0
-            else:
-                integral = 0
-                error = 0
-                acceleration_input = 0
-                regeneration_input = 0
-
-            with self.environment.contexts() as contexts:
-                contexts.motor_cruise_control_acceleration_input = (
-                    acceleration_input
-                )
-                contexts.motor_cruise_control_regeneration_input = (
-                    regeneration_input
-                )
+        with self.environment.contexts() as contexts:
+            if isinstance(broadcast_message, VelocityMeasurement):
+                contexts.motor_velocity = broadcast_message.motor_velocity

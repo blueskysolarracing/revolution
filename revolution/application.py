@@ -5,6 +5,8 @@ from logging import getLogger
 from threading import Event
 from typing import Any, ClassVar
 
+from can import Message
+
 from revolution.environment import Endpoint, Environment, Header
 
 _logger = getLogger(__name__)
@@ -33,6 +35,7 @@ class Application(ABC):
 
     def _setup(self) -> None:
         self._handlers[Header.STOP] = self._handle_stop
+        self._handlers[Header.CAN] = self._handle_can
 
         self._stoppage.clear()
 
@@ -54,3 +57,6 @@ class Application(ABC):
 
     def _handle_stop(self) -> None:
         self._stoppage.set()
+
+    def _handle_can(self, message: Message) -> None:
+        pass

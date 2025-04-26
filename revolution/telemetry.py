@@ -4,7 +4,7 @@ from logging import getLogger
 from typing import ClassVar
 
 from revolution.application import Application
-from revolution.environment import Endpoint
+from revolution.environment import Endpoint, Header, Message
 from revolution.worker import Worker
 
 _logger = getLogger(__name__)
@@ -18,11 +18,14 @@ class Telemetry(Application):
         super()._setup()
 
         self._telemetry_worker = Worker(target=self._telemetry)
+        self._can_worker = Worker(target=self._can)
 
         self._telemetry_worker.start()
+        self._can_worker.start()
 
     def _teardown(self) -> None:
         self._telemetry_worker.join()
+        self._can_worker.join()
 
     def _telemetry(self) -> None:
         while (
@@ -46,3 +49,14 @@ class Telemetry(Application):
             raw_data = b''.join(tokens)
 
             self.environment.peripheries.telemetry_radio_serial.write(raw_data)
+
+    def _can(self) -> None:
+        while not self._stoppage.is_set():
+            can_message = self.environment.peripheries.can_bus.recv(
+                self.environment.settings.telemetry_timeout,
+            )
+
+            if can_message is not None:
+                message = Message(Header.CAN, (can_message,))
+
+                self.environment.send_all(message)

@@ -1,10 +1,12 @@
+from os import system
 from typing import cast
 from unittest.mock import MagicMock
 
+from can import Bus, BusABC
 from iclib.mcp23s17 import MCP23S17, PortRegisterBit as PRB
-from iclib.mcp4161 import MCP4161
 from iclib.nhd_c12864a1z_fsw_fbw_htt import NHDC12864A1ZFSWFBWHTT
 from iclib.utilities import LockedSPI, ManualCSSPI
+from iclib.wavesculptor22 import WaveSculptor22
 from periphery import GPIO, PWM, Serial, SPI
 
 from revolution import (
@@ -16,7 +18,6 @@ from revolution import (
     Driver,
     # Miscellaneous,
     Motor,
-    MotorControllerSquared,
     Peripheries,
     Power,
     PRBS,
@@ -54,18 +55,14 @@ CONTEXTS: Contexts = Contexts(
 
     # Motor
 
-    motor_acceleration_input=0,
-    motor_regeneration_input=0,
-    motor_cruise_control_acceleration_input=0,
-    motor_cruise_control_regeneration_input=0,
     motor_status_input=False,
+    motor_acceleration_input=0,
     motor_direction_input=Direction.FORWARD,
-    motor_economical_mode_input=True,
+    motor_cruise_control_status_input=False,
+    motor_cruise_control_velocity=0,
     motor_variable_field_magnet_up_input=0,
     motor_variable_field_magnet_down_input=0,
-    motor_speed=0,
-    motor_cruise_control_status_input=False,
-    motor_cruise_control_speed=0,
+    motor_velocity=0,
 
     # Power
 
@@ -76,22 +73,17 @@ CONTEXTS: Contexts = Contexts(
     # Telemetry
 )
 
+CAN_BUS_CHANNEL: str = 'can0'
+CAN_BUS_BITRATE: int = 100000
+CAN_BUS: BusABC = Bus(channel=CAN_BUS_CHANNEL, interface='socketcan')
+
+system(f'ip link set {CAN_BUS_CHANNEL} up type can bitrate {CAN_BUS_BITRATE}')
+system(f'ip link set {CAN_BUS_CHANNEL} down')
+system(f'ip link set {CAN_BUS_CHANNEL} up')
+
 STEERING_WHEEL_SPI: SPI = cast(
     SPI,
     LockedSPI(SPI('/dev/spidev0.0', 0b11, 1e6)),
-)
-
-STEERING_WHEEL_MCP23S17: MCP23S17 = MCP23S17(
-    MagicMock(),
-    MagicMock(),
-    MagicMock(),
-    cast(
-        SPI,
-        ManualCSSPI(
-            GPIO('/dev/gpiochip3', 5, 'out', inverted=True),
-            STEERING_WHEEL_SPI,
-        ),
-    ),
 )
 
 NHD_C12864A1Z_FSW_FBW_HTT: NHDC12864A1ZFSWFBWHTT = (
@@ -106,6 +98,19 @@ NHD_C12864A1Z_FSW_FBW_HTT: NHDC12864A1ZFSWFBWHTT = (
         MagicMock(direction='out', inverted=False),  # PRB.GPIOA_GP5
         MagicMock(direction='out', inverted=True),  # PRB.GPIOA_GP6
     )
+)
+
+STEERING_WHEEL_MCP23S17: MCP23S17 = MCP23S17(
+    MagicMock(),
+    MagicMock(),
+    MagicMock(),
+    cast(
+        SPI,
+        ManualCSSPI(
+            GPIO('/dev/gpiochip3', 5, 'out', inverted=True),
+            STEERING_WHEEL_SPI,
+        ),
+    ),
 )
 
 SHIFT_SWITCH_PRB: PRB = PRB.GPIOB_GP4
@@ -154,42 +159,26 @@ HORN_SWITCH_GPIO: GPIO = MagicMock()  # TODO
 BACKUP_CAMERA_CONTROL_SWITCH_GPIO: GPIO = MagicMock()  # TODO
 DISPLAY_BACKLIGHT_SWITCH_GPIO: GPIO = GPIO('/dev/gpiochip3', 6, 'out')
 
-MOTOR_CONTROLLER_SQUARED_SPI = SPI('/dev/spidev1.0', 3, 1e6)
-MOTOR_CONTROLLER_SQUARED: MotorControllerSquared = MotorControllerSquared(
-    MCP4161(
-        cast(
-            SPI,
-            ManualCSSPI(
-                GPIO('/dev/gpiochip5', 29, 'out', inverted=True),
-                MOTOR_CONTROLLER_SQUARED_SPI,
-            ),
-        )
-    ),
-    MCP4161(
-        cast(
-            SPI,
-            ManualCSSPI(
-                GPIO('/dev/gpiochip5', 28, 'out', inverted=True),
-                MOTOR_CONTROLLER_SQUARED_SPI,
-            ),
-        ),
-    ),
-    GPIO('/dev/gpiochip6', 14, 'out', inverted=True),
-    GPIO('/dev/gpiochip6', 13, 'out'),
-    GPIO('/dev/gpiochip6', 11, 'out'),
-    GPIO('/dev/gpiochip6', 17, 'out'),
-    GPIO('/dev/gpiochip6', 12, 'out'),
-    GPIO('/dev/gpiochip6', 10, 'out'),
-    GPIO('/dev/gpiochip4', 17, 'in', edge='both'),
-)
-
 BATTERY_RELAY_LS_GPIO: GPIO = GPIO('/dev/gpiochip4', 2, 'out')
 BATTERY_RELAY_HS_GPIO: GPIO = GPIO('/dev/gpiochip3', 26, 'out')
 BATTERY_RELAY_PC_GPIO: GPIO = GPIO('/dev/gpiochip3', 28, 'out')
 
 RADIO_SERIAL: Serial = MagicMock()  # TODO
 
+if CAN_BUS_BITRATE not in WaveSculptor22.CAN_BUS_BITRATES:
+    raise ValueError('invalid can bus bitrate')
+
+WAVESCULPTOR22_DEVICE_IDENTIFIER: int = 0x500
+WAVESCULPTOR22: WaveSculptor22 = WaveSculptor22(
+    CAN_BUS,
+    WAVESCULPTOR22_DEVICE_IDENTIFIER,
+)
+
 PERIPHERIES: Peripheries = Peripheries(
+    # General
+
+    can_bus=CAN_BUS,
+
     # Debugger
 
     # Display
@@ -255,7 +244,7 @@ PERIPHERIES: Peripheries = Peripheries(
 
     # Motor
 
-    motor_controller_squared=MOTOR_CONTROLLER_SQUARED,
+    motor_wavesculptor22=WAVESCULPTOR22,
 
     # Power
 
@@ -269,6 +258,10 @@ PERIPHERIES: Peripheries = Peripheries(
 )
 
 SETTINGS: Settings = Settings(
+    # General
+
+    wheel_diameter=1,  # TODO
+
     # Debugger
 
     # Display
@@ -287,21 +280,8 @@ SETTINGS: Settings = Settings(
 
     # Motor
 
-    motor_wheel_circumference=1,
-    motor_control_timeout=0.01,
+    motor_control_timeout=0.1,
     motor_variable_field_magnet_timeout=0.1,
-    motor_revolution_timeout=0.5,
-
-    motor_cruise_control_k_p=250,
-    motor_cruise_control_k_i=15000,
-    motor_cruise_control_k_d=0,
-    motor_cruise_control_min_integral=-200,
-    motor_cruise_control_max_integral=200,
-    motor_cruise_control_min_derivative=-100,
-    motor_cruise_control_max_derivative=100,
-    motor_cruise_control_min_output=-255,
-    motor_cruise_control_max_output=255,
-    motor_cruise_control_timeout=0.02,
 
     # Power
 
