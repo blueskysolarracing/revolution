@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from logging import getLogger
+from time import sleep
 from typing import ClassVar
 
 from revolution.application import Application
@@ -26,6 +27,7 @@ class Power(Application):
     def _monitor(self) -> None:
         previous_array_relay_status_input = False
         previous_battery_relay_status_input = False
+        previous_motor_status_input = False
 
         while (
                 not self._stoppage.wait(
@@ -47,7 +49,35 @@ class Power(Application):
                     not previous_array_relay_status_input
                     and array_relay_status_input
             ):
-                pass  # TODO: close array relay
+                (
+                    self
+                    .environment
+                    .peripheries
+                    .power_array_relay_low_side_gpio
+                    .write(True)
+                )
+                (
+                    self
+                    .environment
+                    .peripheries
+                    .power_array_relay_pre_charge_gpio
+                    .write(True)
+                )
+                sleep(self.environment.settings.power_array_relay_timeout)
+                (
+                    self
+                    .environment
+                    .peripheries
+                    .power_array_relay_high_side_gpio
+                    .write(True)
+                )
+                (
+                    self
+                    .environment
+                    .peripheries
+                    .power_array_relay_pre_charge_gpio
+                    .write(False)
+                )
 
             if (
                     not previous_battery_relay_status_input
@@ -55,14 +85,31 @@ class Power(Application):
             ):
                 pass  # TODO: close battery relay
 
-                with self.environment.contexts() as contexts:
-                    contexts.motor_status_input = True
-
             if (
                     previous_array_relay_status_input
                     and not array_relay_status_input
             ):
-                pass  # TODO: open array relay
+                (
+                    self
+                    .environment
+                    .peripheries
+                    .power_array_relay_low_side_gpio
+                    .write(False)
+                )
+                (
+                    self
+                    .environment
+                    .peripheries
+                    .power_array_relay_high_side_gpio
+                    .write(False)
+                )
+                (
+                    self
+                    .environment
+                    .peripheries
+                    .power_array_relay_pre_charge_gpio
+                    .write(False)
+                )
 
             if (
                     previous_battery_relay_status_input
@@ -73,5 +120,15 @@ class Power(Application):
 
                 pass  # TODO: open battery relay
 
+            motor_status_input = (
+                array_relay_status_input
+                and battery_relay_status_input
+            )
+
+            if previous_motor_status_input != motor_status_input:
+                with self.environment.contexts() as contexts:
+                    contexts.motor_status_input = motor_status_input
+
             previous_array_relay_status_input = array_relay_status_input
             previous_battery_relay_status_input = battery_relay_status_input
+            previous_motor_status_input = motor_status_input

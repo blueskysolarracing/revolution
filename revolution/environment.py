@@ -137,9 +137,9 @@ class Peripheries:
 
     # Power
 
-    power_battery_relay_ls_gpio: GPIO
-    power_battery_relay_hs_gpio: GPIO
-    power_battery_relay_pc_gpio: GPIO
+    power_array_relay_low_side_gpio: GPIO
+    power_array_relay_high_side_gpio: GPIO
+    power_array_relay_pre_charge_gpio: GPIO
 
     # Telemetry
 
@@ -178,7 +178,7 @@ class Settings:
     # Power
 
     power_monitor_timeout: float
-    power_battery_relay_timeout: float
+    power_array_relay_timeout: float
 
     # Telemetry
 

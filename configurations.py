@@ -159,9 +159,9 @@ HORN_SWITCH_GPIO: GPIO = MagicMock()  # TODO
 BACKUP_CAMERA_CONTROL_SWITCH_GPIO: GPIO = MagicMock()  # TODO
 DISPLAY_BACKLIGHT_SWITCH_GPIO: GPIO = GPIO('/dev/gpiochip3', 6, 'out')
 
-BATTERY_RELAY_LS_GPIO: GPIO = GPIO('/dev/gpiochip4', 2, 'out')
-BATTERY_RELAY_HS_GPIO: GPIO = GPIO('/dev/gpiochip3', 26, 'out')
-BATTERY_RELAY_PC_GPIO: GPIO = GPIO('/dev/gpiochip3', 28, 'out')
+ARRAY_RELAY_LOW_SIDE_GPIO: GPIO = MagicMock()  # TODO
+ARRAY_RELAY_HIGH_SIDE_GPIO: GPIO = MagicMock()  # TODO
+ARRAY_RELAY_PRE_CHARGE_GPIO: GPIO = MagicMock()  # TODO
 
 RADIO_SERIAL: Serial = MagicMock()  # TODO
 
@@ -248,9 +248,9 @@ PERIPHERIES: Peripheries = Peripheries(
 
     # Power
 
-    power_battery_relay_ls_gpio=BATTERY_RELAY_LS_GPIO,
-    power_battery_relay_hs_gpio=BATTERY_RELAY_HS_GPIO,
-    power_battery_relay_pc_gpio=BATTERY_RELAY_PC_GPIO,
+    power_array_relay_low_side_gpio=ARRAY_RELAY_LOW_SIDE_GPIO,
+    power_array_relay_high_side_gpio=ARRAY_RELAY_HIGH_SIDE_GPIO,
+    power_array_relay_pre_charge_gpio=ARRAY_RELAY_PRE_CHARGE_GPIO,
 
     # Telemetry
 
@@ -286,7 +286,7 @@ SETTINGS: Settings = Settings(
     # Power
 
     power_monitor_timeout=0.1,
-    power_battery_relay_timeout=3,
+    power_array_relay_timeout=2.5,
 
     # Telemetry
 
