@@ -139,6 +139,9 @@ class Motor(Application):
             self.environment.peripheries.motor_wavesculptor22.parse(message)
         )
 
+        if broadcast_message is None:
+            return
+
         with self.environment.contexts() as contexts:
             if isinstance(broadcast_message, VelocityMeasurement):
                 contexts.motor_velocity = broadcast_message.motor_velocity

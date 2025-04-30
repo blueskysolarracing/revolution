@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from logging import getLogger
 from math import pi
+from statistics import mean
 from typing import ClassVar
 
 from revolution.application import Application
@@ -61,8 +62,18 @@ class Display(Application):
                 motor_cruise_control_velocity = (
                     contexts.motor_cruise_control_velocity
                 )
-                power_state_of_charge = contexts.power_state_of_charge
-                power_battery_warning_status = False  # TODO
+                power_battery_state_of_charges = (
+                    contexts.power_battery_state_of_charges.copy()
+                )
+                power_battery_cell_flags = (
+                    contexts.power_battery_cell_flags.copy()
+                )
+                power_battery_thermistor_flags = (
+                    contexts.power_battery_thermistor_flags.copy()
+                )
+                power_battery_current_flag = (
+                    contexts.power_battery_current_flag
+                )
 
             periphery = (
                 self.environment.peripheries.display_nhd_c12864a1z_fsw_fbw_htt
@@ -111,10 +122,22 @@ class Display(Application):
 
             # Power
 
-            periphery.set_size(10, 12)
-            periphery.draw_word(f'{power_state_of_charge * 100:.0f}%', 82, 5)
+            power_battery_state_of_charge = mean(
+                power_battery_state_of_charges,
+            )
 
-            if power_battery_warning_status:
+            periphery.set_size(10, 12)
+            periphery.draw_word(
+                f'{power_battery_state_of_charge * 100:.0f}%',
+                82,
+                5,
+            )
+
+            if (
+                    any(power_battery_cell_flags)
+                    or any(power_battery_thermistor_flags)
+                    or power_battery_current_flag
+            ):
                 periphery.set_size(6, 6)
                 periphery.draw_word('[-+]!', 5, 56)
 

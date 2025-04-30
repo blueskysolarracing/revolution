@@ -2,15 +2,20 @@ from os import system
 from typing import cast
 from unittest.mock import MagicMock
 
+from battlib import Battery
 from can import Bus, BusABC
 from iclib.mcp23s17 import MCP23S17, PortRegisterBit as PRB
 from iclib.nhd_c12864a1z_fsw_fbw_htt import NHDC12864A1ZFSWFBWHTT
 from iclib.utilities import LockedSPI, ManualCSSPI
 from iclib.wavesculptor22 import WaveSculptor22
+from json import load
 from periphery import GPIO, PWM, Serial, SPI
 
 from revolution import (
     Application,
+    BATTERY_CELL_COUNT,
+    BatteryManagementSystem,
+    BATTERY_THERMISTOR_COUNT,
     Contexts,
     Debugger,
     Direction,
@@ -68,7 +73,19 @@ CONTEXTS: Contexts = Contexts(
 
     power_array_relay_status_input=False,
     power_battery_relay_status_input=False,
-    power_state_of_charge=0,
+    power_battery_cell_voltages=[0 for _ in range(BATTERY_CELL_COUNT)],
+    power_battery_thermistor_temperatures=[
+        0 for _ in range(BATTERY_THERMISTOR_COUNT)
+    ],
+    power_battery_bus_voltage=0,
+    power_battery_current=0,
+    power_battery_relay_status=False,
+    power_battery_cell_flags=[0 for _ in range(BATTERY_CELL_COUNT)],
+    power_battery_thermistor_flags=[
+        0 for _ in range(BATTERY_THERMISTOR_COUNT)
+    ],
+    power_battery_current_flag=0,
+    power_battery_state_of_charges=[0 for _ in range(BATTERY_CELL_COUNT)],
 
     # Telemetry
 )
@@ -174,6 +191,10 @@ WAVESCULPTOR22: WaveSculptor22 = WaveSculptor22(
     WAVESCULPTOR22_DEVICE_IDENTIFIER,
 )
 
+BATTERY_MANAGEMENT_SYSTEM: BatteryManagementSystem = BatteryManagementSystem(
+    CAN_BUS,
+)
+
 PERIPHERIES: Peripheries = Peripheries(
     # General
 
@@ -251,11 +272,15 @@ PERIPHERIES: Peripheries = Peripheries(
     power_array_relay_low_side_gpio=ARRAY_RELAY_LOW_SIDE_GPIO,
     power_array_relay_high_side_gpio=ARRAY_RELAY_HIGH_SIDE_GPIO,
     power_array_relay_pre_charge_gpio=ARRAY_RELAY_PRE_CHARGE_GPIO,
+    power_battery_management_system=BATTERY_MANAGEMENT_SYSTEM,
 
     # Telemetry
 
     telemetry_radio_serial=RADIO_SERIAL,
 )
+
+with open('data/battery.json') as file:
+    BATTERY = Battery(**load(file))
 
 SETTINGS: Settings = Settings(
     # General
@@ -287,6 +312,8 @@ SETTINGS: Settings = Settings(
 
     power_monitor_timeout=0.1,
     power_array_relay_timeout=2.5,
+    power_soc_timeout=0.05,
+    power_battery=BATTERY,
 
     # Telemetry
 

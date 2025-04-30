@@ -4,6 +4,7 @@ from logging import getLogger
 from queue import Queue
 from typing import Any
 
+from battlib import Battery
 from can import BusABC
 from databrief import dump
 from door.threading2 import AcquirableDoor
@@ -12,6 +13,7 @@ from iclib.nhd_c12864a1z_fsw_fbw_htt import NHDC12864A1ZFSWFBWHTT
 from iclib.wavesculptor22 import WaveSculptor22
 from periphery import GPIO, PWM, Serial
 
+from revolution.battery_management_system import BatteryManagementSystem
 from revolution.utilities import Direction, PRBS
 
 _logger = getLogger(__name__)
@@ -73,7 +75,15 @@ class Contexts:
 
     power_array_relay_status_input: bool
     power_battery_relay_status_input: bool
-    power_state_of_charge: float
+    power_battery_cell_voltages: list[float]
+    power_battery_thermistor_temperatures: list[float]
+    power_battery_bus_voltage: float
+    power_battery_current: float
+    power_battery_relay_status: bool
+    power_battery_cell_flags: list[int]
+    power_battery_thermistor_flags: list[int]
+    power_battery_current_flag: int
+    power_battery_state_of_charges: list[float]
 
     # Telemetry
 
@@ -140,6 +150,7 @@ class Peripheries:
     power_array_relay_low_side_gpio: GPIO
     power_array_relay_high_side_gpio: GPIO
     power_array_relay_pre_charge_gpio: GPIO
+    power_battery_management_system: BatteryManagementSystem
 
     # Telemetry
 
@@ -179,6 +190,8 @@ class Settings:
 
     power_monitor_timeout: float
     power_array_relay_timeout: float
+    power_soc_timeout: float
+    power_battery: Battery
 
     # Telemetry
 

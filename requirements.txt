@@ -1,7 +1,7 @@
 battlib==0.0.0.dev2
 build~=1.2.2.post1
 coverage~=7.8.0
-databrief==0.0.1.dev2
+databrief==0.0.2
 door==0.0.4
 flake8~=7.2.0
 freetype-py~=2.5.1
