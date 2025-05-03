@@ -42,7 +42,7 @@ class Power(Application):
     def _monitor(self) -> None:
         previous_array_relay_status_input = False
         previous_battery_relay_status_input = False
-        previous_motor_status_input = False
+        previous_all_relay_status_input = False
         previous_discharge_status = False
 
         while (
@@ -58,11 +58,30 @@ class Power(Application):
                     contexts.power_battery_relay_status_input
                 )
                 battery_relay_status = contexts.power_battery_relay_status
+                battery_electric_safe_discharge_status = (
+                    contexts.power_battery_electric_safe_discharge_status
+                )
+                battery_discharge_status = (
+                    contexts.power_battery_discharge_status
+                )
                 battery_cell_flags = contexts.power_battery_cell_flags.copy()
                 battery_thermistor_flags = (
                     contexts.power_battery_thermistor_flags.copy()
                 )
                 battery_current_flag = contexts.power_battery_current_flag
+
+            if (
+                    battery_electric_safe_discharge_status
+                    or battery_discharge_status
+                    or any(battery_cell_flags)
+                    or any(battery_thermistor_flags)
+                    or battery_current_flag
+            ):
+                array_relay_status_input = False
+                battery_relay_status_input = False
+                discharge_status = True
+            else:
+                discharge_status = False
 
             if (
                     not previous_array_relay_status_input
@@ -146,48 +165,44 @@ class Power(Application):
                     .open_relay()
                 )
 
-            motor_status_input = (
+            all_relay_status_input = (
                 array_relay_status_input
-                and battery_relay_status_input
+                and battery_relay_status
             )
 
-            if previous_motor_status_input != motor_status_input:
-                with self.environment.contexts() as contexts:
-                    contexts.motor_status_input = motor_status_input
+            if previous_all_relay_status_input != all_relay_status_input:
+                (
+                    self
+                    .environment
+                    .peripheries
+                    .power_point_tracking_switch_gpio
+                    .write(all_relay_status_input)
+                )
 
-            discharge_status = False
+                with self.environment.contexts() as contexts:
+                    contexts.motor_status_input = all_relay_status_input
 
             if (
-                    any(battery_cell_flags)
-                    or any(battery_thermistor_flags)
-                    or battery_current_flag
+                    not battery_relay_status
+                    and not previous_discharge_status
+                    and discharge_status
             ):
-                if array_relay_status_input or battery_relay_status_input:
-                    with self.environment.contexts() as contexts:
-                        contexts.power_array_relay_status_input = False
-                        contexts.power_battery_relay_status_input = False
-                elif not battery_relay_status:
-                    discharge_status = True
+                assert (
+                    not array_relay_status_input
+                    and not battery_relay_status_input
+                )
 
-                    if not previous_discharge_status:
-                        (
-                            self
-                            .environment
-                            .peripheries
-                            .power_battery_management_system.discharge()
-                        )
-
-                    (
-                        self
-                        .environment
-                        .peripheries
-                        .power_battery_management_system
-                        .unflag()
-                    )
+                (
+                    self
+                    .environment
+                    .peripheries
+                    .power_battery_management_system
+                    .discharge()
+                )
 
             previous_array_relay_status_input = array_relay_status_input
             previous_battery_relay_status_input = battery_relay_status_input
-            previous_motor_status_input = motor_status_input
+            previous_all_relay_status_input = all_relay_status_input
             previous_discharge_status = discharge_status
 
     def _soc(self) -> None:

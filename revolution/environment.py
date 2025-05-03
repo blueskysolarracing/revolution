@@ -153,6 +153,7 @@ class Peripheries:
     power_array_relay_high_side_gpio: GPIO
     power_array_relay_pre_charge_gpio: GPIO
     power_battery_management_system: BatteryManagementSystem
+    power_point_tracking_switch_gpio: GPIO
 
     # Telemetry
 

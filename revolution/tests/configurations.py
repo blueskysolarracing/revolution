@@ -144,6 +144,8 @@ WAVESCULPTOR22: WaveSculptor22 = MagicMock()
 
 BATTERY_MANAGEMENT_SYSTEM: BatteryManagementSystem = MagicMock()
 
+POWER_POINT_TRACKING_SWITCH_GPIO: GPIO = MagicMock()
+
 PERIPHERIES: Peripheries = Peripheries(
     # General
 
@@ -222,6 +224,7 @@ PERIPHERIES: Peripheries = Peripheries(
     power_array_relay_high_side_gpio=ARRAY_RELAY_HIGH_SIDE_GPIO,
     power_array_relay_pre_charge_gpio=ARRAY_RELAY_PRE_CHARGE_GPIO,
     power_battery_management_system=BATTERY_MANAGEMENT_SYSTEM,
+    power_point_tracking_switch_gpio=POWER_POINT_TRACKING_SWITCH_GPIO,
 
     # Telemetry
 
