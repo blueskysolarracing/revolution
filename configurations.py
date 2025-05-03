@@ -352,7 +352,7 @@ SETTINGS: Settings = Settings(
     # Telemetry
 
     telemetry_timeout=1,
-    telemetry_begin_token=b'__BEGIN__',
-    telemetry_separator_token=b'__SEPARATOR__',
-    telemetry_end_token=b'__END__',
+    telemetry_begin_token=b'',
+    telemetry_separator_token=b'_',
+    telemetry_end_token=b'\n',
 )
