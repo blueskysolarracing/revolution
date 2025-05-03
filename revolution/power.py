@@ -261,6 +261,12 @@ class Power(Application):
                 contexts.power_battery_current = information.current
             elif isinstance(information, StatusesInformation):
                 contexts.power_battery_relay_status = information.relay_status
+                contexts.power_battery_electric_safe_discharge_status = (
+                    information.electric_safe_discharge_status
+                )
+                contexts.power_battery_discharge_status = (
+                    information.discharge_status
+                )
             elif (
                     isinstance(
                         information,

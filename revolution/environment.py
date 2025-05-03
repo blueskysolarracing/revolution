@@ -80,6 +80,8 @@ class Contexts:
     power_battery_bus_voltage: float
     power_battery_current: float
     power_battery_relay_status: bool
+    power_battery_electric_safe_discharge_status: bool
+    power_battery_discharge_status: bool
     power_battery_cell_flags: list[int]
     power_battery_thermistor_flags: list[int]
     power_battery_current_flag: int

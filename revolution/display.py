@@ -65,14 +65,8 @@ class Display(Application):
                 power_battery_state_of_charges = (
                     contexts.power_battery_state_of_charges.copy()
                 )
-                power_battery_cell_flags = (
-                    contexts.power_battery_cell_flags.copy()
-                )
-                power_battery_thermistor_flags = (
-                    contexts.power_battery_thermistor_flags.copy()
-                )
-                power_battery_current_flag = (
-                    contexts.power_battery_current_flag
+                power_battery_discharge_status = (
+                    contexts.power_battery_discharge_status
                 )
 
             periphery = (
@@ -133,11 +127,7 @@ class Display(Application):
                 5,
             )
 
-            if (
-                    any(power_battery_cell_flags)
-                    or any(power_battery_thermistor_flags)
-                    or power_battery_current_flag
-            ):
+            if power_battery_discharge_status:
                 periphery.set_size(6, 6)
                 periphery.draw_word('[-+]!', 5, 56)
 

@@ -78,7 +78,15 @@ class StatusesInformation(Information):
 
     @property
     def relay_status(self) -> bool:
-        return bool(self.statuses & 0b1)
+        return bool(self.statuses & (1 << 0))
+
+    @property
+    def electric_safe_discharge_status(self) -> bool:
+        return bool(self.statuses & (1 << 1))
+
+    @property
+    def discharge_status(self) -> bool:
+        return bool(self.statuses & (1 << 2))
 
 
 @dataclass

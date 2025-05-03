@@ -77,6 +77,8 @@ CONTEXTS: Contexts = Contexts(
     power_battery_bus_voltage=0,
     power_battery_current=0,
     power_battery_relay_status=False,
+    power_battery_electric_safe_discharge_status=False,
+    power_battery_discharge_status=False,
     power_battery_cell_flags=[0 for _ in range(BATTERY_CELL_COUNT)],
     power_battery_thermistor_flags=[
         0 for _ in range(BATTERY_THERMISTOR_COUNT)
