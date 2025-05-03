@@ -1,7 +1,9 @@
+from collections import defaultdict
 from unittest.mock import MagicMock
 
 from battlib import Battery
 from can import BusABC
+from iclib.adc78h89 import ADC78H89, InputChannel
 from iclib.mcp23s17 import MCP23S17, PortRegisterBit as PRB
 from iclib.nhd_c12864a1z_fsw_fbw_htt import NHDC12864A1ZFSWFBWHTT
 from iclib.wavesculptor22 import WaveSculptor22
@@ -105,6 +107,10 @@ STEERING_WHEEL_MCP23S17: MCP23S17 = MagicMock(
 
 SHIFT_SWITCH_PRB: PRB = MagicMock()
 
+PEDALS_ADC78H89: ADC78H89 = MagicMock(  # TODO
+    sample_all=lambda *_: defaultdict(float),
+)
+
 LEFT_INDICATOR_LIGHT_SWITCH_PRBS: PRBS = PRB.GPIOB_GP0
 RIGHT_INDICATOR_LIGHT_SWITCH_PRBS: PRBS = PRB.GPIOA_GP7
 HAZARD_LIGHTS_SWITCH_PRBS: PRBS = PRB.GPIOB_GP7, True
@@ -121,6 +127,7 @@ REGENERATION_SWITCH_PRBS: PRBS = PRB.GPIOA_GP0, False
 VARIABLE_FIELD_MAGNET_UP_SWITCH_PRBS: PRBS = PRB.GPIOB_GP2
 VARIABLE_FIELD_MAGNET_DOWN_SWITCH_PRBS: PRBS = PRB.GPIOB_GP1
 CRUISE_CONTROL_SWITCH_PRBS: PRBS = PRB.GPIOA_GP4
+ACCELERATION_INPUT_INPUT_CHANNEL: InputChannel = InputChannel.AIN1  # TODO
 
 ARRAY_RELAY_SWITCH_PRBS: PRBS = PRB.GPIOA_GP0
 BATTERY_RELAY_SWITCH_PRBS: PRBS = PRB.GPIOA_GP5
@@ -163,6 +170,8 @@ PERIPHERIES: Peripheries = Peripheries(
 
     driver_shift_switch_prb=SHIFT_SWITCH_PRB,
 
+    driver_pedals_adc78h89=PEDALS_ADC78H89,
+
     driver_miscellaneous_left_indicator_light_switch_prbs=(
         LEFT_INDICATOR_LIGHT_SWITCH_PRBS
     ),
@@ -197,6 +206,9 @@ PERIPHERIES: Peripheries = Peripheries(
         VARIABLE_FIELD_MAGNET_DOWN_SWITCH_PRBS
     ),
     driver_motor_cruise_control_switch_prbs=CRUISE_CONTROL_SWITCH_PRBS,
+    driver_motor_acceleration_input_input_channel=(
+        ACCELERATION_INPUT_INPUT_CHANNEL
+    ),
 
     driver_power_array_relay_switch_prbs=ARRAY_RELAY_SWITCH_PRBS,
     driver_power_battery_relay_switch_prbs=BATTERY_RELAY_SWITCH_PRBS,
@@ -249,7 +261,6 @@ SETTINGS: Settings = Settings(
     # Driver
 
     driver_timeout=0.01,
-    driver_acceleration_input_step=0.1,
 
     # Miscellaneous
 

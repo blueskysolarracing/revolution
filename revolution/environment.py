@@ -8,6 +8,7 @@ from battlib import Battery
 from can import BusABC
 from databrief import dump
 from door.threading2 import AcquirableDoor
+from iclib.adc78h89 import ADC78H89, InputChannel
 from iclib.mcp23s17 import MCP23S17, PortRegisterBit as PRB
 from iclib.nhd_c12864a1z_fsw_fbw_htt import NHDC12864A1ZFSWFBWHTT
 from iclib.wavesculptor22 import WaveSculptor22
@@ -112,6 +113,8 @@ class Peripheries:
 
     driver_shift_switch_prb: PRB
 
+    driver_pedals_adc78h89: ADC78H89
+
     driver_miscellaneous_left_indicator_light_switch_prbs: PRBS
     driver_miscellaneous_right_indicator_light_switch_prbs: PRBS
     driver_miscellaneous_hazard_lights_switch_prbs: PRBS
@@ -128,6 +131,7 @@ class Peripheries:
     driver_motor_variable_field_magnet_up_switch_prbs: PRBS
     driver_motor_variable_field_magnet_down_switch_prbs: PRBS
     driver_motor_cruise_control_switch_prbs: PRBS
+    driver_motor_acceleration_input_input_channel: InputChannel
 
     driver_power_array_relay_switch_prbs: PRBS
     driver_power_battery_relay_switch_prbs: PRBS
@@ -178,7 +182,6 @@ class Settings:
     # Driver
 
     driver_timeout: float
-    driver_acceleration_input_step: float
 
     # Miscellaneous
 

@@ -74,6 +74,12 @@ class DriverControls(Application):
             'driver_motor_cruise_control_velocity_rotary_encoder_b_prbs',
         ): ('motor_acceleration_input', (30, 180, 1)),
     }
+    ANALOG_SIGNALS: ClassVar[dict[str, tuple[str, tuple[float, float]]]] = {
+        'driver_motor_acceleration_input_input_channel': (
+            'motor_acceleration_input',
+            (0, 1),
+        ),
+    }
 
     def _setup(self) -> None:
         super()._setup()
@@ -135,6 +141,14 @@ class DriverControls(Application):
                 .read()
             )
 
+            voltages = (
+                self
+                .environment
+                .peripheries
+                .driver_pedals_adc78h89
+                .sample_all()
+            )
+
             with self.environment.contexts() as contexts:
                 for raw_prbs, value in self.MOMENTARY_SWITCHES.items():
                     prbs = getattr(self.environment.peripheries, raw_prbs)
@@ -180,5 +194,22 @@ class DriverControls(Application):
                             input_ = max_
 
                         setattr(contexts, value, input_)
+
+                for raw_input_channel, (value, (min_, max_)) in (
+                        self.ANALOG_SIGNALS.items()
+                ):
+                    input_channel = getattr(
+                        self.environment.peripheries,
+                        raw_input_channel,
+                    )
+                    voltage = voltages[input_channel]
+                    input_ = (voltage - min_) / (max_ - min_)
+
+                    if input_ < min_:
+                        input_ = min_
+                    elif input_ > max_:
+                        input_ = max_
+
+                    setattr(contexts, value, input_)
 
             previous_lookup = lookup
