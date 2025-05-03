@@ -121,8 +121,8 @@ class Peripheries:
     driver_miscellaneous_display_backlight_switch_prbs: PRBS
     driver_miscellaneous_brake_switch_gpio: GPIO
 
-    driver_motor_acceleration_input_rotary_encoder_a_prbs: PRBS
-    driver_motor_acceleration_input_rotary_encoder_b_prbs: PRBS
+    driver_motor_cruise_control_velocity_rotary_encoder_a_prbs: PRBS
+    driver_motor_cruise_control_velocity_rotary_encoder_b_prbs: PRBS
     driver_motor_direction_switch_prbs: PRBS
     driver_motor_regeneration_switch_prbs: PRBS
     driver_motor_variable_field_magnet_up_switch_prbs: PRBS

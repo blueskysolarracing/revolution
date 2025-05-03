@@ -70,9 +70,9 @@ class DriverControls(Application):
         dict[tuple[str, str], tuple[str, tuple[float, float, float]]]
     ] = {
         (
-            'driver_motor_acceleration_input_rotary_encoder_a_prbs',
-            'driver_motor_acceleration_input_rotary_encoder_b_prbs',
-        ): ('motor_acceleration_input', (0, 1, 0.1)),
+            'driver_motor_cruise_control_velocity_rotary_encoder_a_prbs',
+            'driver_motor_cruise_control_velocity_rotary_encoder_b_prbs',
+        ): ('motor_acceleration_input', (30, 180, 1)),
     }
 
     def _setup(self) -> None:
@@ -155,8 +155,7 @@ class DriverControls(Application):
 
                 contexts.miscellaneous_brake_status_input = brake_status_input
 
-                if brake_status_input:
-                    contexts.motor_acceleration_input = 0
+                if brake_status_input or contexts.motor_acceleration_input:
                     contexts.motor_cruise_control_status_input = False
 
                 for (raw_a_prbs, raw_b_prbs), (value, (min_, max_, step)) in (

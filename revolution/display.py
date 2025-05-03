@@ -102,17 +102,22 @@ class Display(Application):
             periphery.set_size(16, 20)
             periphery.draw_word('km/h', 100, 36)
 
-            if motor_cruise_control_status_input:
-                motor_cruise_control_velocity = rpm2kph(
-                    motor_cruise_control_velocity,
-                )
+            motor_cruise_control_velocity = rpm2kph(
+                motor_cruise_control_velocity,
+            )
+            motor_cruise_control_label = (
+                'ON' if motor_cruise_control_status_input else 'OFF'
+            )
 
-                periphery.set_size(8, 10)
-                periphery.draw_word(
-                    f'Target: {motor_cruise_control_velocity:3.0f}',
-                    30,
-                    52,
-                )
+            periphery.set_size(8, 10)
+            periphery.draw_word(
+                (
+                    f'CC ({motor_cruise_control_label}):'
+                    f' {motor_cruise_control_velocity:3.0f}'
+                ),
+                30,
+                52,
+            )
 
             # Power
 
