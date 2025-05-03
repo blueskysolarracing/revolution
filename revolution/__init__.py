@@ -11,7 +11,7 @@ __all__ = (
     'Debugger',
     'Direction',
     'Display',
-    'Driver',
+    'DriverControls',
     'Endpoint',
     'Environment',
     'Header',
@@ -52,7 +52,7 @@ from revolution.battery_management_system import (
 )
 from revolution.debugger import Debugger
 from revolution.display import Display
-from revolution.driver import Driver
+from revolution.driver_controls import DriverControls
 from revolution.environment import (
     Contexts,
     Endpoint,

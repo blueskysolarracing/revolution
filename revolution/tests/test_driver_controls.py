@@ -6,12 +6,12 @@ from unittest import TestCase, main
 
 from door.threading2 import AcquirableDoor
 
-from revolution.driver import Driver
+from revolution.driver_controls import DriverControls
 from revolution.environment import Environment, Header, Message
 from revolution.tests import configurations
 
 
-class DriverTestCase(TestCase):
+class DriverControlsTestCase(TestCase):
     TIMEOUT: ClassVar[float] = 0.1
 
     def setUp(self) -> None:
@@ -21,7 +21,7 @@ class DriverTestCase(TestCase):
             replace(configurations.SETTINGS),
         )
         self.driver_thread: Thread = Thread(
-            target=Driver.main,
+            target=DriverControls.main,
             args=(self.environment,),
         )
 

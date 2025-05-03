@@ -20,7 +20,7 @@ from revolution import (
     Debugger,
     Direction,
     # Display,
-    Driver,
+    DriverControls,
     # Miscellaneous,
     Motor,
     Peripheries,
@@ -33,7 +33,7 @@ from revolution import (
 APPLICATION_TYPES: tuple[type[Application], ...] = (
     Debugger,
     # Display,
-    Driver,
+    DriverControls,
     # Miscellaneous,
     Motor,
     Power,
