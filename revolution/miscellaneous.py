@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from logging import getLogger
 from typing import ClassVar
 
@@ -19,11 +19,14 @@ class Miscellaneous(Application):
         super()._setup()
 
         self._light_worker = Worker(target=self._light)
+        self._orientation_worker = Worker(target=self._orientation)
 
         self._light_worker.start()
+        self._orientation_worker.start()
 
     def _teardown(self) -> None:
         self._light_worker.join()
+        self._orientation_worker.join()
 
     def _light(self) -> None:
         previous_left_indicator_light_status_input = False
@@ -195,3 +198,27 @@ class Miscellaneous(Application):
             previous_display_backlight_status_input = (
                 display_backlight_status_input
             )
+
+    def _orientation(self) -> None:
+        while (
+                not self._stoppage.wait(
+                    (
+                        self
+                        .environment
+                        .settings
+                        .miscellaneous_orientation_timeout
+                    ),
+                )
+        ):
+            orientation = asdict(
+                (
+                    self
+                    .environment
+                    .peripheries
+                    .miscellaneous_orientation_imu_bno055
+                    .orientation
+                ),
+            )
+
+            with self.environment.contexts() as contexts:
+                contexts.miscellaneous_orientation.update(orientation)

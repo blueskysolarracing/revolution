@@ -9,6 +9,7 @@ from can import BusABC
 from databrief import dump
 from door.threading2 import AcquirableDoor
 from iclib.adc78h89 import ADC78H89, InputChannel
+from iclib.bno055 import BNO055
 from iclib.mcp23s17 import MCP23S17, PortRegisterBit as PRB
 from iclib.nhd_c12864a1z_fsw_fbw_htt import NHDC12864A1ZFSWFBWHTT
 from iclib.wavesculptor22 import WaveSculptor22
@@ -60,6 +61,7 @@ class Contexts:
     miscellaneous_backup_camera_control_status_input: bool
     miscellaneous_display_backlight_status_input: bool
     miscellaneous_brake_status_input: bool
+    miscellaneous_orientation: dict[str, float]
 
     # Motor
 
@@ -146,6 +148,7 @@ class Peripheries:
     miscellaneous_horn_switch_gpio: GPIO
     miscellaneous_backup_camera_control_switch_gpio: GPIO
     miscellaneous_display_backlight_switch_gpio: GPIO
+    miscellaneous_orientation_imu_bno055: BNO055
 
     # Motor
 
@@ -186,6 +189,7 @@ class Settings:
     # Miscellaneous
 
     miscellaneous_light_timeout: float
+    miscellaneous_orientation_timeout: float
 
     # Motor
 

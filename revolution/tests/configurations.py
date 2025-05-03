@@ -4,11 +4,12 @@ from unittest.mock import MagicMock
 from battlib import Battery
 from can import BusABC
 from iclib.adc78h89 import ADC78H89, InputChannel
+from iclib.bno055 import BNO055
 from iclib.mcp23s17 import MCP23S17, PortRegisterBit as PRB
 from iclib.nhd_c12864a1z_fsw_fbw_htt import NHDC12864A1ZFSWFBWHTT
 from iclib.wavesculptor22 import WaveSculptor22
 from json import load
-from periphery import GPIO, PWM, Serial
+from periphery import GPIO, I2C, PWM, Serial
 
 from revolution import (  # noqa: F401
     Application,
@@ -56,6 +57,7 @@ CONTEXTS: Contexts = Contexts(
     miscellaneous_backup_camera_control_status_input=False,
     miscellaneous_display_backlight_status_input=False,
     miscellaneous_brake_status_input=False,
+    miscellaneous_orientation={},
 
     # Motor
 
@@ -141,6 +143,16 @@ HORN_SWITCH_GPIO: GPIO = MagicMock()
 BACKUP_CAMERA_CONTROL_SWITCH_GPIO: GPIO = MagicMock()
 DISPLAY_BACKLIGHT_SWITCH_GPIO: GPIO = MagicMock()
 
+ORIENTATION_IMU_BNO055_I2C: I2C = MagicMock()  # TODO
+ORIENTATION_IMU_BNO055_IMU_RESET_GPIO: GPIO = MagicMock(  # TODO
+    direction='out',
+    inverted=True,
+)
+ORIENTATION_IMU_BNO055: BNO055 = BNO055(
+    ORIENTATION_IMU_BNO055_I2C,
+    ORIENTATION_IMU_BNO055_IMU_RESET_GPIO,
+)
+
 ARRAY_RELAY_LOW_SIDE_GPIO: GPIO = MagicMock()
 ARRAY_RELAY_HIGH_SIDE_GPIO: GPIO = MagicMock()
 ARRAY_RELAY_PRE_CHARGE_GPIO: GPIO = MagicMock()
@@ -225,6 +237,7 @@ PERIPHERIES: Peripheries = Peripheries(
         BACKUP_CAMERA_CONTROL_SWITCH_GPIO
     ),
     miscellaneous_display_backlight_switch_gpio=DISPLAY_BACKLIGHT_SWITCH_GPIO,
+    miscellaneous_orientation_imu_bno055=ORIENTATION_IMU_BNO055,
 
     # Motor
 
@@ -265,6 +278,7 @@ SETTINGS: Settings = Settings(
     # Miscellaneous
 
     miscellaneous_light_timeout=0.1,
+    miscellaneous_orientation_timeout=0.1,
 
     # Motor
 
