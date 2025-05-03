@@ -14,7 +14,7 @@ _logger = getLogger(__name__)
 
 
 @dataclass
-class DriverControls(Application):
+class Driver(Application):
     endpoint: ClassVar[Endpoint] = Endpoint.DRIVER
     MOMENTARY_SWITCHES: ClassVar[dict[str, str]] = {
         'driver_miscellaneous_left_indicator_light_switch_prbs': (
