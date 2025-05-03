@@ -41,7 +41,7 @@ class Telemetry(Application):
             checksum_token = md5(data_token).digest()
             tokens = (
                 self.environment.settings.telemetry_begin_token,
-                data_token,
+                data_token.hex(),
                 self.environment.settings.telemetry_separator_token,
                 checksum_token,
                 self.environment.settings.telemetry_end_token,
