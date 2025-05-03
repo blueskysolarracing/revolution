@@ -185,14 +185,18 @@ RADIO_SERIAL: Serial = MagicMock()  # TODO
 if CAN_BUS_BITRATE not in WaveSculptor22.CAN_BUS_BITRATES:
     raise ValueError('invalid can bus bitrate')
 
-WAVESCULPTOR22_DEVICE_IDENTIFIER: int = 0x500
+REVOLUTION_BASE_ADDRESS: int = 0x500
+WAVESCULPTOR22_BASE_ADDRESS: int = 0x400
+
 WAVESCULPTOR22: WaveSculptor22 = WaveSculptor22(
     CAN_BUS,
-    WAVESCULPTOR22_DEVICE_IDENTIFIER,
+    REVOLUTION_BASE_ADDRESS,
+    WAVESCULPTOR22_BASE_ADDRESS,
 )
 
 BATTERY_MANAGEMENT_SYSTEM: BatteryManagementSystem = BatteryManagementSystem(
     CAN_BUS,
+    REVOLUTION_BASE_ADDRESS,
 )
 
 PERIPHERIES: Peripheries = Peripheries(

@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import auto, IntFlag
-from functools import cached_property
 from logging import getLogger
 from struct import unpack
 from typing import ClassVar
@@ -148,12 +147,9 @@ class UndervoltageAndTemperatureFlagsInformation(BatteryPackFlagsInformation):
 
 @dataclass
 class BatteryManagementSystem:
-    DEVICE_IDENTIFIER: ClassVar[int] = 48
+    BASE_ADDRESS: ClassVar[int] = 0x600
     can_bus: BusABC
-
-    @cached_property
-    def driver_controls_base_address(self) -> int:
-        return self.DEVICE_IDENTIFIER << 5
+    driver_controls_base_address: int
 
     def _send(
             self,
@@ -195,11 +191,15 @@ class BatteryManagementSystem:
     )
 
     def parse(self, message: Message) -> Information | None:
+        device_identifier = message.arbitration_id >> 5
+
+        if self.BASE_ADDRESS != device_identifier << 5:
+            return None
+
+        message_identifier = message.arbitration_id & ((1 << 5) - 1)
         information = None
 
         for type_ in self.INFORMATION_TYPES:
-            message_identifier = message.arbitration_id & ((1 << 5) - 1)
-
             if message_identifier in type_.MESSAGE_IDENTIFIERS:
                 information = type_(*unpack(type_.FORMAT, message.data))
 
