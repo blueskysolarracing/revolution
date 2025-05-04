@@ -205,10 +205,10 @@ class Driver(Application):
                     voltage = voltages[input_channel]
                     input_ = (voltage - min_) / (max_ - min_)
 
-                    if input_ < min_:
-                        input_ = min_
-                    elif input_ > max_:
-                        input_ = max_
+                    if input_ < 0:
+                        input_ = 0
+                    elif input_ > 1:
+                        input_ = 1
 
                     setattr(contexts, value, input_)
 

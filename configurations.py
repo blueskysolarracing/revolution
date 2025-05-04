@@ -1,9 +1,10 @@
-from os import system
+# from os import system
 from typing import cast
 from unittest.mock import MagicMock
 
 from battlib import Battery
-from can import Bus, BusABC
+# from can import Bus, BusABC
+from can import BusABC
 from iclib.adc78h89 import ADC78H89, InputChannel
 from iclib.bno055 import BNO055
 from iclib.mcp23s17 import MCP23S17, PortRegisterBit as PRB
@@ -144,7 +145,13 @@ SHIFT_SWITCH_PRB: PRB = PRB.GPIOB_GP4
 
 PEDALS_SPI: SPI = cast(SPI, LockedSPI(SPI('/dev/spidev1.0', 0b11, 1e6)))
 PEDALS_ADC78H89: ADC78H89 = ADC78H89(
-    ManualCSSPI(GPIO('/dev/gpiochip3', 10, 'out', inverted=True), PEDALS_SPI),
+    cast(
+        SPI,
+        ManualCSSPI(
+            GPIO('/dev/gpiochip3', 10, 'out', inverted=True),
+            PEDALS_SPI,
+        ),
+    ),
     3.3,
 )
 
