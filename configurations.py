@@ -1,10 +1,9 @@
-# from os import system
+from os import system
 from typing import cast
 from unittest.mock import MagicMock
 
 from battlib import Battery
-# from can import Bus, BusABC
-from can import BusABC
+from can import Bus, BusABC
 from iclib.adc78h89 import ADC78H89, InputChannel
 from iclib.bno055 import BNO055
 from iclib.mcp23s17 import MCP23S17, PortRegisterBit as PRB
@@ -23,7 +22,7 @@ from revolution import (
     Contexts,
     Debugger,
     Direction,
-    # Display,
+    Display,
     Driver,
     Miscellaneous,
     Motor,
@@ -36,7 +35,7 @@ from revolution import (
 
 APPLICATION_TYPES: tuple[type[Application], ...] = (
     Debugger,
-    # Display,
+    Display,
     Driver,
     Miscellaneous,
     Motor,
@@ -99,15 +98,10 @@ CONTEXTS: Contexts = Contexts(
 
 CAN_BUS_CHANNEL: str = 'can0'
 CAN_BUS_BITRATE: int = 100000
-# CAN_BUS: BusABC = Bus(channel=CAN_BUS_CHANNEL, interface='socketcan')
-#
-# system(
-#     f'ip link set {CAN_BUS_CHANNEL} up type can bitrate {CAN_BUS_BITRATE}',
-# )
-# system(f'ip link set {CAN_BUS_CHANNEL} down')
-# system(f'ip link set {CAN_BUS_CHANNEL} up')
+CAN_BUS: BusABC = Bus(channel=CAN_BUS_CHANNEL, interface='socketcan')
 
-CAN_BUS: BusABC = MagicMock(channel=CAN_BUS_CHANNEL, interface='socketcan')
+system(f'ip link set {CAN_BUS_CHANNEL} down')
+system(f'ip link set {CAN_BUS_CHANNEL} up type can bitrate {CAN_BUS_BITRATE}')
 
 STEERING_WHEEL_SPI: SPI = cast(
     SPI,
