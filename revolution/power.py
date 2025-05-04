@@ -234,12 +234,12 @@ class Power(Application):
             for i, (estimator, voltage) in enumerate(
                     zip(estimators, battery_cell_voltages),
             ):
-                if estimator is None:
+                if estimator is None and voltage:
                     estimators[i] = EKFSOCEstimator(
                         self.environment.settings.power_battery,
                         voltage,
                     )
-                else:
+                elif estimator is not None:
                     estimator.step(
                         dt=time_difference,
                         i_in=battery_current,
