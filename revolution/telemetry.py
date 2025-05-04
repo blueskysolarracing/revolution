@@ -49,6 +49,7 @@ class Telemetry(Application):
             raw_data = b''.join(tokens)
 
             self.environment.peripheries.telemetry_radio_serial.write(raw_data)
+            self.environment.peripheries.telemetry_radio_serial.flush()
 
     def _can(self) -> None:
         while not self._stoppage.is_set():

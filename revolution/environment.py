@@ -13,7 +13,8 @@ from iclib.bno055 import BNO055
 from iclib.mcp23s17 import MCP23S17, PortRegisterBit as PRB
 from iclib.nhd_c12864a1z_fsw_fbw_htt import NHDC12864A1ZFSWFBWHTT
 from iclib.wavesculptor22 import WaveSculptor22
-from periphery import GPIO, PWM, Serial
+from periphery import GPIO, PWM
+from serial import Serial
 
 from revolution.battery_management_system import BatteryManagementSystem
 from revolution.utilities import Direction, PRBS

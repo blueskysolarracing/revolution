@@ -12,7 +12,8 @@ from iclib.nhd_c12864a1z_fsw_fbw_htt import NHDC12864A1ZFSWFBWHTT
 from iclib.utilities import LockedSPI, ManualCSSPI
 from iclib.wavesculptor22 import WaveSculptor22
 from json import load
-from periphery import GPIO, I2C, PWM, Serial, SPI
+from periphery import GPIO, I2C, PWM, SPI
+from serial import Serial
 
 from revolution import (
     Application,
@@ -201,7 +202,7 @@ ARRAY_RELAY_LOW_SIDE_GPIO: GPIO = MagicMock()  # TODO
 ARRAY_RELAY_HIGH_SIDE_GPIO: GPIO = MagicMock()  # TODO
 ARRAY_RELAY_PRE_CHARGE_GPIO: GPIO = MagicMock()  # TODO
 
-RADIO_SERIAL: Serial = MagicMock()  # TODO
+RADIO_SERIAL: Serial = Serial('/dev/ttyLP2', 9600, timeout=1)
 
 if CAN_BUS_BITRATE not in WaveSculptor22.CAN_BUS_BITRATES:
     raise ValueError('invalid can bus bitrate')

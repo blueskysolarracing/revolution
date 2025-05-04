@@ -9,7 +9,8 @@ from iclib.mcp23s17 import MCP23S17, PortRegisterBit as PRB
 from iclib.nhd_c12864a1z_fsw_fbw_htt import NHDC12864A1ZFSWFBWHTT
 from iclib.wavesculptor22 import WaveSculptor22
 from json import load
-from periphery import GPIO, I2C, PWM, Serial
+from periphery import GPIO, I2C, PWM
+from serial import Serial
 
 from revolution import (  # noqa: F401
     Application,
