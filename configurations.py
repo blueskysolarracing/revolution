@@ -1,4 +1,3 @@
-from collections import defaultdict
 from os import system
 from typing import cast
 from unittest.mock import MagicMock
@@ -25,7 +24,7 @@ from revolution import (
     Direction,
     # Display,
     Driver,
-    # Miscellaneous,
+    Miscellaneous,
     Motor,
     Peripheries,
     Power,
@@ -38,7 +37,7 @@ APPLICATION_TYPES: tuple[type[Application], ...] = (
     Debugger,
     # Display,
     Driver,
-    # Miscellaneous,
+    Miscellaneous,
     Motor,
     Power,
     Telemetry,
@@ -99,11 +98,15 @@ CONTEXTS: Contexts = Contexts(
 
 CAN_BUS_CHANNEL: str = 'can0'
 CAN_BUS_BITRATE: int = 100000
-CAN_BUS: BusABC = Bus(channel=CAN_BUS_CHANNEL, interface='socketcan')
+# CAN_BUS: BusABC = Bus(channel=CAN_BUS_CHANNEL, interface='socketcan')
+#
+# system(
+#     f'ip link set {CAN_BUS_CHANNEL} up type can bitrate {CAN_BUS_BITRATE}',
+# )
+# system(f'ip link set {CAN_BUS_CHANNEL} down')
+# system(f'ip link set {CAN_BUS_CHANNEL} up')
 
-system(f'ip link set {CAN_BUS_CHANNEL} up type can bitrate {CAN_BUS_BITRATE}')
-system(f'ip link set {CAN_BUS_CHANNEL} down')
-system(f'ip link set {CAN_BUS_CHANNEL} up')
+CAN_BUS: BusABC = MagicMock(channel=CAN_BUS_CHANNEL, interface='socketcan')
 
 STEERING_WHEEL_SPI: SPI = cast(
     SPI,
@@ -139,8 +142,10 @@ STEERING_WHEEL_MCP23S17: MCP23S17 = MCP23S17(
 
 SHIFT_SWITCH_PRB: PRB = PRB.GPIOB_GP4
 
-PEDALS_ADC78H89: ADC78H89 = MagicMock(  # TODO
-    sample_all=lambda *_: defaultdict(float),
+PEDALS_SPI: SPI = cast(SPI, LockedSPI(SPI('/dev/spidev1.0', 0b11, 1e6)))
+PEDALS_ADC78H89: ADC78H89 = ADC78H89(
+    ManualCSSPI(GPIO('/dev/gpiochip3', 10, 'out', inverted=True), PEDALS_SPI),
+    3.3,
 )
 
 LEFT_INDICATOR_LIGHT_SWITCH_PRBS: PRBS = PRB.GPIOB_GP0
@@ -159,7 +164,7 @@ REGENERATION_SWITCH_PRBS: PRBS = PRB.GPIOA_GP0, False
 VARIABLE_FIELD_MAGNET_UP_SWITCH_PRBS: PRBS = PRB.GPIOB_GP2
 VARIABLE_FIELD_MAGNET_DOWN_SWITCH_PRBS: PRBS = PRB.GPIOB_GP1
 CRUISE_CONTROL_SWITCH_PRBS: PRBS = PRB.GPIOA_GP4
-ACCELERATION_INPUT_INPUT_CHANNEL: InputChannel = InputChannel.AIN1  # TODO
+ACCELERATION_INPUT_INPUT_CHANNEL: InputChannel = InputChannel.AIN2
 
 ARRAY_RELAY_SWITCH_PRBS: PRBS = PRB.GPIOA_GP6
 BATTERY_RELAY_SWITCH_PRBS: PRBS = PRB.GPIOA_GP5
