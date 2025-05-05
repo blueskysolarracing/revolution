@@ -126,7 +126,7 @@ NHD_C12864A1Z_FSW_FBW_HTT: NHDC12864A1ZFSWFBWHTT = NHDC12864A1ZFSWFBWHTT(
     cast(
         SPI,
         ManualCSSPI(
-            GPIO('/dev/gpiochip3', 5, 'out', inverted=True),
+            GPIO('/dev/gpiochip3', 6, 'out', inverted=True),
             STEERING_WHEEL_SPI,
         ),
     ),
