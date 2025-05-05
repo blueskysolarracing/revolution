@@ -6,7 +6,7 @@ from battlib import Battery
 from can import Bus, BusABC
 from iclib.adc78h89 import ADC78H89, InputChannel
 from iclib.bno055 import BNO055
-from iclib.mcp23s17 import MCP23S17, PortRegisterBit as PRB
+from iclib.mcp23s17 import MCP23S17, Port, PortRegisterBit as PRB
 from iclib.nhd_c12864a1z_fsw_fbw_htt import NHDC12864A1ZFSWFBWHTT
 from iclib.utilities import LockedSPI, ManualCSSPI
 from iclib.wavesculptor22 import WaveSculptor22
@@ -109,20 +109,6 @@ STEERING_WHEEL_SPI: SPI = cast(
     LockedSPI(SPI('/dev/spidev0.0', 0b11, 1e6)),
 )
 
-NHD_C12864A1Z_FSW_FBW_HTT: NHDC12864A1ZFSWFBWHTT = (
-    NHDC12864A1ZFSWFBWHTT(
-        cast(
-            SPI,
-            ManualCSSPI(
-                MagicMock(inverted=True),  # TODO
-                STEERING_WHEEL_SPI,
-            ),
-        ),
-        MagicMock(direction='out', inverted=False),  # PRB.GPIOA_GP5
-        MagicMock(direction='out', inverted=True),  # PRB.GPIOA_GP6
-    )
-)
-
 STEERING_WHEEL_MCP23S17: MCP23S17 = MCP23S17(
     MagicMock(),
     MagicMock(),
@@ -132,6 +118,34 @@ STEERING_WHEEL_MCP23S17: MCP23S17 = MCP23S17(
         ManualCSSPI(
             GPIO('/dev/gpiochip3', 5, 'out', inverted=True),
             STEERING_WHEEL_SPI,
+        ),
+    ),
+)
+
+NHD_C12864A1Z_FSW_FBW_HTT: NHDC12864A1ZFSWFBWHTT = NHDC12864A1ZFSWFBWHTT(
+    cast(
+        SPI,
+        ManualCSSPI(
+            GPIO('/dev/gpiochip3', 5, 'out', inverted=True),
+            STEERING_WHEEL_SPI,
+        ),
+    ),
+    cast(
+        GPIO,
+        STEERING_WHEEL_MCP23S17.get_line(
+            Port.PORTB,
+            7,
+            direction='out',
+            inverted=False,
+        ),
+    ),
+    cast(
+        GPIO,
+        STEERING_WHEEL_MCP23S17.get_line(
+            Port.PORTB,
+            6,
+            direction='out',
+            inverted=False,
         ),
     ),
 )
