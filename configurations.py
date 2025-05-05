@@ -145,7 +145,7 @@ NHD_C12864A1Z_FSW_FBW_HTT: NHDC12864A1ZFSWFBWHTT = NHDC12864A1ZFSWFBWHTT(
             Port.PORTB,
             6,
             direction='out',
-            inverted=False,
+            inverted=True,
         ),
     ),
 )
