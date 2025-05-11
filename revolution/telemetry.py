@@ -43,7 +43,7 @@ class Telemetry(Application):
                 self.environment.settings.telemetry_begin_token,
                 data_token.hex().encode(),
                 self.environment.settings.telemetry_separator_token,
-                checksum_token,
+                checksum_token.encode(),
                 self.environment.settings.telemetry_end_token,
             )
             raw_data = b''.join(tokens)
