@@ -376,5 +376,5 @@ SETTINGS: Settings = Settings(
     telemetry_timeout=1,
     telemetry_begin_token=b'',
     telemetry_separator_token=b'_',
-    telemetry_end_token=b'\n',
+    telemetry_end_token=b'\r\n',
 )
