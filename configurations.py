@@ -156,7 +156,7 @@ NHD_C12864A1Z_FSW_FBW_HTT: NHDC12864A1ZFSWFBWHTT = NHDC12864A1ZFSWFBWHTT(
 
 SHIFT_SWITCH_PRB: PRB = PRB.GPIOB_GP4
 
-PEDALS_SPI: SPI = cast(SPI, LockedSPI(SPI('/dev/spidev1.0', 0b11, 1e6)))
+PEDALS_SPI: SPI = cast(SPI, LockedSPI(SPI('/dev/spidev2.0', 0b11, 1e6)))
 PEDALS_ADC78H89: ADC78H89 = ADC78H89(
     cast(
         SPI,
@@ -248,13 +248,14 @@ BATTERY_MANAGEMENT_SYSTEM: BatteryManagementSystem = BatteryManagementSystem(
 
 POWER_POINT_TRACKING_SWITCH_GPIO: GPIO = MagicMock()  # TODO
 
+PSM_SPI: SPI = SPI('/dev/spidev1.0', 1, 1e6)
 PSM_MOTOR_INA229: INA229 = INA229(
     MagicMock(),
     cast(
         SPI,
         ManualCSSPI(
             GPIO('/dev/gpiochip5', 19, 'out', inverted=True),
-            SPI('/dev/spidev1.0', 1, 1e6),
+            PSM_SPI,
         ),
     ),
     60,
@@ -266,7 +267,7 @@ PSM_BATTERY_INA229: INA229 = INA229(
         SPI,
         ManualCSSPI(
             GPIO('/dev/gpiochip5', 21, 'out', inverted=True),
-            SPI('/dev/spidev1.0', 1, 1e6),
+            PSM_SPI,
         ),
     ),
     60,
@@ -278,7 +279,7 @@ PSM_ARRAY_INA229: INA229 = INA229(
         SPI,
         ManualCSSPI(
             GPIO('/dev/gpiochip5', 20, 'out', inverted=True),
-            SPI('/dev/spidev1.0', 1, 1e6),
+            PSM_SPI,
         ),
     ),
     60,
@@ -290,7 +291,7 @@ PSM_INA229: INA229 = INA229(
         SPI,
         ManualCSSPI(
             GPIO('/dev/gpiochip4', 26, 'out', inverted=True),
-            SPI('/dev/spidev1.0', 1, 1e6),
+            PSM_SPI,
         ),
     ),
     60,
