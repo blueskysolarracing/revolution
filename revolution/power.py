@@ -260,17 +260,33 @@ class Power(Application):
             motor_current = (
                 self.environment.peripheries.power_psm_motor_ina229.current
             )
+            motor_voltage = (
+                self.environment.peripheries.power_psm_motor_ina229.bus_voltage
+            )
             battery_current = (
                 self.environment.peripheries.power_psm_battery_ina229.current
+            )
+            battery_voltage = (
+                self
+                .environment
+                .peripheries
+                .power_psm_battery_ina229
+                .bus_voltage
             )
             array_current = (
                 self.environment.peripheries.power_psm_array_ina229.current
             )
+            array_voltage = (
+                self.environment.peripheries.power_psm_array_ina229.bus_voltage
+            )
 
             with self.environment.contexts() as contexts:
                 contexts.power_psm_motor_current = motor_current
+                contexts.power_psm_motor_voltage = motor_voltage
                 contexts.power_psm_battery_current = battery_current
+                contexts.power_psm_battery_voltage = battery_voltage
                 contexts.power_psm_array_current = array_current
+                contexts.power_psm_array_voltage = array_voltage
 
     def _handle_can(self, message: Message) -> None:
         super()._handle_can(message)

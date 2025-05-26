@@ -94,8 +94,11 @@ CONTEXTS: Contexts = Contexts(
     power_battery_current_flag=0,
     power_battery_state_of_charges=[0 for _ in range(BATTERY_CELL_COUNT)],
     power_psm_motor_current=0,
+    power_psm_motor_voltage=0,
     power_psm_battery_current=0,
+    power_psm_battery_voltage=0,
     power_psm_array_current=0,
+    power_psm_array_voltage=0,
 
     # Telemetry
 )

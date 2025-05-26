@@ -92,8 +92,11 @@ class Contexts:
     power_battery_current_flag: int
     power_battery_state_of_charges: list[float]
     power_psm_battery_current: float
+    power_psm_battery_voltage: float
     power_psm_array_current: float
+    power_psm_array_voltage: float
     power_psm_motor_current: float
+    power_psm_motor_voltage: float
 
     # Telemetry
 
