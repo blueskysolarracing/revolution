@@ -10,6 +10,7 @@ from databrief import dump
 from door.threading2 import AcquirableDoor
 from iclib.adc78h89 import ADC78H89, InputChannel
 from iclib.bno055 import BNO055
+from iclib.ina229 import INA229
 from iclib.mcp23s17 import MCP23S17, PortRegisterBit as PRB
 from iclib.nhd_c12864a1z_fsw_fbw_htt import NHDC12864A1ZFSWFBWHTT
 from iclib.wavesculptor22 import WaveSculptor22
@@ -90,6 +91,9 @@ class Contexts:
     power_battery_thermistor_flags: list[int]
     power_battery_current_flag: int
     power_battery_state_of_charges: list[float]
+    power_psm_battery_current: float
+    power_psm_array_current: float
+    power_psm_motor_current: float
 
     # Telemetry
 
@@ -162,6 +166,9 @@ class Peripheries:
     power_array_relay_pre_charge_gpio: GPIO
     power_battery_management_system: BatteryManagementSystem
     power_point_tracking_switch_gpio: GPIO
+    power_psm_motor_ina229: INA229
+    power_psm_battery_ina229: INA229
+    power_psm_array_ina229: INA229
 
     # Telemetry
 
@@ -202,6 +209,7 @@ class Settings:
     power_monitor_timeout: float
     power_array_relay_timeout: float
     power_soc_timeout: float
+    power_psm_timeout: float
     power_battery: Battery
 
     # Telemetry

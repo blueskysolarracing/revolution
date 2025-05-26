@@ -5,6 +5,7 @@ from battlib import Battery
 from can import BusABC
 from iclib.adc78h89 import ADC78H89, InputChannel
 from iclib.bno055 import BNO055
+from iclib.ina229 import INA229
 from iclib.mcp23s17 import MCP23S17, PortRegisterBit as PRB
 from iclib.nhd_c12864a1z_fsw_fbw_htt import NHDC12864A1ZFSWFBWHTT
 from iclib.wavesculptor22 import WaveSculptor22
@@ -90,6 +91,9 @@ CONTEXTS: Contexts = Contexts(
     ],
     power_battery_current_flag=0,
     power_battery_state_of_charges=[0 for _ in range(BATTERY_CELL_COUNT)],
+    power_psm_motor_current=0,
+    power_psm_battery_current=0,
+    power_psm_array_current=0,
 
     # Telemetry
 )
@@ -165,6 +169,10 @@ WAVESCULPTOR22: WaveSculptor22 = MagicMock()
 BATTERY_MANAGEMENT_SYSTEM: BatteryManagementSystem = MagicMock()
 
 POWER_POINT_TRACKING_SWITCH_GPIO: GPIO = MagicMock()
+
+PSM_MOTOR_INA229: INA229 = MagicMock()
+PSM_BATTERY_INA229: INA229 = MagicMock()
+PSM_ARRAY_INA229: INA229 = MagicMock()
 
 PERIPHERIES: Peripheries = Peripheries(
     # General
@@ -251,6 +259,9 @@ PERIPHERIES: Peripheries = Peripheries(
     power_array_relay_pre_charge_gpio=ARRAY_RELAY_PRE_CHARGE_GPIO,
     power_battery_management_system=BATTERY_MANAGEMENT_SYSTEM,
     power_point_tracking_switch_gpio=POWER_POINT_TRACKING_SWITCH_GPIO,
+    power_psm_motor_ina229=PSM_MOTOR_INA229,
+    power_psm_battery_ina229=PSM_BATTERY_INA229,
+    power_psm_array_ina229=PSM_ARRAY_INA229,
 
     # Telemetry
 
@@ -291,6 +302,7 @@ SETTINGS: Settings = Settings(
     power_monitor_timeout=0.1,
     power_array_relay_timeout=2.5,
     power_soc_timeout=0.05,
+    power_psm_timeout=0.1,
     power_battery=BATTERY,
 
     # Telemetry

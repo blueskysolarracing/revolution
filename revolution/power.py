@@ -31,13 +31,16 @@ class Power(Application):
 
         self._monitor_worker = Worker(target=self._monitor)
         self._soc_worker = Worker(target=self._soc)
+        self._psm_worker = Worker(target=self._psm)
 
         self._monitor_worker.start()
         self._soc_worker.start()
+        self._psm_worker.start()
 
     def _teardown(self) -> None:
         self._monitor_worker.join()
         self._soc_worker.join()
+        self._psm_worker.join()
 
     def _monitor(self) -> None:
         previous_array_relay_status_input = False
@@ -247,6 +250,27 @@ class Power(Application):
                     )
 
             previous_time = time_
+
+    def _psm(self) -> None:
+        while (
+                not self._stoppage.wait(
+                    self.environment.settings.power_psm_timeout,
+                )
+        ):
+            motor_current = (
+                self.environment.peripheries.power_psm_motor_ina229.current
+            )
+            battery_current = (
+                self.environment.peripheries.power_psm_battery_ina229.current
+            )
+            array_current = (
+                self.environment.peripheries.power_psm_array_ina229.current
+            )
+
+            with self.environment.contexts() as contexts:
+                contexts.power_psm_motor_current = motor_current
+                contexts.power_psm_battery_current = battery_current
+                contexts.power_psm_array_current = array_current
 
     def _handle_can(self, message: Message) -> None:
         super()._handle_can(message)
