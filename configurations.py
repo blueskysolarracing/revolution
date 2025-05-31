@@ -113,7 +113,7 @@ CAN_BUS: BusABC = Bus(channel=CAN_BUS_CHANNEL, interface='socketcan')
 
 STEERING_WHEEL_SPI: SPI = cast(
     SPI,
-    LockedSPI(SPI('/dev/spidev0.0', 0b11, 1e6)),
+    LockedSPI(SPI('/dev/spidev0.0', 0b11, 1e5)),
 )
 
 STEERING_WHEEL_MCP23S17: MCP23S17 = MCP23S17(
