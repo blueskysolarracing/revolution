@@ -7,7 +7,7 @@ from can import Bus, BusABC
 from iclib.adc78h89 import ADC78H89, InputChannel
 from iclib.bno055 import BNO055
 from iclib.ina229 import INA229
-from iclib.mcp23s17 import MCP23S17, Port, PortRegisterBit as PRB
+from iclib.mcp23s17 import MCP23S17, Port, PortRegisterBit as PRB, Register
 from iclib.nhd_c12864a1z_fsw_fbw_htt import NHDC12864A1ZFSWFBWHTT
 from iclib.utilities import LockedSPI, ManualCSSPI
 from iclib.wavesculptor22 import WaveSculptor22
