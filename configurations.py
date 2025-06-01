@@ -148,7 +148,7 @@ NHD_C12864A1Z_FSW_FBW_HTT: NHDC12864A1ZFSWFBWHTT = NHDC12864A1ZFSWFBWHTT(
             STEERING_WHEEL_SPI,
         ),
     ),
-    GPIO('/dev/gpiochip1', 10, 'out', inverted=True),
+    GPIO('/dev/gpiochip1', 10, 'out'),
     cast(
         GPIO,
         STEERING_WHEEL_MCP23S17.get_line(
