@@ -195,10 +195,6 @@ ACCELERATION_INPUT_INPUT_CHANNEL: InputChannel = InputChannel.AIN2
 ARRAY_RELAY_SWITCH_PRBS: PRBS = PRB.GPIOA_GP7
 BATTERY_RELAY_SWITCH_PRBS: PRBS = PRB.GPIOA_GP6
 
-INDICATOR_LIGHTS_PWM: PWM = MagicMock()  # TODO
-INDICATOR_LIGHTS_PWM.period = 0.8
-INDICATOR_LIGHTS_PWM.duty_cycle = 0.5
-
 LEFT_INDICATOR_LIGHT_PWM: PWM = MagicMock()  # TODO
 LEFT_INDICATOR_LIGHT_PWM.period = 0.001
 LEFT_INDICATOR_LIGHT_PWM.duty_cycle = 0.25
@@ -366,7 +362,6 @@ PERIPHERIES: Peripheries = Peripheries(
 
     # Miscellaneous
 
-    miscellaneous_indicator_lights_pwm=INDICATOR_LIGHTS_PWM,
     miscellaneous_left_indicator_light_pwm=LEFT_INDICATOR_LIGHT_PWM,
     miscellaneous_right_indicator_light_pwm=RIGHT_INDICATOR_LIGHT_PWM,
     miscellaneous_daytime_running_lights_pwm=DAYTIME_RUNNING_LIGHTS_PWM,

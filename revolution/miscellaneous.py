@@ -112,25 +112,6 @@ class Miscellaneous(Application):
                     self
                     .environment
                     .peripheries
-                    .miscellaneous_indicator_lights_pwm
-                ),
-                (
-                    previous_hazard_lights_status_input
-                    or previous_left_indicator_light_status_input
-                    or previous_right_indicator_light_status_input
-                ),
-                (
-                    hazard_lights_status_input
-                    or left_indicator_light_status_input
-                    or right_indicator_light_status_input
-                ),
-            )
-
-            update_pwm(
-                (
-                    self
-                    .environment
-                    .peripheries
                     .miscellaneous_daytime_running_lights_pwm
                 ),
                 previous_daytime_running_lights_status_input,

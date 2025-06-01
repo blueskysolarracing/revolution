@@ -148,7 +148,6 @@ class Peripheries:
 
     # Miscellaneous
 
-    miscellaneous_indicator_lights_pwm: PWM
     miscellaneous_left_indicator_light_pwm: PWM
     miscellaneous_right_indicator_light_pwm: PWM
     miscellaneous_daytime_running_lights_pwm: PWM
