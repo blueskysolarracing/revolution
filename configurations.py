@@ -137,7 +137,7 @@ STEERING_WHEEL_MCP23S17.write_register(
 STEERING_WHEEL_MCP23S17.write_register(
     Port.PORTB,
     Register.IODIR,
-    [0b10111111],
+    [0b00111111],
 )
 
 NHD_C12864A1Z_FSW_FBW_HTT: NHDC12864A1ZFSWFBWHTT = NHDC12864A1ZFSWFBWHTT(
@@ -148,7 +148,14 @@ NHD_C12864A1Z_FSW_FBW_HTT: NHDC12864A1ZFSWFBWHTT = NHDC12864A1ZFSWFBWHTT(
             STEERING_WHEEL_SPI,
         ),
     ),
-    GPIO('/dev/gpiochip1', 10, 'out'),
+    cast(
+        GPIO,
+        STEERING_WHEEL_MCP23S17.get_line(
+            Port.PORTB,
+            7,
+            direction='out',
+        ),
+    ),
     cast(
         GPIO,
         STEERING_WHEEL_MCP23S17.get_line(
