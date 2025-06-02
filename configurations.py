@@ -1,4 +1,5 @@
 from os import system
+from threading import Lock
 from typing import cast
 from unittest.mock import MagicMock
 
@@ -111,10 +112,8 @@ system(f'ip link set {CAN_BUS_CHANNEL} up type can bitrate {CAN_BUS_BITRATE}')
 
 CAN_BUS: BusABC = Bus(channel=CAN_BUS_CHANNEL, interface='socketcan')
 
-STEERING_WHEEL_SPI: SPI = cast(
-    SPI,
-    LockedSPI(SPI('/dev/spidev0.0', 0b11, 1e5)),
-)
+STEERING_WHEEL_SPI: SPI = SPI('/dev/spidev0.0', 0b11, 1e5)
+STEERING_WHEEL_SPI_LOCK: Lock = Lock()
 
 STEERING_WHEEL_MCP23S17: MCP23S17 = MCP23S17(
     MagicMock(),
@@ -122,9 +121,15 @@ STEERING_WHEEL_MCP23S17: MCP23S17 = MCP23S17(
     MagicMock(),
     cast(
         SPI,
-        ManualCSSPI(
-            GPIO('/dev/gpiochip3', 5, 'out', inverted=True),
-            STEERING_WHEEL_SPI,
+        LockedSPI(
+            cast(
+                SPI,
+                ManualCSSPI(
+                    GPIO('/dev/gpiochip3', 5, 'out', inverted=True),
+                    STEERING_WHEEL_SPI,
+                ),
+            ),
+            STEERING_WHEEL_SPI_LOCK,
         ),
     ),
 )
@@ -143,9 +148,15 @@ STEERING_WHEEL_MCP23S17.write_register(
 NHD_C12864A1Z_FSW_FBW_HTT: NHDC12864A1ZFSWFBWHTT = NHDC12864A1ZFSWFBWHTT(
     cast(
         SPI,
-        ManualCSSPI(
-            GPIO('/dev/gpiochip3', 6, 'out', inverted=True),
-            STEERING_WHEEL_SPI,
+        LockedSPI(
+            cast(
+                SPI,
+                ManualCSSPI(
+                    GPIO('/dev/gpiochip3', 6, 'out', inverted=True),
+                    STEERING_WHEEL_SPI,
+                ),
+            ),
+            STEERING_WHEEL_SPI_LOCK,
         ),
     ),
     cast(
