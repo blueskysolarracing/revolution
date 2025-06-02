@@ -72,7 +72,7 @@ class Driver(Application):
         (
             'driver_motor_cruise_control_velocity_rotary_encoder_a_prbs',
             'driver_motor_cruise_control_velocity_rotary_encoder_b_prbs',
-        ): ('motor_acceleration_input', (30, 180, 1)),
+        ): ('motor_cruise_control_velocity', (30, 180, 1)),  # TODO: KPH to RPM
     }
     ANALOG_SIGNALS: ClassVar[dict[str, tuple[str, tuple[float, float]]]] = {
         'driver_motor_acceleration_input_input_channel': (
