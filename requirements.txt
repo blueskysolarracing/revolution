@@ -1,3 +1,5 @@
+Sphinx~=8.2.3
+adafruit-circuitpython-gps~=3.11.2
 battlib==0.0.0.dev2
 build~=1.2.2.post1
 coverage~=7.8.0
@@ -12,6 +14,5 @@ numpy~=2.2.5
 pyserial~=3.5
 python-can~=4.5.0
 python-periphery~=2.4.1
-Sphinx~=8.2.3
 twine~=6.1.0
 types-pyserial~=3.5.0.20250326

@@ -20,13 +20,16 @@ class Miscellaneous(Application):
 
         self._light_worker = Worker(target=self._light)
         self._orientation_worker = Worker(target=self._orientation)
+        self._position_worker = Worker(target=self._orientation)
 
         self._light_worker.start()
         self._orientation_worker.start()
+        self._position_worker.start()
 
     def _teardown(self) -> None:
         self._light_worker.join()
         self._orientation_worker.join()
+        self._position_worker.join()
 
     def _light(self) -> None:
         previous_left_indicator_light_status_input = False
@@ -203,3 +206,28 @@ class Miscellaneous(Application):
 
             with self.environment.contexts() as contexts:
                 contexts.miscellaneous_orientation.update(orientation)
+
+    def _position(self) -> None:
+        while (
+                not self._stoppage.wait(
+                    (
+                        self
+                        .environment
+                        .settings
+                        .miscellaneous_position_timeout
+                    ),
+                )
+        ):
+            periphery = (
+                self
+                .environment
+                .peripheries
+                .miscellaneous_position_gps
+            )
+
+            periphery.update()
+
+            if not periphery.has_fix:
+                with self.environment.contexts() as contexts:
+                    contexts.miscellaneous_latitude = periphery.latitude
+                    contexts.miscellaneous_longitude = periphery.longitude

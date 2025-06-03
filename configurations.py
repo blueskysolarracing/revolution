@@ -3,6 +3,7 @@ from threading import Lock
 from typing import cast
 from unittest.mock import MagicMock
 
+from adafruit_gps import GPS  # type: ignore[import-untyped]
 from battlib import Battery
 from can import Bus, BusABC
 from iclib.adc78h89 import ADC78H89, InputChannel
@@ -63,6 +64,8 @@ CONTEXTS: Contexts = Contexts(
     miscellaneous_display_backlight_status_input=False,
     miscellaneous_brake_status_input=False,
     miscellaneous_orientation={},
+    miscellaneous_latitude=0,
+    miscellaneous_longitude=0,
 
     # Motor
 
@@ -243,6 +246,12 @@ ORIENTATION_IMU_BNO055: BNO055 = BNO055(
     ORIENTATION_IMU_BNO055_IMU_RESET_GPIO,
 )
 
+POSITION_GPS_SERIAL: Serial = MagicMock()  # TODO
+POSITION_GPS: GPS = GPS(POSITION_GPS_SERIAL, debug=False)
+
+POSITION_GPS.send_command(b'PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0')
+POSITION_GPS.send_command(b'PMTK220,1000')
+
 ARRAY_RELAY_LOW_SIDE_GPIO: GPIO = MagicMock()  # TODO
 ARRAY_RELAY_HIGH_SIDE_GPIO: GPIO = MagicMock()  # TODO
 ARRAY_RELAY_PRE_CHARGE_GPIO: GPIO = MagicMock()  # TODO
@@ -390,6 +399,7 @@ PERIPHERIES: Peripheries = Peripheries(
     ),
     miscellaneous_display_backlight_switch_gpio=DISPLAY_BACKLIGHT_SWITCH_GPIO,
     miscellaneous_orientation_imu_bno055=ORIENTATION_IMU_BNO055,
+    miscellaneous_position_gps=POSITION_GPS,
 
     # Motor
 
@@ -434,6 +444,7 @@ SETTINGS: Settings = Settings(
 
     miscellaneous_light_timeout=0.1,
     miscellaneous_orientation_timeout=0.1,
+    miscellaneous_position_timeout=1,
 
     # Motor
 

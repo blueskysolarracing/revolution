@@ -4,6 +4,7 @@ from logging import getLogger
 from queue import Queue
 from typing import Any
 
+from adafruit_gps import GPS  # type: ignore[import-untyped]
 from battlib import Battery
 from can import BusABC
 from databrief import dump
@@ -64,6 +65,8 @@ class Contexts:
     miscellaneous_display_backlight_status_input: bool
     miscellaneous_brake_status_input: bool
     miscellaneous_orientation: dict[str, float]
+    miscellaneous_latitude: float
+    miscellaneous_longitude: float
 
     # Motor
 
@@ -156,6 +159,7 @@ class Peripheries:
     miscellaneous_backup_camera_control_switch_gpio: GPIO
     miscellaneous_display_backlight_switch_gpio: GPIO
     miscellaneous_orientation_imu_bno055: BNO055
+    miscellaneous_position_gps: GPS
 
     # Motor
 
@@ -200,6 +204,7 @@ class Settings:
 
     miscellaneous_light_timeout: float
     miscellaneous_orientation_timeout: float
+    miscellaneous_position_timeout: float
 
     # Motor
 
