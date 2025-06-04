@@ -1,4 +1,5 @@
 from collections import defaultdict
+from dataclasses import make_dataclass
 from unittest.mock import MagicMock
 
 from adafruit_gps import GPS  # type: ignore[import-untyped]
@@ -148,7 +149,9 @@ HORN_SWITCH_GPIO: GPIO = MagicMock()
 BACKUP_CAMERA_CONTROL_SWITCH_GPIO: GPIO = MagicMock()
 DISPLAY_BACKLIGHT_SWITCH_GPIO: GPIO = MagicMock()
 
-ORIENTATION_IMU_BNO055: BNO055 = MagicMock()
+ORIENTATION_IMU_BNO055: BNO055 = MagicMock(
+    orientation=make_dataclass('', [])(),
+)
 
 POSITION_GPS: GPS = MagicMock()
 
