@@ -40,7 +40,7 @@ class DriverTestCase(TestCase):
             configurations  # type: ignore[method-assign]
             .STEERING_WHEEL_MCP23S17
             .read_register
-        ) = lambda *_: [0b11111110]
+        ) = lambda *_: [0b01111111]
 
         sleep(self.TIMEOUT)
 
@@ -66,7 +66,7 @@ class DriverTestCase(TestCase):
             configurations  # type: ignore[method-assign]
             .STEERING_WHEEL_MCP23S17
             .read_register
-        ) = lambda *_: [0b11101111]
+        ) = lambda *_: [0b11011111]
 
         sleep(self.TIMEOUT)
 
@@ -77,7 +77,7 @@ class DriverTestCase(TestCase):
             configurations  # type: ignore[method-assign]
             .STEERING_WHEEL_MCP23S17
             .read_register
-        ) = lambda *_: [0b00010000]
+        ) = lambda *_: [0b00100000]
 
         sleep(self.TIMEOUT)
 
@@ -88,7 +88,7 @@ class DriverTestCase(TestCase):
             configurations  # type: ignore[method-assign]
             .STEERING_WHEEL_MCP23S17
             .read_register
-        ) = lambda *_: [0b11101111]
+        ) = lambda *_: [0b11011111]
 
         sleep(self.TIMEOUT)
 
@@ -173,7 +173,7 @@ class DriverTestCase(TestCase):
             configurations  # type: ignore[method-assign]
             .STEERING_WHEEL_MCP23S17
             .read_register
-        ) = lambda *_: [0b11111101]
+        ) = lambda *_: [0b11111011]
 
         sleep(self.TIMEOUT)
 
@@ -197,7 +197,7 @@ class DriverTestCase(TestCase):
             configurations  # type: ignore[method-assign]
             .STEERING_WHEEL_MCP23S17
             .read_register
-        ) = lambda *_: [0b11111101]
+        ) = lambda *_: [0b11111011]
 
         sleep(self.TIMEOUT)
 
@@ -226,7 +226,7 @@ class DriverTestCase(TestCase):
             configurations  # type: ignore[method-assign]
             .STEERING_WHEEL_MCP23S17
             .read_register
-        ) = lambda *_: [0b11111011]
+        ) = lambda *_: [0b11110111]
 
         sleep(self.TIMEOUT)
 
@@ -248,7 +248,7 @@ class DriverTestCase(TestCase):
             configurations  # type: ignore[method-assign]
             .STEERING_WHEEL_MCP23S17
             .read_register
-        ) = lambda *_: [0b11111011]
+        ) = lambda *_: [0b11110111]
 
         sleep(self.TIMEOUT)
 

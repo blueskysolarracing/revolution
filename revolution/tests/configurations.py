@@ -11,10 +11,10 @@ from iclib.mcp23s17 import MCP23S17, PortRegisterBit as PRB
 from iclib.nhd_c12864a1z_fsw_fbw_htt import NHDC12864A1ZFSWFBWHTT
 from iclib.wavesculptor22 import WaveSculptor22
 from json import load
-from periphery import GPIO, I2C, PWM
+from periphery import GPIO, PWM
 from serial import Serial
 
-from revolution import (  # noqa: F401
+from revolution import (
     Application,
     BATTERY_CELL_COUNT,
     BatteryManagementSystem,
@@ -106,13 +106,7 @@ CONTEXTS: Contexts = Contexts(
 
 CAN_BUS: BusABC = MagicMock()
 
-NHD_C12864A1Z_FSW_FBW_HTT: NHDC12864A1ZFSWFBWHTT = (
-    NHDC12864A1ZFSWFBWHTT(
-        MagicMock(mode=0b11, max_speed=1e6, bit_order='msb', extra_flags=None),
-        MagicMock(direction='out', inverted=False),
-        MagicMock(direction='out', inverted=True),
-    )
-)
+NHD_C12864A1Z_FSW_FBW_HTT: NHDC12864A1ZFSWFBWHTT = MagicMock()
 
 STEERING_WHEEL_MCP23S17: MCP23S17 = MagicMock(
     read_register=lambda *_: [0xFF],
@@ -120,7 +114,7 @@ STEERING_WHEEL_MCP23S17: MCP23S17 = MagicMock(
 
 SHIFT_SWITCH_PRB: PRB = MagicMock()
 
-PEDALS_ADC78H89: ADC78H89 = MagicMock(  # TODO
+PEDALS_ADC78H89: ADC78H89 = MagicMock(
     sample_all=lambda *_: defaultdict(float),
 )
 
@@ -133,35 +127,28 @@ BACKUP_CAMERA_CONTROL_SWITCH_PRBS: PRBS = PRB.GPIOA_GP0, True
 DISPLAY_BACKLIGHT_SWITCH_PRBS: PRBS = PRB.GPIOA_GP1, False
 BRAKE_SWITCH_GPIO: GPIO = MagicMock(read=lambda *_: False)
 
-CRUISE_CONTROL_ROTARY_ENCODER_A_PRBS: PRBS = PRB.GPIOA_GP2
-CRUISE_CONTROL_ROTARY_ENCODER_B_PRBS: PRBS = PRB.GPIOA_GP3
-DIRECTION_SWITCH_PRBS: PRBS = PRB.GPIOB_GP3
-REGENERATION_SWITCH_PRBS: PRBS = PRB.GPIOA_GP0, False
-VARIABLE_FIELD_MAGNET_UP_SWITCH_PRBS: PRBS = PRB.GPIOB_GP1
-VARIABLE_FIELD_MAGNET_DOWN_SWITCH_PRBS: PRBS = PRB.GPIOB_GP2
-CRUISE_CONTROL_SWITCH_PRBS: PRBS = PRB.GPIOA_GP4
-ACCELERATION_INPUT_INPUT_CHANNEL: InputChannel = InputChannel.AIN1  # TODO
+CRUISE_CONTROL_ROTARY_ENCODER_A_PRBS: PRBS = PRB.GPIOA_GP3
+CRUISE_CONTROL_ROTARY_ENCODER_B_PRBS: PRBS = PRB.GPIOA_GP4
+DIRECTION_SWITCH_PRBS: PRBS = PRB.GPIOB_GP4
+REGENERATION_SWITCH_PRBS: PRBS = PRB.GPIOA_GP1, False
+VARIABLE_FIELD_MAGNET_UP_SWITCH_PRBS: PRBS = PRB.GPIOB_GP2
+VARIABLE_FIELD_MAGNET_DOWN_SWITCH_PRBS: PRBS = PRB.GPIOB_GP3
+CRUISE_CONTROL_SWITCH_PRBS: PRBS = PRB.GPIOA_GP5
+ACCELERATION_INPUT_INPUT_CHANNEL: InputChannel = InputChannel.AIN2
 
-ARRAY_RELAY_SWITCH_PRBS: PRBS = PRB.GPIOA_GP0
-BATTERY_RELAY_SWITCH_PRBS: PRBS = PRB.GPIOA_GP5
+ARRAY_RELAY_SWITCH_PRBS: PRBS = PRB.GPIOA_GP7
+BATTERY_RELAY_SWITCH_PRBS: PRBS = PRB.GPIOA_GP6
 
 LEFT_INDICATOR_LIGHT_PWM: PWM = MagicMock()
 RIGHT_INDICATOR_LIGHT_PWM: PWM = MagicMock()
 DAYTIME_RUNNING_LIGHTS_PWM: PWM = MagicMock()
 BRAKE_LIGHTS_PWM: PWM = MagicMock()
+
 HORN_SWITCH_GPIO: GPIO = MagicMock()
 BACKUP_CAMERA_CONTROL_SWITCH_GPIO: GPIO = MagicMock()
 DISPLAY_BACKLIGHT_SWITCH_GPIO: GPIO = MagicMock()
 
-ORIENTATION_IMU_BNO055_I2C: I2C = MagicMock()  # TODO
-ORIENTATION_IMU_BNO055_IMU_RESET_GPIO: GPIO = MagicMock(  # TODO
-    direction='out',
-    inverted=True,
-)
-ORIENTATION_IMU_BNO055: BNO055 = BNO055(
-    ORIENTATION_IMU_BNO055_I2C,
-    ORIENTATION_IMU_BNO055_IMU_RESET_GPIO,
-)
+ORIENTATION_IMU_BNO055: BNO055 = MagicMock()
 
 POSITION_GPS: GPS = MagicMock()
 
@@ -287,12 +274,12 @@ SETTINGS: Settings = Settings(
 
     # Display
 
-    display_frame_rate=10,
+    display_frame_rate=1,
     display_font_pathname='fonts/minecraft.ttf',
 
     # Driver
 
-    driver_timeout=0.01,
+    driver_timeout=0.001,
 
     # Miscellaneous
 
@@ -318,5 +305,5 @@ SETTINGS: Settings = Settings(
     telemetry_timeout=1,
     telemetry_begin_token=b'',
     telemetry_separator_token=b'_',
-    telemetry_end_token=b'\n',
+    telemetry_end_token=b'\r\n',
 )
