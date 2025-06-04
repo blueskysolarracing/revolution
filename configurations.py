@@ -246,7 +246,7 @@ ORIENTATION_IMU_BNO055: BNO055 = BNO055(
     ORIENTATION_IMU_BNO055_IMU_RESET_GPIO,
 )
 
-POSITION_GPS_SERIAL: Serial = MagicMock()  # TODO
+POSITION_GPS_SERIAL: Serial = Serial('/dev/ttyLP0', timeout=10)  # TODO
 POSITION_GPS: GPS = GPS(POSITION_GPS_SERIAL, debug=False)
 
 POSITION_GPS.send_command(b'PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0')
@@ -256,7 +256,7 @@ ARRAY_RELAY_LOW_SIDE_GPIO: GPIO = MagicMock()  # TODO
 ARRAY_RELAY_HIGH_SIDE_GPIO: GPIO = MagicMock()  # TODO
 ARRAY_RELAY_PRE_CHARGE_GPIO: GPIO = MagicMock()  # TODO
 
-RADIO_SERIAL: Serial = Serial('/dev/ttyLP2', 9600, timeout=1)
+RADIO_SERIAL: Serial = Serial('/dev/ttyLP2', timeout=1)
 
 if CAN_BUS_BITRATE not in WaveSculptor22.CAN_BUS_BITRATES:
     raise ValueError('invalid can bus bitrate')
