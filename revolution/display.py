@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from logging import getLogger
-from math import pi
 from statistics import mean
 from typing import ClassVar
 
@@ -32,16 +31,6 @@ class Display(Application):
         self._display_worker.join()
 
     def _display(self) -> None:
-
-        def rpm2kph(rpm: float) -> float:
-            return (
-                pi
-                * self.environment.settings.wheel_diameter
-                * rpm
-                * 60
-                / 1000
-            )
-
         timeout = 1 / self.environment.settings.display_frame_rate
 
         while not self._stoppage.wait(timeout):
@@ -95,16 +84,11 @@ class Display(Application):
 
             # Motor
 
-            motor_velocity = rpm2kph(motor_velocity)
-
             periphery.set_size(22, 24)
             periphery.draw_word(f'{motor_velocity:3.0f}', 52, 26)
             periphery.set_size(16, 20)
             periphery.draw_word('km/h', 100, 36)
 
-            motor_cruise_control_velocity = rpm2kph(
-                motor_cruise_control_velocity,
-            )
             motor_cruise_control_label = (
                 'ON' if motor_cruise_control_status_input else 'OFF'
             )

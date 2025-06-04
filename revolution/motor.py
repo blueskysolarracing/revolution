@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from logging import getLogger
+from math import pi
 from typing import ClassVar
 
 from can import Message
@@ -33,6 +34,16 @@ class Motor(Application):
         self._variable_field_magnet_worker.join()
 
     def _control(self) -> None:
+
+        def kph2rpm(kph: float) -> float:
+            return (
+                kph
+                / pi
+                / self.environment.settings.wheel_diameter
+                / 60
+                * 1000
+            )
+
         previous_status_input = False
 
         while (
@@ -74,7 +85,7 @@ class Motor(Application):
                             .peripheries
                             .motor_wavesculptor22
                             .motor_drive_velocity_control_mode(
-                                cruise_control_velocity,
+                                kph2rpm(cruise_control_velocity),
                             )
                         )
                     else:
@@ -133,6 +144,16 @@ class Motor(Application):
             previous_status_input = status_input
 
     def _handle_can(self, message: Message) -> None:
+
+        def rpm2kph(rpm: float) -> float:
+            return (
+                pi
+                * self.environment.settings.wheel_diameter
+                * rpm
+                * 60
+                / 1000
+            )
+
         super()._handle_can(message)
 
         broadcast_message = (
@@ -144,4 +165,6 @@ class Motor(Application):
 
         with self.environment.contexts() as contexts:
             if isinstance(broadcast_message, VelocityMeasurement):
-                contexts.motor_velocity = broadcast_message.motor_velocity
+                contexts.motor_velocity = rpm2kph(
+                    broadcast_message.motor_velocity,
+                )
