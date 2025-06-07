@@ -209,7 +209,10 @@ class BatteryManagementSystem:
 
         for type_ in self.INFORMATION_TYPES:
             if message_identifier in type_.MESSAGE_IDENTIFIERS:
-                information = type_(*unpack(type_.FORMAT, message.data))
+                information = type_(
+                    message_identifier,
+                    *unpack(type_.FORMAT, message.data),
+                )
 
                 break
 
