@@ -46,7 +46,6 @@ class Power(Application):
         previous_array_relay_status_input = False
         previous_battery_relay_status_input = False
         previous_all_relay_status_input = False
-        previous_discharge_status = False
 
         while (
                 not self._stoppage.wait(
@@ -187,7 +186,7 @@ class Power(Application):
 
             if (
                     not battery_relay_status
-                    and not previous_discharge_status
+                    and not battery_discharge_status
                     and discharge_status
             ):
                 assert (
@@ -206,7 +205,6 @@ class Power(Application):
             previous_array_relay_status_input = array_relay_status_input
             previous_battery_relay_status_input = battery_relay_status_input
             previous_all_relay_status_input = all_relay_status_input
-            previous_discharge_status = discharge_status
 
     def _soc(self) -> None:
         estimators: list[EKFSOCEstimator | None] = [
