@@ -226,7 +226,7 @@ class Power(Application):
                 for i, estimator in enumerate(estimators):
                     if estimator is not None:
                         contexts.power_battery_state_of_charges[i] = (
-                            estimator.soc
+                            estimator.soc.item()  # type: ignore[attr-defined]
                         )
 
             time_ = time()
