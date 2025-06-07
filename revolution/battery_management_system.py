@@ -48,7 +48,7 @@ class PartialInformation(Information, ABC):
 class CellVoltagesInformation(PartialInformation):
     MESSAGE_IDENTIFIERS = range(18)
 
-    def _get_key(self, index: int) -> tuple[int, int]:
+    def _get_keys(self, index: int) -> tuple[int, int]:
         return 2 * self.message_identifier, 2 * self.message_identifier + 1
 
 
@@ -56,7 +56,7 @@ class CellVoltagesInformation(PartialInformation):
 class ThermistorTemperaturesInformation(PartialInformation):
     MESSAGE_IDENTIFIERS = range(18, 27)
 
-    def _get_key(self, index: int) -> tuple[int, int]:
+    def _get_keys(self, index: int) -> tuple[int, int]:
         i = self.message_identifier - 18
 
         return 2 * i, 2 * i + 1
