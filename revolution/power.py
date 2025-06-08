@@ -44,7 +44,6 @@ class Power(Application):
 
     def _monitor(self) -> None:
         previous_array_relay_status_input = False
-        previous_battery_relay_status_input = False
         previous_all_relay_status_input = False
 
         while (
@@ -144,10 +143,7 @@ class Power(Application):
                     .write(False)
                 )
 
-            if (
-                    not previous_battery_relay_status_input
-                    and battery_relay_status_input
-            ):
+            if not battery_relay_status and battery_relay_status_input:
                 (
                     self
                     .environment
@@ -155,10 +151,7 @@ class Power(Application):
                     .power_battery_management_system
                     .close_relay()
                 )
-            elif (
-                    previous_battery_relay_status_input
-                    and not battery_relay_status_input
-            ):
+            elif battery_relay_status and not battery_relay_status_input:
                 (
                     self
                     .environment
@@ -203,7 +196,6 @@ class Power(Application):
                 )
 
             previous_array_relay_status_input = array_relay_status_input
-            previous_battery_relay_status_input = battery_relay_status_input
             previous_all_relay_status_input = all_relay_status_input
 
     def _soc(self) -> None:
