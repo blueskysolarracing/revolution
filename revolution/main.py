@@ -28,6 +28,12 @@ def parse_args() -> Namespace:
         help='debug mode (disabled by default)',
     )
     parser.add_argument(
+        '-f',
+        '--file',
+        help='file mode (disabled by default)',
+        nargs=1,
+    )
+    parser.add_argument(
         '-i',
         '--interactive',
         action=BooleanOptionalAction,
@@ -58,6 +64,11 @@ def main(configurations: Any) -> None:
 
     for thread in threads:
         thread.start()
+
+    if args.file:
+        content = open(args.file[0]).read()
+
+        exec(content, locals={'environment': environment})
 
     if args.interactive:
         interact(local={'environment': environment})
