@@ -2,7 +2,7 @@ from argparse import ArgumentParser, BooleanOptionalAction, Namespace
 from code import interact
 from datetime import datetime
 from logging import basicConfig, DEBUG, getLogger, INFO
-from sys import stderr
+from sys import stderr, stdin
 from threading import Thread
 from typing import Any
 
@@ -28,9 +28,9 @@ def parse_args() -> Namespace:
         help='debug mode (disabled by default)',
     )
     parser.add_argument(
-        '-f',
-        '--file',
-        help='file mode (disabled by default)',
+        '-s',
+        '--script',
+        help='scripting mode (disabled by default)',
         nargs=1,
     )
     parser.add_argument(
@@ -65,10 +65,15 @@ def main(configurations: Any) -> None:
     for thread in threads:
         thread.start()
 
-    if args.file:
-        content = open(args.file[0]).read()
+    if args.script:
+        filename = args.script[0]
 
-        exec(content, locals={'environment': environment})
+        if filename == '-':
+            content = stdin.read()
+        else:
+            content = open(filename).read()
+
+        exec(content, None, {'environment': environment})
 
     if args.interactive:
         interact(local={'environment': environment})
