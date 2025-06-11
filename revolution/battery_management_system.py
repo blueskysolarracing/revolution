@@ -189,6 +189,9 @@ class BatteryManagementSystem:
     def unflag(self, timeout: float | None = None) -> None:
         self._send(0x3, b'', timeout)
 
+    def statuses(self, timeout: float | None = None) -> None:
+        self._send(0x4, b'', timeout)
+
     INFORMATION_TYPES: ClassVar[tuple[type[Information], ...]] = (
         CellVoltagesInformation,
         ThermistorTemperaturesInformation,

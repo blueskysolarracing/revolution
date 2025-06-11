@@ -93,6 +93,7 @@ class Contexts:
     power_battery_cell_flags: list[int]
     power_battery_thermistor_flags: list[int]
     power_battery_current_flag: int
+    power_battery_heartbeat_timestamp: float
     power_battery_state_of_charges: list[float]
     power_psm_battery_current: float
     power_psm_battery_voltage: float
@@ -215,9 +216,11 @@ class Settings:
 
     power_monitor_timeout: float
     power_array_relay_timeout: float
+    power_heartbeat_timeout: float
     power_soc_timeout: float
     power_psm_timeout: float
     power_battery: Battery
+    power_battery_heartbeat_timeout: float
 
     # Telemetry
 

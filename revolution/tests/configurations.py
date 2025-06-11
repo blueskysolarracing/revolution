@@ -1,5 +1,6 @@
 from collections import defaultdict
 from dataclasses import make_dataclass
+from math import inf
 from unittest.mock import MagicMock
 
 from adafruit_gps import GPS  # type: ignore[import-untyped]
@@ -94,6 +95,7 @@ CONTEXTS: Contexts = Contexts(
         0 for _ in range(BATTERY_THERMISTOR_COUNT)
     ],
     power_battery_current_flag=0,
+    power_battery_heartbeat_timestamp=inf,
     power_battery_state_of_charges=[0 for _ in range(BATTERY_CELL_COUNT)],
     power_psm_motor_current=0,
     power_psm_motor_voltage=0,
@@ -299,9 +301,11 @@ SETTINGS: Settings = Settings(
 
     power_monitor_timeout=0.1,
     power_array_relay_timeout=2.5,
+    power_heartbeat_timeout=0.1,
     power_soc_timeout=0.05,
     power_psm_timeout=0.1,
     power_battery=BATTERY,
+    power_battery_heartbeat_timeout=1,
 
     # Telemetry
 
