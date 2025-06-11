@@ -461,7 +461,7 @@ SETTINGS: Settings = Settings(
     power_soc_timeout=0.05,
     power_psm_timeout=0.1,
     power_battery=BATTERY,
-    power_battery_heartbeat_timeout=1,
+    power_battery_heartbeat_timeout=10,
 
     # Telemetry
 

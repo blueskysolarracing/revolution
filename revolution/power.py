@@ -73,7 +73,9 @@ class Power(Application):
                     contexts.power_battery_thermistor_flags.copy()
                 )
                 battery_current_flag = contexts.power_battery_current_flag
-                battery_timestamp = contexts.power_battery_heartbeat_timestamp
+                battery_heartbeat_timestamp = (
+                    contexts.power_battery_heartbeat_timestamp
+                )
 
             if (
                     battery_electric_safe_discharge_status
@@ -82,7 +84,7 @@ class Power(Application):
                     or any(battery_thermistor_flags)
                     or battery_current_flag
                     or (
-                        battery_timestamp
+                        time() - battery_heartbeat_timestamp
                         > (
                             self
                             .environment
