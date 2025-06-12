@@ -77,7 +77,7 @@ class Driver(Application):
     ANALOG_SIGNALS: ClassVar[dict[str, tuple[str, tuple[float, float]]]] = {
         'driver_motor_acceleration_input_input_channel': (
             'motor_acceleration_input',
-            (0.6, 3),
+            (0.16, 0.84),
         ),
     }
 
