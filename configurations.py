@@ -77,6 +77,7 @@ CONTEXTS: Contexts = Contexts(
     motor_cruise_control_velocity=0,
     motor_variable_field_magnet_up_input=0,
     motor_variable_field_magnet_down_input=0,
+    motor_variable_field_magnet_position=0,
     motor_velocity=0,
 
     # Power
@@ -258,6 +259,22 @@ ARRAY_RELAY_LOW_SIDE_GPIO: GPIO = MagicMock()  # TODO
 ARRAY_RELAY_HIGH_SIDE_GPIO: GPIO = MagicMock()  # TODO
 ARRAY_RELAY_PRE_CHARGE_GPIO: GPIO = MagicMock()  # TODO
 
+VARIABLE_FIELD_MAGNET_DIRECTION_GPIO: GPIO = GPIO('/dev/gpiochip1', 13, 'out')
+VARIABLE_FIELD_MAGNET_STALL_GPIO: GPIO = GPIO('/dev/gpiochip0', 1, 'in')
+VARIABLE_FIELD_MAGNET_ENCODER_A_GPIO: GPIO = GPIO(
+    '/dev/gpiochip0',
+    0,
+    'in',
+    edge='rising',
+)
+VARIABLE_FIELD_MAGNET_ENCODER_B_GPIO: GPIO = GPIO(
+    '/dev/gpiochip1',
+    12,
+    'in',
+    edge='rising',
+)
+VARIABLE_FIELD_MAGNET_ENABLE_GPIO: GPIO = GPIO('/dev/gpiochip0', 8, 'out')
+
 RADIO_SERIAL: Serial = Serial('/dev/ttyLP2', timeout=1)
 
 if CAN_BUS_BITRATE not in WaveSculptor22.CAN_BUS_BITRATES:
@@ -406,6 +423,17 @@ PERIPHERIES: Peripheries = Peripheries(
     # Motor
 
     motor_wavesculptor22=WAVESCULPTOR22,
+    motor_variable_field_magnet_direction_gpio=(
+        VARIABLE_FIELD_MAGNET_DIRECTION_GPIO
+    ),
+    motor_variable_field_magnet_stall_gpio=VARIABLE_FIELD_MAGNET_STALL_GPIO,
+    motor_variable_field_magnet_encoder_a_gpio=(
+        VARIABLE_FIELD_MAGNET_ENCODER_A_GPIO
+    ),
+    motor_variable_field_magnet_encoder_b_gpio=(
+        VARIABLE_FIELD_MAGNET_ENCODER_B_GPIO
+    ),
+    motor_variable_field_magnet_enable_gpio=VARIABLE_FIELD_MAGNET_ENABLE_GPIO,
 
     # Power
 
@@ -452,6 +480,13 @@ SETTINGS: Settings = Settings(
 
     motor_control_timeout=0.1,
     motor_variable_field_magnet_timeout=0.1,
+
+    motor_variable_field_magnet_step_size=40,
+    motor_variable_field_magnet_step_upper_limit=320,
+    motor_variable_field_magnet_frequency=1000,
+    motor_variable_field_magnet_duty_cycle=0.75,
+    motor_variable_field_magnet_stall_threshold=20,
+    motor_variable_field_magnet_max_enable_time=15.0,
 
     # Power
 

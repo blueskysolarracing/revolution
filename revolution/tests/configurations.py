@@ -75,6 +75,7 @@ CONTEXTS: Contexts = Contexts(
     motor_cruise_control_velocity=0,
     motor_variable_field_magnet_up_input=0,
     motor_variable_field_magnet_down_input=0,
+    motor_variable_field_magnet_position=0,
     motor_velocity=0,
 
     # Power
@@ -160,6 +161,12 @@ POSITION_GPS: GPS = MagicMock()
 ARRAY_RELAY_LOW_SIDE_GPIO: GPIO = MagicMock()
 ARRAY_RELAY_HIGH_SIDE_GPIO: GPIO = MagicMock()
 ARRAY_RELAY_PRE_CHARGE_GPIO: GPIO = MagicMock()
+
+VARIABLE_FIELD_MAGNET_DIRECTION_GPIO: GPIO = MagicMock()
+VARIABLE_FIELD_MAGNET_STALL_GPIO: GPIO = MagicMock()
+VARIABLE_FIELD_MAGNET_ENCODER_A_GPIO: GPIO = MagicMock()
+VARIABLE_FIELD_MAGNET_ENCODER_B_GPIO: GPIO = MagicMock()
+VARIABLE_FIELD_MAGNET_ENABLE_GPIO: GPIO = MagicMock()
 
 RADIO_SERIAL: Serial = MagicMock()
 
@@ -250,6 +257,17 @@ PERIPHERIES: Peripheries = Peripheries(
     # Motor
 
     motor_wavesculptor22=WAVESCULPTOR22,
+    motor_variable_field_magnet_direction_gpio=(
+        VARIABLE_FIELD_MAGNET_DIRECTION_GPIO
+    ),
+    motor_variable_field_magnet_stall_gpio=VARIABLE_FIELD_MAGNET_STALL_GPIO,
+    motor_variable_field_magnet_encoder_a_gpio=(
+        VARIABLE_FIELD_MAGNET_ENCODER_A_GPIO
+    ),
+    motor_variable_field_magnet_encoder_b_gpio=(
+        VARIABLE_FIELD_MAGNET_ENCODER_B_GPIO
+    ),
+    motor_variable_field_magnet_enable_gpio=VARIABLE_FIELD_MAGNET_ENABLE_GPIO,
 
     # Power
 
@@ -296,6 +314,13 @@ SETTINGS: Settings = Settings(
 
     motor_control_timeout=0.1,
     motor_variable_field_magnet_timeout=0.1,
+
+    motor_variable_field_magnet_step_size=40,
+    motor_variable_field_magnet_step_upper_limit=320,
+    motor_variable_field_magnet_frequency=1000,
+    motor_variable_field_magnet_duty_cycle=0.75,
+    motor_variable_field_magnet_stall_threshold=20,
+    motor_variable_field_magnet_max_enable_time=15.0,
 
     # Power
 

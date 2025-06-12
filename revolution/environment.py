@@ -77,6 +77,7 @@ class Contexts:
     motor_cruise_control_velocity: float
     motor_variable_field_magnet_up_input: int
     motor_variable_field_magnet_down_input: int
+    motor_variable_field_magnet_position: int
     motor_velocity: float
 
     # Power
@@ -166,6 +167,12 @@ class Peripheries:
 
     motor_wavesculptor22: WaveSculptor22
 
+    motor_variable_field_magnet_direction_gpio: GPIO
+    motor_variable_field_magnet_stall_gpio: GPIO
+    motor_variable_field_magnet_encoder_a_gpio: GPIO
+    motor_variable_field_magnet_encoder_b_gpio: GPIO
+    motor_variable_field_magnet_enable_gpio: GPIO
+
     # Power
 
     power_array_relay_low_side_gpio: GPIO
@@ -211,6 +218,13 @@ class Settings:
 
     motor_control_timeout: float
     motor_variable_field_magnet_timeout: float
+
+    motor_variable_field_magnet_step_size: int
+    motor_variable_field_magnet_step_upper_limit: int
+    motor_variable_field_magnet_frequency: int
+    motor_variable_field_magnet_duty_cycle: float
+    motor_variable_field_magnet_stall_threshold: int
+    motor_variable_field_magnet_max_enable_time: float
 
     # Power
 
