@@ -90,7 +90,7 @@ class Display(Application):
             periphery.set_size(18, 24)
             periphery.draw_word(f'{motor_velocity:3.0f}', 23, 20)
             periphery.set_size(8, 15)
-            periphery.draw_word('km/h', 78, 27)
+            periphery.draw_word('KM/H', 78, 27)
 
             motor_cruise_control_label = (
                 'ON' if motor_cruise_control_status_input else 'OFF'
