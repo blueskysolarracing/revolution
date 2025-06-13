@@ -51,6 +51,9 @@ class Display(Application):
                 motor_cruise_control_velocity = (
                     contexts.motor_cruise_control_velocity
                 )
+                motor_variable_field_magnet_position = (
+                    contexts.motor_variable_field_magnet_position
+                )
                 power_battery_state_of_charges = (
                     contexts.power_battery_state_of_charges.copy()
                 )
@@ -68,39 +71,51 @@ class Display(Application):
 
             if miscellaneous_left_indicator_light_status:
                 periphery.set_size(10, 12)
-                periphery.draw_word('<', 5, 5)
+                periphery.draw_word('<', 5, 4)
 
             if miscellaneous_right_indicator_light_status:
                 periphery.set_size(10, 12)
-                periphery.draw_word('>', 18, 5)
+                periphery.draw_word('>', 18, 4)
 
             if miscellaneous_hazard_lights_status:
                 periphery.set_size(6, 12)
-                periphery.draw_word('(', 31, 5)
-                periphery.set_size(10, 12)
-                periphery.draw_word('!!', 38, 5)
+                periphery.draw_word('(', 31, 4)
+                periphery.set_size(9, 12)
+                periphery.draw_word('!!', 38, 4)
                 periphery.set_size(6, 12)
-                periphery.draw_word(')', 59, 5)
+                periphery.draw_word(')', 52, 4)
 
             # Motor
 
-            periphery.set_size(22, 24)
-            periphery.draw_word(f'{motor_velocity:3.0f}', 52, 26)
-            periphery.set_size(16, 20)
-            periphery.draw_word('km/h', 100, 36)
+            periphery.set_size(18, 24)
+            periphery.draw_word(f'{motor_velocity:3.0f}', 23, 20)
+            periphery.set_size(8, 15)
+            periphery.draw_word('km/h', 78, 27)
 
             motor_cruise_control_label = (
                 'ON' if motor_cruise_control_status_input else 'OFF'
             )
 
-            periphery.set_size(8, 10)
+            periphery.set_size(6, 12)
             periphery.draw_word(
                 (
                     f'CC ({motor_cruise_control_label}):'
-                    f' {motor_cruise_control_velocity:3.0f}'
+                    f' {motor_cruise_control_velocity:3.0f} '
                 ),
-                30,
-                52,
+                7,
+                49,
+            )
+            motor_variable_field_magnet_step = (
+                motor_variable_field_magnet_position
+                / (
+                        self
+                        .environment
+                        .settings
+                        .motor_variable_field_magnet_step_size
+                )
+            )
+            periphery.draw_word(
+                (f'VFM:{motor_variable_field_magnet_step:1.0f}'), 93, 49,
             )
 
             # Power
@@ -109,15 +124,15 @@ class Display(Application):
                 power_battery_state_of_charges,
             )
 
-            periphery.set_size(10, 12)
+            periphery.set_size(8, 12)
             periphery.draw_word(
                 f'{power_battery_state_of_charge * 100:.0f}%',
-                82,
-                5,
+                93,
+                4,
             )
 
             if power_battery_discharge_status:
-                periphery.set_size(6, 6)
-                periphery.draw_word('[-+]!', 5, 56)
+                periphery.set_size(5, 8)
+                periphery.draw_word('[-+]!', 64, 6)
 
             periphery.display()
