@@ -115,9 +115,8 @@ class Power(Application):
                     .environment
                     .peripheries
                     .power_array_relay_pre_charge_gpio
-                    .write(True)
+                    .write(False)
                 )
-                sleep(self.environment.settings.power_array_relay_timeout)
                 (
                     self
                     .environment
@@ -125,12 +124,13 @@ class Power(Application):
                     .power_array_relay_high_side_gpio
                     .write(True)
                 )
+                sleep(self.environment.settings.power_array_relay_timeout)
                 (
                     self
                     .environment
                     .peripheries
                     .power_array_relay_pre_charge_gpio
-                    .write(False)
+                    .write(True)
                 )
             elif (
                     previous_array_relay_status_input
