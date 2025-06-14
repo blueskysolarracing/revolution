@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from logging import getLogger
 from math import pi
-from time import time, sleep
+from time import sleep, time
 from typing import ClassVar
 
 from can import Message
@@ -129,7 +129,10 @@ class Motor(Application):
             .motor_variable_field_magnet_stall_threshold
         )
         max_enable_time = (
-            self.environment.settings.motor_variable_field_magnet_duty_cycle
+            self
+            .environment
+            .settings
+            .motor_variable_field_magnet_max_enable_time
         )
 
         while (
@@ -180,13 +183,6 @@ class Motor(Application):
                             stall_count < stall_threshold
                             and (time() - start_time) < max_enable_time
                     ):
-                        (
-                            self
-                            .environment
-                            .peripheries
-                            .motor_variable_field_magnet_enable_gpio
-                            .write(True)
-                        )
                         if (
                                 (
                                     self
@@ -197,8 +193,15 @@ class Motor(Application):
                                 )
                         ):
                             stall_count += 1
-                        sleep(delay_high)
 
+                        (
+                            self
+                            .environment
+                            .peripheries
+                            .motor_variable_field_magnet_enable_gpio
+                            .write(True)
+                        )
+                        sleep(delay_high)
                         (
                             self
                             .environment
@@ -248,13 +251,6 @@ class Motor(Application):
                             and stall_count < stall_threshold
                             and (time() - start_time) < max_enable_time
                     ):
-                        (
-                            self
-                            .environment
-                            .peripheries
-                            .motor_variable_field_magnet_enable_gpio
-                            .write(True)
-                        )
                         if (
                                 (
                                     self
@@ -265,6 +261,7 @@ class Motor(Application):
                                 )
                         ):
                             stall_count += 1
+
                         if (
                                 (
                                     self
@@ -282,8 +279,15 @@ class Motor(Application):
                                 .read_event()
                             )
                             step_count -= 1
-                        sleep(delay_high)
 
+                        (
+                            self
+                            .environment
+                            .peripheries
+                            .motor_variable_field_magnet_enable_gpio
+                            .write(True)
+                        )
+                        sleep(delay_high)
                         (
                             self
                             .environment

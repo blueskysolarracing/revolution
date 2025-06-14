@@ -105,6 +105,7 @@ class Display(Application):
                 7,
                 49,
             )
+
             motor_variable_field_magnet_step = (
                 motor_variable_field_magnet_position
                 / (
@@ -114,6 +115,7 @@ class Display(Application):
                         .motor_variable_field_magnet_step_size
                 )
             )
+
             periphery.draw_word(
                 (f'VFM:{motor_variable_field_magnet_step:1.0f}'), 93, 49,
             )
