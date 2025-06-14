@@ -161,6 +161,8 @@ POSITION_GPS: GPS = MagicMock()
 ARRAY_RELAY_LOW_SIDE_GPIO: GPIO = MagicMock()
 ARRAY_RELAY_HIGH_SIDE_GPIO: GPIO = MagicMock()
 ARRAY_RELAY_PRE_CHARGE_GPIO: GPIO = MagicMock()
+POWER_POINT_TRACKING_SWITCH_1_GPIO: GPIO = MagicMock()
+POWER_POINT_TRACKING_SWITCH_2_GPIO: GPIO = MagicMock()
 
 VARIABLE_FIELD_MAGNET_DIRECTION_GPIO: GPIO = MagicMock()
 VARIABLE_FIELD_MAGNET_STALL_GPIO: GPIO = MagicMock()
@@ -173,8 +175,6 @@ RADIO_SERIAL: Serial = MagicMock()
 WAVESCULPTOR22: WaveSculptor22 = MagicMock()
 
 BATTERY_MANAGEMENT_SYSTEM: BatteryManagementSystem = MagicMock()
-
-POWER_POINT_TRACKING_SWITCH_GPIO: GPIO = MagicMock()
 
 PSM_MOTOR_INA229: INA229 = MagicMock()
 PSM_BATTERY_INA229: INA229 = MagicMock()
@@ -274,8 +274,9 @@ PERIPHERIES: Peripheries = Peripheries(
     power_array_relay_low_side_gpio=ARRAY_RELAY_LOW_SIDE_GPIO,
     power_array_relay_high_side_gpio=ARRAY_RELAY_HIGH_SIDE_GPIO,
     power_array_relay_pre_charge_gpio=ARRAY_RELAY_PRE_CHARGE_GPIO,
+    power_point_tracking_switch_1_gpio=POWER_POINT_TRACKING_SWITCH_1_GPIO,
+    power_point_tracking_switch_2_gpio=POWER_POINT_TRACKING_SWITCH_2_GPIO,
     power_battery_management_system=BATTERY_MANAGEMENT_SYSTEM,
-    power_point_tracking_switch_gpio=POWER_POINT_TRACKING_SWITCH_GPIO,
     power_psm_motor_ina229=PSM_MOTOR_INA229,
     power_psm_battery_ina229=PSM_BATTERY_INA229,
     power_psm_array_ina229=PSM_ARRAY_INA229,
@@ -326,6 +327,7 @@ SETTINGS: Settings = Settings(
 
     power_monitor_timeout=0.1,
     power_array_relay_timeout=2.5,
+    power_point_tracking_timeout=1.0,
     power_heartbeat_timeout=0.1,
     power_soc_timeout=0.05,
     power_psm_timeout=0.1,

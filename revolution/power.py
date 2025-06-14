@@ -132,12 +132,7 @@ class Power(Application):
                     .power_array_relay_pre_charge_gpio
                     .write(True)
                 )
-                sleep(
-                    self
-                    .environment
-                    .settings
-                    .power_array_relay_power_point_tracking_timeout
-                )
+                sleep(self.environment.settings.power_point_tracking_timeout)
                 (
                     self
                     .environment
@@ -170,12 +165,7 @@ class Power(Application):
                     .power_point_tracking_switch_2_gpio
                     .write(False)
                 )
-                sleep(
-                    self
-                    .environment
-                    .settings
-                    .power_array_relay_power_point_tracking_timeout
-                )
+                sleep(self.environment.settings.power_point_tracking_timeout)
                 (
                     self
                     .environment
@@ -215,6 +205,7 @@ class Power(Application):
                     .open_relay()
                 )
 
+            if previous_battery_relay_status != battery_relay_status:
                 with self.environment.contexts() as contexts:
                     contexts.motor_status_input = battery_relay_status
 

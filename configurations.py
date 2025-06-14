@@ -249,17 +249,17 @@ ORIENTATION_IMU_BNO055: BNO055 = BNO055(
     ORIENTATION_IMU_BNO055_IMU_RESET_GPIO,
 )
 
-POSITION_GPS_SERIAL: Serial = Serial('/dev/ttyLP0', timeout=10)  # TODO
+POSITION_GPS_SERIAL: Serial = Serial('/dev/ttyLP0', timeout=10)
 POSITION_GPS: GPS = GPS(POSITION_GPS_SERIAL, debug=False)
 
 POSITION_GPS.send_command(b'PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0')
 POSITION_GPS.send_command(b'PMTK220,1000')
 
-ARRAY_RELAY_LOW_SIDE_GPIO: GPIO = GPIO('/dev/gpiochip4', 1, 'out')  # TODO
-ARRAY_RELAY_HIGH_SIDE_GPIO: GPIO = GPIO('/dev/gpiochip0', 13, 'out')  # TODO
-ARRAY_RELAY_PRE_CHARGE_GPIO: GPIO = GPIO('/dev/gpiochip4', 2, 'out')  # TODO
-POWER_POINT_TRACKING_SWITCH_1_GPIO: GPIO =GPIO('/dev/gpiochip3', 26, 'out')  # TODO
-POWER_POINT_TRACKING_SWITCH_2_GPIO: GPIO = GPIO('/dev/gpiochip3', 28, 'out')  # TODO
+ARRAY_RELAY_LOW_SIDE_GPIO: GPIO = GPIO('/dev/gpiochip4', 1, 'out')
+ARRAY_RELAY_HIGH_SIDE_GPIO: GPIO = GPIO('/dev/gpiochip0', 13, 'out')
+ARRAY_RELAY_PRE_CHARGE_GPIO: GPIO = GPIO('/dev/gpiochip4', 2, 'out')
+POWER_POINT_TRACKING_SWITCH_1_GPIO: GPIO = GPIO('/dev/gpiochip3', 26, 'out')
+POWER_POINT_TRACKING_SWITCH_2_GPIO: GPIO = GPIO('/dev/gpiochip3', 28, 'out')
 
 VARIABLE_FIELD_MAGNET_DIRECTION_GPIO: GPIO = GPIO('/dev/gpiochip1', 13, 'out')
 VARIABLE_FIELD_MAGNET_STALL_GPIO: GPIO = GPIO('/dev/gpiochip0', 1, 'in')
@@ -493,7 +493,7 @@ SETTINGS: Settings = Settings(
 
     power_monitor_timeout=0.1,
     power_array_relay_timeout=2.5,
-    power_array_relay_power_point_tracking_timeout=1.0,
+    power_point_tracking_timeout=1.0,
     power_heartbeat_timeout=0.1,
     power_soc_timeout=0.05,
     power_psm_timeout=0.1,
