@@ -258,6 +258,8 @@ POSITION_GPS.send_command(b'PMTK220,1000')
 ARRAY_RELAY_LOW_SIDE_GPIO: GPIO = GPIO('/dev/gpiochip4', 1, 'out')  # TODO
 ARRAY_RELAY_HIGH_SIDE_GPIO: GPIO = GPIO('/dev/gpiochip0', 13, 'out')  # TODO
 ARRAY_RELAY_PRE_CHARGE_GPIO: GPIO = GPIO('/dev/gpiochip4', 2, 'out')  # TODO
+POWER_POINT_TRACKING_SWITCH_1_GPIO: GPIO =GPIO('/dev/gpiochip3', 26, 'out')  # TODO
+POWER_POINT_TRACKING_SWITCH_2_GPIO: GPIO = GPIO('/dev/gpiochip3', 28, 'out')  # TODO
 
 VARIABLE_FIELD_MAGNET_DIRECTION_GPIO: GPIO = GPIO('/dev/gpiochip1', 13, 'out')
 VARIABLE_FIELD_MAGNET_STALL_GPIO: GPIO = GPIO('/dev/gpiochip0', 1, 'in')
@@ -293,8 +295,6 @@ BATTERY_MANAGEMENT_SYSTEM: BatteryManagementSystem = BatteryManagementSystem(
     CAN_BUS,
     REVOLUTION_BASE_ADDRESS,
 )
-
-POWER_POINT_TRACKING_SWITCH_GPIO: GPIO = MagicMock()  # TODO
 
 PSM_SPI: SPI = SPI('/dev/spidev1.0', 1, 1e6)
 PSM_MOTOR_INA229: INA229 = INA229(
@@ -440,8 +440,9 @@ PERIPHERIES: Peripheries = Peripheries(
     power_array_relay_low_side_gpio=ARRAY_RELAY_LOW_SIDE_GPIO,
     power_array_relay_high_side_gpio=ARRAY_RELAY_HIGH_SIDE_GPIO,
     power_array_relay_pre_charge_gpio=ARRAY_RELAY_PRE_CHARGE_GPIO,
+    power_point_tracking_switch_1_gpio=POWER_POINT_TRACKING_SWITCH_1_GPIO,
+    power_point_tracking_switch_2_gpio=POWER_POINT_TRACKING_SWITCH_2_GPIO,
     power_battery_management_system=BATTERY_MANAGEMENT_SYSTEM,
-    power_point_tracking_switch_gpio=POWER_POINT_TRACKING_SWITCH_GPIO,
     power_psm_motor_ina229=PSM_MOTOR_INA229,
     power_psm_battery_ina229=PSM_BATTERY_INA229,
     power_psm_array_ina229=PSM_ARRAY_INA229,
@@ -492,6 +493,7 @@ SETTINGS: Settings = Settings(
 
     power_monitor_timeout=0.1,
     power_array_relay_timeout=2.5,
+    power_array_relay_power_point_tracking_timeout=1.0,
     power_heartbeat_timeout=0.1,
     power_soc_timeout=0.05,
     power_psm_timeout=0.1,

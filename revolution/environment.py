@@ -178,8 +178,9 @@ class Peripheries:
     power_array_relay_low_side_gpio: GPIO
     power_array_relay_high_side_gpio: GPIO
     power_array_relay_pre_charge_gpio: GPIO
+    power_point_tracking_switch_1_gpio: GPIO
+    power_point_tracking_switch_2_gpio: GPIO
     power_battery_management_system: BatteryManagementSystem
-    power_point_tracking_switch_gpio: GPIO
     power_psm_motor_ina229: INA229
     power_psm_battery_ina229: INA229
     power_psm_array_ina229: INA229
@@ -230,6 +231,7 @@ class Settings:
 
     power_monitor_timeout: float
     power_array_relay_timeout: float
+    power_array_relay_power_point_tracking_timeout: float
     power_heartbeat_timeout: float
     power_soc_timeout: float
     power_psm_timeout: float

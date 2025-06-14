@@ -132,10 +132,50 @@ class Power(Application):
                     .power_array_relay_pre_charge_gpio
                     .write(True)
                 )
+                sleep(
+                    self
+                    .environment
+                    .settings
+                    .power_array_relay_power_point_tracking_timeout
+                )
+                (
+                    self
+                    .environment
+                    .peripheries
+                    .power_point_tracking_switch_1_gpio
+                    .write(True)
+                )
+                (
+                    self
+                    .environment
+                    .peripheries
+                    .power_point_tracking_switch_2_gpio
+                    .write(True)
+                )
             elif (
                     previous_array_relay_status_input
                     and not array_relay_status_input
             ):
+                (
+                    self
+                    .environment
+                    .peripheries
+                    .power_point_tracking_switch_1_gpio
+                    .write(True)
+                )
+                (
+                    self
+                    .environment
+                    .peripheries
+                    .power_point_tracking_switch_2_gpio
+                    .write(True)
+                )
+                sleep(
+                    self
+                    .environment
+                    .settings
+                    .power_array_relay_power_point_tracking_timeout
+                )
                 (
                     self
                     .environment
@@ -173,15 +213,6 @@ class Power(Application):
                     .peripheries
                     .power_battery_management_system
                     .open_relay()
-                )
-
-            if previous_battery_relay_status != battery_relay_status:
-                (
-                    self
-                    .environment
-                    .peripheries
-                    .power_point_tracking_switch_gpio
-                    .write(battery_relay_status)
                 )
 
                 with self.environment.contexts() as contexts:
