@@ -240,7 +240,7 @@ BACKUP_CAMERA_CONTROL_SWITCH_GPIO: GPIO = MagicMock()  # TODO
 DISPLAY_BACKLIGHT_SWITCH_GPIO: GPIO = MagicMock()  # TODO
 
 ORIENTATION_IMU_BNO055_I2C: I2C = I2C('/dev/i2c-4')
-ORIENTATION_IMU_BNO055_IMU_RESET_GPIO: GPIO = MagicMock(  # TODO
+ORIENTATION_IMU_BNO055_IMU_RESET_GPIO: GPIO = MagicMock(
     direction='out',
     inverted=True,
 )
@@ -458,7 +458,7 @@ with open('data/battery.json') as file:
 SETTINGS: Settings = Settings(
     # General
 
-    wheel_diameter=1,  # TODO
+    wheel_diameter=0.557,
 
     # Debugger
 
