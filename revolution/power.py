@@ -47,7 +47,7 @@ class Power(Application):
 
     def _monitor(self) -> None:
         previous_array_relay_status_input = False
-        previous_all_relay_status_input = False
+        previous_battery_relay_status = False
 
         while (
                 not self._stoppage.wait(
@@ -95,9 +95,9 @@ class Power(Application):
             ):
                 array_relay_status_input = False
                 battery_relay_status_input = False
-                discharge_status = True
+                battery_discharge_status_input = True
             else:
-                discharge_status = False
+                battery_discharge_status_input = False
 
             if (
                     not previous_array_relay_status_input
@@ -175,27 +175,22 @@ class Power(Application):
                     .open_relay()
                 )
 
-            all_relay_status_input = (
-                array_relay_status_input
-                and battery_relay_status
-            )
-
-            if previous_all_relay_status_input != all_relay_status_input:
+            if previous_battery_relay_status != battery_relay_status:
                 (
                     self
                     .environment
                     .peripheries
                     .power_point_tracking_switch_gpio
-                    .write(all_relay_status_input)
+                    .write(battery_relay_status)
                 )
 
                 with self.environment.contexts() as contexts:
-                    contexts.motor_status_input = all_relay_status_input
+                    contexts.motor_status_input = battery_relay_status
 
             if (
                     not battery_relay_status
                     and not battery_discharge_status
-                    and discharge_status
+                    and battery_discharge_status_input
             ):
                 assert (
                     not array_relay_status_input
@@ -211,7 +206,7 @@ class Power(Application):
                 )
 
             previous_array_relay_status_input = array_relay_status_input
-            previous_all_relay_status_input = all_relay_status_input
+            previous_battery_relay_status = battery_relay_status
 
     def _heartbeat(self) -> None:
         while (
