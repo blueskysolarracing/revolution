@@ -161,14 +161,14 @@ class Power(Application):
                     .environment
                     .peripheries
                     .power_point_tracking_switch_1_gpio
-                    .write(True)
+                    .write(False)
                 )
                 (
                     self
                     .environment
                     .peripheries
                     .power_point_tracking_switch_2_gpio
-                    .write(True)
+                    .write(False)
                 )
                 sleep(
                     self
