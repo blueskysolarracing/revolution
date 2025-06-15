@@ -30,18 +30,15 @@ class Power(Application):
         super()._setup()
 
         self._monitor_worker = Worker(target=self._monitor)
-        self._heartbeat_worker = Worker(target=self._heartbeat)
         self._soc_worker = Worker(target=self._soc)
         self._psm_worker = Worker(target=self._psm)
 
         self._monitor_worker.start()
-        self._heartbeat_worker.start()
         self._soc_worker.start()
         self._psm_worker.start()
 
     def _teardown(self) -> None:
         self._monitor_worker.join()
-        self._heartbeat_worker.join()
         self._soc_worker.join()
         self._psm_worker.join()
 
@@ -73,9 +70,6 @@ class Power(Application):
                     contexts.power_battery_thermistor_flags.copy()
                 )
                 battery_current_flag = contexts.power_battery_current_flag
-                battery_heartbeat_timestamp = (
-                    contexts.power_battery_heartbeat_timestamp
-                )
 
             if (
                     battery_electric_safe_discharge_status
@@ -83,15 +77,6 @@ class Power(Application):
                     or any(battery_cell_flags)
                     or any(battery_thermistor_flags)
                     or battery_current_flag
-                    or (
-                        time() - battery_heartbeat_timestamp
-                        > (
-                            self
-                            .environment
-                            .settings
-                            .power_battery_heartbeat_timeout
-                        )
-                    )
             ):
                 array_relay_status_input = False
                 battery_relay_status_input = False
@@ -229,20 +214,6 @@ class Power(Application):
 
             previous_array_relay_status_input = array_relay_status_input
             previous_battery_relay_status = battery_relay_status
-
-    def _heartbeat(self) -> None:
-        while (
-                not self._stoppage.wait(
-                    self.environment.settings.power_heartbeat_timeout,
-                )
-        ):
-            (
-                self
-                .environment
-                .peripheries
-                .power_battery_management_system
-                .statuses()
-            )
 
     def _soc(self) -> None:
         estimators: list[EKFSOCEstimator | None] = [
