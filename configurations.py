@@ -6,7 +6,7 @@ from unittest.mock import MagicMock
 
 from adafruit_gps import GPS  # type: ignore[import-untyped]
 from battlib import Battery
-from can import Bus, BusABC
+from can import BusABC, ThreadSafeBus
 from iclib.adc78h89 import ADC78H89, InputChannel
 from iclib.bno055 import BNO055
 from iclib.ina229 import INA229
@@ -124,7 +124,10 @@ system(
     ),
 )
 
-CAN_BUS: BusABC = Bus(channel=CAN_BUS_CHANNEL, interface='socketcan')
+CAN_BUS: BusABC = ThreadSafeBus(  # type: ignore[no-untyped-call]
+    channel=CAN_BUS_CHANNEL,
+    interface='socketcan',
+)
 
 STEERING_WHEEL_SPI: SPI = SPI('/dev/spidev0.0', 0b11, 1e5)
 STEERING_WHEEL_SPI_LOCK: Lock = Lock()
