@@ -185,6 +185,7 @@ class Peripheries:
     power_psm_motor_ina229: INA229
     power_psm_battery_ina229: INA229
     power_psm_array_ina229: INA229
+    power_steering_wheel_led_gpio: GPIO
 
     # Telemetry
 
@@ -236,6 +237,7 @@ class Settings:
     power_heartbeat_timeout: float
     power_soc_timeout: float
     power_psm_timeout: float
+    power_steering_wheel_led_timeout: float
     power_battery: Battery
     power_battery_heartbeat_timeout: float
 

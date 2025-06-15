@@ -181,6 +181,8 @@ PSM_MOTOR_INA229: INA229 = MagicMock()
 PSM_BATTERY_INA229: INA229 = MagicMock()
 PSM_ARRAY_INA229: INA229 = MagicMock()
 
+STEERING_WHEEL_LED_GPIO: GPIO = MagicMock()
+
 PERIPHERIES: Peripheries = Peripheries(
     # General
 
@@ -281,6 +283,7 @@ PERIPHERIES: Peripheries = Peripheries(
     power_psm_motor_ina229=PSM_MOTOR_INA229,
     power_psm_battery_ina229=PSM_BATTERY_INA229,
     power_psm_array_ina229=PSM_ARRAY_INA229,
+    power_steering_wheel_led_gpio=STEERING_WHEEL_LED_GPIO,
 
     # Telemetry
 
@@ -332,6 +335,7 @@ SETTINGS: Settings = Settings(
     power_heartbeat_timeout=0.1,
     power_soc_timeout=0.05,
     power_psm_timeout=0.1,
+    power_steering_wheel_led_timeout=0.5,
     power_battery=BATTERY,
     power_battery_heartbeat_timeout=10,
 
