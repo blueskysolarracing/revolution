@@ -111,10 +111,17 @@ CONTEXTS: Contexts = Contexts(
 )
 
 CAN_BUS_CHANNEL: str = 'can0'
+CAN_BUS_TXQUEUELEN: int = 1000
 CAN_BUS_BITRATE: int = 500000
 
 system(f'ip link set {CAN_BUS_CHANNEL} down')
-system(f'ip link set {CAN_BUS_CHANNEL} up type can bitrate {CAN_BUS_BITRATE}')
+system(
+    (
+        f'ip link set {CAN_BUS_CHANNEL} up'
+        f' txqueuelen {CAN_BUS_TXQUEUELEN}'
+        f' type can bitrate {CAN_BUS_BITRATE}'
+    ),
+)
 
 CAN_BUS: BusABC = Bus(channel=CAN_BUS_CHANNEL, interface='socketcan')
 
