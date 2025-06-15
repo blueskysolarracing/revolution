@@ -48,6 +48,10 @@ class Message:
 
 @dataclass
 class Contexts:
+    # General
+
+    general_unused_status_input: bool
+
     # Debugger
 
     # Display
@@ -62,7 +66,6 @@ class Contexts:
     miscellaneous_daytime_running_lights_status_input: bool
     miscellaneous_horn_status_input: bool
     miscellaneous_backup_camera_control_status_input: bool
-    miscellaneous_display_backlight_status_input: bool
     miscellaneous_brake_status_input: bool
     miscellaneous_orientation: dict[str, float]
     miscellaneous_latitude: float
@@ -114,7 +117,7 @@ class Contexts:
 class Peripheries:
     # General
 
-    can_bus: BusABC
+    general_can_bus: BusABC
 
     # Debugger
 
@@ -131,13 +134,14 @@ class Peripheries:
 
     driver_pedals_adc78h89: ADC78H89
 
+    driver_general_unused_switch_prbs: PRBS
+
     driver_miscellaneous_left_indicator_light_switch_prbs: PRBS
     driver_miscellaneous_right_indicator_light_switch_prbs: PRBS
     driver_miscellaneous_hazard_lights_switch_prbs: PRBS
     driver_miscellaneous_daytime_running_lights_switch_prbs: PRBS
     driver_miscellaneous_horn_switch_prbs: PRBS
     driver_miscellaneous_backup_camera_control_switch_prbs: PRBS
-    driver_miscellaneous_display_backlight_switch_prbs: PRBS
     driver_miscellaneous_brake_switch_gpio: GPIO
 
     driver_motor_cruise_control_velocity_rotary_encoder_a_prbs: PRBS
@@ -160,7 +164,6 @@ class Peripheries:
     miscellaneous_brake_lights_pwm: PWM
     miscellaneous_horn_switch_gpio: GPIO
     miscellaneous_backup_camera_control_switch_gpio: GPIO
-    miscellaneous_display_backlight_switch_gpio: GPIO
     miscellaneous_orientation_imu_bno055: BNO055
     miscellaneous_position_gps: GPS
 
@@ -196,7 +199,7 @@ class Peripheries:
 class Settings:
     # General
 
-    wheel_diameter: float
+    general_wheel_diameter: float
 
     # Debugger
 

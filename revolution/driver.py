@@ -17,6 +17,8 @@ _logger = getLogger(__name__)
 class Driver(Application):
     endpoint: ClassVar[Endpoint] = Endpoint.DRIVER
     MOMENTARY_SWITCHES: ClassVar[dict[str, str]] = {
+        'driver_general_unused_switch_prbs': 'general_unused_status_input',
+
         'driver_miscellaneous_left_indicator_light_switch_prbs': (
             'miscellaneous_left_indicator_light_status_input'
         ),
@@ -27,12 +29,8 @@ class Driver(Application):
             'miscellaneous_horn_status_input'
         ),
 
-        'driver_motor_direction_switch_prbs': (
-            'motor_direction_input'
-        ),
-        'driver_motor_regeneration_switch_prbs': (
-            'motor_regeneration_input'
-        ),
+        'driver_motor_direction_switch_prbs': 'motor_direction_input',
+        'driver_motor_regeneration_switch_prbs': 'motor_regeneration_input',
 
         'driver_power_array_relay_switch_prbs': (
             'power_array_relay_status_input'
@@ -50,9 +48,6 @@ class Driver(Application):
         ),
         'driver_miscellaneous_backup_camera_control_switch_prbs': (
             'miscellaneous_backup_camera_control_status_input'
-        ),
-        'driver_miscellaneous_display_backlight_switch_prbs': (
-            'miscellaneous_display_backlight_status_input'
         ),
         'driver_motor_cruise_control_switch_prbs': (
             'motor_cruise_control_status_input'

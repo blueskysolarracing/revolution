@@ -38,7 +38,6 @@ class Miscellaneous(Application):
         previous_daytime_running_lights_status_input = False
         previous_horn_status_input = False
         previous_backup_camera_control_status_input = False
-        previous_display_backlight_status_input = False
         previous_brake_lights_status_input = False
 
         def update_pwm(pwm: PWM, previous_input: bool, input: bool) -> None:
@@ -68,9 +67,6 @@ class Miscellaneous(Application):
                 horn_status_input = contexts.miscellaneous_horn_status_input
                 backup_camera_control_status_input = (
                     contexts.miscellaneous_backup_camera_control_status_input
-                )
-                display_backlight_status_input = (
-                    contexts.miscellaneous_display_backlight_status_input
                 )
                 brake_lights_status_input = (
                     contexts.miscellaneous_brake_status_input
@@ -153,17 +149,6 @@ class Miscellaneous(Application):
                     .write(backup_camera_control_status_input)
                 )
 
-            if (
-                    display_backlight_status_input
-                    != previous_display_backlight_status_input
-            ):
-                (
-                    self
-                    .environment.peripheries
-                    .miscellaneous_display_backlight_switch_gpio
-                    .write(display_backlight_status_input)
-                )
-
             previous_left_indicator_light_status_input = (
                 left_indicator_light_status_input
             )
@@ -178,9 +163,6 @@ class Miscellaneous(Application):
             previous_horn_status_input = horn_status_input
             previous_backup_camera_control_status_input = (
                 backup_camera_control_status_input
-            )
-            previous_display_backlight_status_input = (
-                display_backlight_status_input
             )
 
     def _orientation(self) -> None:

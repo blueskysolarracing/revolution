@@ -48,6 +48,10 @@ APPLICATION_TYPES: tuple[type[Application], ...] = (
 )
 
 CONTEXTS: Contexts = Contexts(
+    # General
+
+    general_unused_status_input=False,
+
     # Debugger
 
     # Display
@@ -62,7 +66,6 @@ CONTEXTS: Contexts = Contexts(
     miscellaneous_daytime_running_lights_status_input=False,
     miscellaneous_horn_status_input=False,
     miscellaneous_backup_camera_control_status_input=False,
-    miscellaneous_display_backlight_status_input=False,
     miscellaneous_brake_status_input=False,
     miscellaneous_orientation={},
     miscellaneous_latitude=0,
@@ -209,13 +212,14 @@ PEDALS_ADC78H89: ADC78H89 = ADC78H89(
     3.3,
 )
 
+UNUSED_SWITCH_PRBS: PRBS = PRB.GPIOA_GP2, False
+
 LEFT_INDICATOR_LIGHT_SWITCH_PRBS: PRBS = PRB.GPIOB_GP1
 RIGHT_INDICATOR_LIGHT_SWITCH_PRBS: PRBS = PRB.GPIOB_GP0
 HAZARD_LIGHTS_SWITCH_PRBS: PRBS = PRB.GPIOA_GP0, True
 DAYTIME_RUNNING_LIGHTS_SWITCH_PRBS: PRBS = PRB.GPIOA_GP2, True
 HORN_SWITCH_PRBS: PRBS = PRB.GPIOA_GP0, False
 BACKUP_CAMERA_CONTROL_SWITCH_PRBS: PRBS = PRB.GPIOA_GP1, True
-DISPLAY_BACKLIGHT_SWITCH_PRBS: PRBS = PRB.GPIOA_GP2, False
 BRAKE_SWITCH_GPIO: GPIO = GPIO('/dev/gpiochip6', 20, 'in', inverted=True)
 
 CRUISE_CONTROL_ROTARY_ENCODER_A_PRBS: PRBS = PRB.GPIOA_GP3
@@ -248,7 +252,6 @@ BRAKE_LIGHTS_PWM.duty_cycle = 0.25
 
 HORN_SWITCH_GPIO: GPIO = MagicMock()  # TODO
 BACKUP_CAMERA_CONTROL_SWITCH_GPIO: GPIO = MagicMock()  # TODO
-DISPLAY_BACKLIGHT_SWITCH_GPIO: GPIO = MagicMock()  # TODO
 
 ORIENTATION_IMU_BNO055_I2C: I2C = I2C('/dev/i2c-4')
 ORIENTATION_IMU_BNO055_IMU_RESET_GPIO: GPIO = MagicMock(
@@ -362,7 +365,7 @@ STEERING_WHEEL_LED_GPIO: GPIO = GPIO('/dev/gpiochip1', 10, 'out')
 PERIPHERIES: Peripheries = Peripheries(
     # General
 
-    can_bus=CAN_BUS,
+    general_can_bus=CAN_BUS,
 
     # Debugger
 
@@ -378,6 +381,8 @@ PERIPHERIES: Peripheries = Peripheries(
 
     driver_pedals_adc78h89=PEDALS_ADC78H89,
 
+    driver_general_unused_switch_prbs=UNUSED_SWITCH_PRBS,
+
     driver_miscellaneous_left_indicator_light_switch_prbs=(
         LEFT_INDICATOR_LIGHT_SWITCH_PRBS
     ),
@@ -391,9 +396,6 @@ PERIPHERIES: Peripheries = Peripheries(
     driver_miscellaneous_horn_switch_prbs=HORN_SWITCH_PRBS,
     driver_miscellaneous_backup_camera_control_switch_prbs=(
         BACKUP_CAMERA_CONTROL_SWITCH_PRBS
-    ),
-    driver_miscellaneous_display_backlight_switch_prbs=(
-        DISPLAY_BACKLIGHT_SWITCH_PRBS
     ),
     driver_miscellaneous_brake_switch_gpio=BRAKE_SWITCH_GPIO,
 
@@ -429,7 +431,6 @@ PERIPHERIES: Peripheries = Peripheries(
     miscellaneous_backup_camera_control_switch_gpio=(
         BACKUP_CAMERA_CONTROL_SWITCH_GPIO
     ),
-    miscellaneous_display_backlight_switch_gpio=DISPLAY_BACKLIGHT_SWITCH_GPIO,
     miscellaneous_orientation_imu_bno055=ORIENTATION_IMU_BNO055,
     miscellaneous_position_gps=POSITION_GPS,
 
@@ -472,7 +473,7 @@ with open('data/battery.json') as file:
 SETTINGS: Settings = Settings(
     # General
 
-    wheel_diameter=0.557,
+    general_wheel_diameter=0.557,
 
     # Debugger
 

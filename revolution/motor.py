@@ -40,7 +40,7 @@ class Motor(Application):
             return (
                 kph
                 / pi
-                / self.environment.settings.wheel_diameter
+                / self.environment.settings.general_wheel_diameter
                 / 60
                 * 1000
             )
@@ -319,7 +319,7 @@ class Motor(Application):
         def rpm2kph(rpm: float) -> float:
             return (
                 pi
-                * self.environment.settings.wheel_diameter
+                * self.environment.settings.general_wheel_diameter
                 * rpm
                 * 60
                 / 1000

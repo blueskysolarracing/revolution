@@ -53,7 +53,7 @@ class Telemetry(Application):
 
     def _can(self) -> None:
         while not self._stoppage.is_set():
-            can_message = self.environment.peripheries.can_bus.recv(
+            can_message = self.environment.peripheries.general_can_bus.recv(
                 self.environment.settings.telemetry_timeout,
             )
 
