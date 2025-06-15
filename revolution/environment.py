@@ -7,7 +7,6 @@ from typing import Any
 from adafruit_gps import GPS  # type: ignore[import-untyped]
 from battlib import Battery
 from can import BusABC
-from databrief import dump
 from door.threading2 import AcquirableDoor
 from iclib.adc78h89 import ADC78H89, InputChannel
 from iclib.bno055 import BNO055
@@ -108,9 +107,6 @@ class Contexts:
     power_psm_motor_voltage: float
 
     # Telemetry
-
-    def serialize(self) -> bytes:
-        return dump(self)
 
 
 @dataclass(frozen=True)

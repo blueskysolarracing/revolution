@@ -1,7 +1,10 @@
 from dataclasses import dataclass
 from hashlib import md5
 from logging import getLogger
+from statistics import mean
 from typing import ClassVar
+
+from databrief import dump
 
 from revolution.application import Application
 from revolution.environment import Endpoint, Header, Message
@@ -13,6 +16,20 @@ _logger = getLogger(__name__)
 @dataclass
 class Telemetry(Application):
     endpoint: ClassVar[Endpoint] = Endpoint.TELEMETRY
+
+    @dataclass
+    class Data:
+        velocity: float
+        array_current: float
+        array_voltage: float
+        motor_current: float
+        motor_voltage: float
+        battery_state_of_charge: float
+        latitude: float
+        longitude: float
+
+        def serialize(self) -> bytes:
+            return dump(self)
 
     def _setup(self) -> None:
         super()._setup()
@@ -34,10 +51,28 @@ class Telemetry(Application):
                 )
         ):
             with self.environment.contexts() as contexts:
-                assert hasattr(contexts, '_resource')
+                velocity = contexts.motor_velocity
+                array_current = contexts.power_psm_array_current
+                array_voltage = contexts.power_psm_array_voltage
+                motor_current = contexts.power_psm_motor_current
+                motor_voltage = contexts.power_psm_motor_voltage
+                state_of_charges = (
+                    contexts.power_battery_state_of_charges.copy()
+                )
+                latitude = contexts.miscellaneous_latitude
+                longitude = contexts.miscellaneous_longitude
 
-                data_token = contexts._resource.serialize()
-
+            data = self.Data(
+                velocity,
+                array_current,
+                array_voltage,
+                motor_current,
+                motor_voltage,
+                mean(state_of_charges),
+                latitude,
+                longitude,
+            )
+            data_token = data.serialize()
             checksum_token = md5(data_token).hexdigest()
             tokens = (
                 self.environment.settings.telemetry_begin_token,
