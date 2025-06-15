@@ -65,8 +65,6 @@ class Display(Application):
                 self.environment.peripheries.display_nhd_c12864a1z_fsw_fbw_htt
             )
 
-            periphery.clear_screen()
-
             # Miscellaneous
 
             if miscellaneous_left_indicator_light_status:
