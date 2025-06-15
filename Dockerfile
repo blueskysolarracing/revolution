@@ -1,6 +1,6 @@
-FROM python:3.11-alpine
+FROM python:3.11
 
-RUN apk update && apk add --no-cache build-base git libffi-dev
+RUN apt-get update && apt-get install -y git
 RUN git clone https://github.com/blueskysolarracing/revolution.git
 WORKDIR /revolution
 RUN pip install --upgrade pip && pip install -r requirements.txt
