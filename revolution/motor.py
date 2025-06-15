@@ -339,3 +339,5 @@ class Motor(Application):
                 contexts.motor_velocity = rpm2kph(
                     broadcast_message.motor_velocity,
                 )
+
+            contexts.motor_heartbeat_timestamp = time()

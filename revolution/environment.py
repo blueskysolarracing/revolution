@@ -79,6 +79,7 @@ class Contexts:
     motor_variable_field_magnet_down_input: int
     motor_variable_field_magnet_position: int
     motor_velocity: float
+    motor_heartbeat_timestamp: float
 
     # Power
 

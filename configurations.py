@@ -79,6 +79,7 @@ CONTEXTS: Contexts = Contexts(
     motor_variable_field_magnet_down_input=0,
     motor_variable_field_magnet_position=0,
     motor_velocity=0,
+    motor_heartbeat_timestamp=inf,
 
     # Power
 
