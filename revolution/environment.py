@@ -237,12 +237,10 @@ class Settings:
     power_monitor_timeout: float
     power_array_relay_timeout: float
     power_point_tracking_timeout: float
-    power_heartbeat_timeout: float
     power_soc_timeout: float
     power_psm_timeout: float
     power_steering_wheel_led_timeout: float
     power_battery: Battery
-    power_battery_heartbeat_timeout: float
 
     # Telemetry
 

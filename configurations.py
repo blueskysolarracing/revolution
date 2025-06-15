@@ -509,12 +509,10 @@ SETTINGS: Settings = Settings(
     power_monitor_timeout=0.1,
     power_array_relay_timeout=2.5,
     power_point_tracking_timeout=1.0,
-    power_heartbeat_timeout=0.1,
     power_soc_timeout=0.05,
     power_psm_timeout=0.1,
     power_steering_wheel_led_timeout=0.5,
     power_battery=BATTERY,
-    power_battery_heartbeat_timeout=10,
 
     # Telemetry
 
