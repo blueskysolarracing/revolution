@@ -87,6 +87,7 @@ class Power(Application):
 
             all_relay_status = (
                 array_relay_status_input
+                and battery_relay_status_input
                 and battery_relay_status
             )
 
@@ -117,13 +118,6 @@ class Power(Application):
                     .peripheries
                     .power_array_relay_low_side_gpio
                     .write(True)
-                )
-                (
-                    self
-                    .environment
-                    .peripheries
-                    .power_array_relay_pre_charge_gpio
-                    .write(False)
                 )
                 (
                     self
