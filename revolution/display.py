@@ -100,7 +100,7 @@ class Display(Application):
             periphery.draw_word(
                 (
                     f'CC ({motor_cruise_control_label}):'
-                    f' {motor_cruise_control_velocity:3.0f} '
+                    f' {motor_cruise_control_velocity:.0f} '
                 ),
                 7,
                 49,
@@ -128,7 +128,7 @@ class Display(Application):
 
             periphery.set_size(8, 12)
             periphery.draw_word(
-                f'{power_battery_state_of_charge * 100:.0f}%',
+                f'{power_battery_state_of_charge * 100:3.0f}%',
                 93,
                 4,
             )
