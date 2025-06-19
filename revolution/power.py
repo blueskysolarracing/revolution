@@ -77,6 +77,7 @@ class Power(Application):
                     previous_battery_discharge_status_input
                     or (
                         battery_relay_status
+                        and battery_relay_status_input
                         and battery_electric_safe_discharge_status
                     )
                     or battery_discharge_status
