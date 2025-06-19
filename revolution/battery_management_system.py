@@ -18,6 +18,7 @@ class BatteryFlag(IntFlag):
     OVERTEMPERATURE = auto()
     UNDERTEMPERATURE = auto()
     OVERCURRENT = auto()
+    UNDERCURRENT = auto()
 
 
 @dataclass
@@ -150,7 +151,7 @@ class UndervoltageAndTemperatureFlagsInformation(BatteryPackFlagsInformation):
     MESSAGE_IDENTIFIERS = range(30, 31)
     CELL_FLAG = BatteryFlag.UNDERVOLTAGE
     THERMISTOR_FLAG = BatteryFlag.UNDERTEMPERATURE
-    CURRENT_FLAG = BatteryFlag(0)
+    CURRENT_FLAG = BatteryFlag.UNDERCURRENT
 
 
 @dataclass

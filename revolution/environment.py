@@ -1,7 +1,10 @@
 from dataclasses import dataclass, field
 from enum import auto, Enum
+from functools import reduce
 from logging import getLogger
+from operator import or_
 from queue import Queue
+from statistics import mean
 from typing import Any
 
 from adafruit_gps import GPS  # type: ignore[import-untyped]
@@ -17,7 +20,10 @@ from iclib.wavesculptor22 import WaveSculptor22
 from periphery import GPIO, PWM
 from serial import Serial
 
-from revolution.battery_management_system import BatteryManagementSystem
+from revolution.battery_management_system import (
+    BatteryFlag,
+    BatteryManagementSystem,
+)
 from revolution.utilities import Direction, PRBS
 
 _logger = getLogger(__name__)
@@ -105,6 +111,49 @@ class Contexts:
     power_psm_array_voltage: float
     power_psm_motor_current: float
     power_psm_motor_voltage: float
+
+    @property
+    def power_battery_min_cell_voltage(self) -> float:
+        return min(self.power_battery_cell_voltages)
+
+    @property
+    def power_battery_max_cell_voltage(self) -> float:
+        return max(self.power_battery_cell_voltages)
+
+    @property
+    def power_battery_mean_cell_voltage(self) -> float:
+        return mean(self.power_battery_cell_voltages)
+
+    @property
+    def power_battery_max_thermistor_temperature(self) -> float:
+        return max(self.power_battery_thermistor_temperatures)
+
+    @property
+    def power_battery_mean_thermistor_temperature(self) -> float:
+        return mean(self.power_battery_thermistor_temperatures)
+
+    @property
+    def power_battery_min_state_of_charge(self) -> float:
+        return min(self.power_battery_state_of_charges)
+
+    @property
+    def power_battery_max_state_of_charge(self) -> float:
+        return max(self.power_battery_state_of_charges)
+
+    @property
+    def power_battery_mean_state_of_charge(self) -> float:
+        return mean(self.power_battery_state_of_charges)
+
+    @property
+    def power_battery_flags(self) -> BatteryFlag:
+        return (
+            reduce(  # type: ignore[return-value]
+                or_,
+                self.power_battery_cell_flags,
+            )
+            | reduce(or_, self.power_battery_thermistor_flags)
+            | self.power_battery_current_flag
+        )
 
     # Telemetry
 

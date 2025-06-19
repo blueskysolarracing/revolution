@@ -1,7 +1,6 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from hashlib import md5
 from logging import getLogger
-from statistics import mean
 from typing import ClassVar
 
 from databrief import dump
@@ -19,14 +18,42 @@ class Telemetry(Application):
 
     @dataclass
     class Data:
-        velocity: float
-        array_current: float
-        array_voltage: float
-        motor_current: float
-        motor_voltage: float
-        battery_state_of_charge: float
-        latitude: float
-        longitude: float
+        motor_acceleration_input: float
+        motor_cruise_control_status_input: bool
+        motor_cruise_control_velocity: float
+        motor_variable_field_magnet_position: int
+        motor_velocity: float
+
+        power_array_relay_status_input: bool
+        power_battery_relay_status_input: bool
+        power_battery_min_cell_voltage: float
+        power_battery_max_cell_voltage: float
+        power_battery_mean_cell_voltage: float
+        power_battery_max_thermistor_temperature: float
+        power_battery_mean_thermistor_temperature: float
+
+        power_battery_bus_voltage: float
+        power_battery_current: float
+        power_battery_relay_status: bool
+        power_battery_electric_safe_discharge_status: bool
+        power_battery_discharge_status: bool
+
+        power_battery_flags: int
+
+        power_battery_min_state_of_charge: float
+        power_battery_max_state_of_charge: float
+        power_battery_mean_state_of_charge: float
+
+        power_psm_battery_current: float
+        power_psm_battery_voltage: float
+        power_psm_array_current: float
+        power_psm_array_voltage: float
+        power_psm_motor_current: float
+        power_psm_motor_voltage: float
+
+        miscellaneous_orientation: dict[str, float]
+        miscellaneous_latitude: float
+        miscellaneous_longitude: float
 
         def serialize(self) -> bytes:
             return dump(self)
@@ -50,28 +77,14 @@ class Telemetry(Application):
                     self.environment.settings.telemetry_timeout,
                 )
         ):
-            with self.environment.contexts() as contexts:
-                velocity = contexts.motor_velocity
-                array_current = contexts.power_psm_array_current
-                array_voltage = contexts.power_psm_array_voltage
-                motor_current = contexts.power_psm_motor_current
-                motor_voltage = contexts.power_psm_motor_voltage
-                state_of_charges = (
-                    contexts.power_battery_state_of_charges.copy()
-                )
-                latitude = contexts.miscellaneous_latitude
-                longitude = contexts.miscellaneous_longitude
+            kwargs = {}
 
-            data = self.Data(
-                velocity,
-                array_current,
-                array_voltage,
-                motor_current,
-                motor_voltage,
-                mean(state_of_charges),
-                latitude,
-                longitude,
-            )
+            with self.environment.contexts() as contexts:
+                for field in fields(self.Data):
+                    name = field.name
+                    kwargs[name] = getattr(contexts, name)
+
+            data = self.Data(**kwargs)
             data_token = data.serialize()
             checksum_token = md5(data_token).hexdigest()
             tokens = (
