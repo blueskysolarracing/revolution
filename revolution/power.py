@@ -93,9 +93,9 @@ class Power(Application):
                     not battery_relay_status_input
                     and not battery_electric_safe_discharge_status
             ):
-                battery_unflag_status_input = True
+                battery_clear_status_input = True
             else:
-                battery_unflag_status_input = False
+                battery_clear_status_input = False
 
             all_relay_status = (
                 array_relay_status_input
@@ -228,13 +228,13 @@ class Power(Application):
                     .discharge()
                 )
 
-            if battery_discharge_status and battery_unflag_status_input:
+            if battery_discharge_status and battery_clear_status_input:
                 (
                     self
                     .environment
                     .peripheries
                     .power_battery_management_system
-                    .unflag()
+                    .clear()
                 )
 
             previous_array_relay_status_input = array_relay_status_input

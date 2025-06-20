@@ -187,7 +187,7 @@ class BatteryManagementSystem:
     def discharge(self, timeout: float | None = None) -> None:
         self._send(0x2, b'', timeout)
 
-    def unflag(self, timeout: float | None = None) -> None:
+    def clear(self, timeout: float | None = None) -> None:
         self._send(0x3, b'', timeout)
 
     def statuses(self, timeout: float | None = None) -> None:
