@@ -32,15 +32,18 @@ class Power(Application):
         self._monitor_worker = Worker(target=self._monitor)
         self._soc_worker = Worker(target=self._soc)
         self._psm_worker = Worker(target=self._psm)
+        self._steering_wheel_led = Worker(target=self._steering_wheel_led)
 
         self._monitor_worker.start()
         self._soc_worker.start()
         self._psm_worker.start()
+        self._steering_wheel_led.start()
 
     def _teardown(self) -> None:
         self._monitor_worker.join()
         self._soc_worker.join()
         self._psm_worker.join()
+        self._steering_wheel_led.join()
 
     def _monitor(self) -> None:
         previous_array_relay_status_input = False
