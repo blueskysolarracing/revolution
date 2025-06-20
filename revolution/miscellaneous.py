@@ -21,7 +21,7 @@ class Miscellaneous(Application):
         self._light_worker = Worker(target=self._light)
         self._indicator_light_worker = Worker(target=self._indicator_light)
         self._orientation_worker = Worker(target=self._orientation)
-        self._position_worker = Worker(target=self._orientation)
+        self._position_worker = Worker(target=self._position)
 
         self._light_worker.start()
         self._indicator_light_worker.start()
