@@ -43,7 +43,6 @@ class Power(Application):
         self._psm_worker.join()
 
     def _monitor(self) -> None:
-        previous_battery_discharge_status_input = False
         previous_array_relay_status_input = False
         previous_battery_relay_status = False
         previous_all_relay_status = False
@@ -74,8 +73,7 @@ class Power(Application):
                 battery_current_flag = contexts.power_battery_current_flag
 
             if (
-                    previous_battery_discharge_status_input
-                    or (
+                    (
                         battery_relay_status
                         and battery_relay_status_input
                         and battery_electric_safe_discharge_status
@@ -90,6 +88,14 @@ class Power(Application):
                 battery_discharge_status_input = True
             else:
                 battery_discharge_status_input = False
+
+            if (
+                    not battery_relay_status_input
+                    and not battery_electric_safe_discharge_status
+            ):
+                battery_unflag_status_input = True
+            else:
+                battery_unflag_status_input = False
 
             all_relay_status = (
                 array_relay_status_input
@@ -222,9 +228,15 @@ class Power(Application):
                     .discharge()
                 )
 
-            previous_battery_discharge_status_input = (
-                battery_discharge_status_input
-            )
+            if battery_discharge_status and battery_unflag_status_input:
+                (
+                    self
+                    .environment
+                    .peripheries
+                    .power_battery_management_system
+                    .unflag()
+                )
+
             previous_array_relay_status_input = array_relay_status_input
             previous_battery_relay_status = battery_relay_status
             previous_all_relay_status = all_relay_status
