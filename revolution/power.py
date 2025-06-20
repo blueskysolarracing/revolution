@@ -74,8 +74,7 @@ class Power(Application):
 
             if (
                     (
-                        battery_relay_status
-                        and battery_relay_status_input
+                        battery_relay_status_input
                         and battery_electric_safe_discharge_status
                     )
                     or battery_discharge_status
