@@ -234,24 +234,23 @@ ACCELERATION_INPUT_INPUT_CHANNEL: InputChannel = InputChannel.AIN2
 ARRAY_RELAY_SWITCH_PRBS: PRBS = PRB.GPIOA_GP7
 BATTERY_RELAY_SWITCH_PRBS: PRBS = PRB.GPIOA_GP6
 
-LEFT_INDICATOR_LIGHT_PWM: PWM = PWM(1, 0)  # TODO
+LEFT_INDICATOR_LIGHT_PWM: PWM = PWM(3, 0)
 LEFT_INDICATOR_LIGHT_PWM.period = 0.001
 LEFT_INDICATOR_LIGHT_PWM.duty_cycle = 0.25
 
-RIGHT_INDICATOR_LIGHT_PWM: PWM = PWM(2, 0)  # TODO
+RIGHT_INDICATOR_LIGHT_PWM: PWM = PWM(0, 0)
 RIGHT_INDICATOR_LIGHT_PWM.period = 0.001
 RIGHT_INDICATOR_LIGHT_PWM.duty_cycle = 0.25
 
-DAYTIME_RUNNING_LIGHTS_PWM: PWM = PWM(0, 0)  # TODO
+DAYTIME_RUNNING_LIGHTS_PWM: PWM = PWM(2, 0)
 DAYTIME_RUNNING_LIGHTS_PWM.period = 0.001
 DAYTIME_RUNNING_LIGHTS_PWM.duty_cycle = 0.25
 
-BRAKE_LIGHTS_PWM: PWM = PWM(3, 0)  # TODO
+BRAKE_LIGHTS_PWM: PWM = PWM(1, 0)
 BRAKE_LIGHTS_PWM.period = 0.001
 BRAKE_LIGHTS_PWM.duty_cycle = 0.25
 
-HORN_SWITCH_GPIO: GPIO = MagicMock()  # TODO
-BACKUP_CAMERA_CONTROL_SWITCH_GPIO: GPIO = MagicMock()  # TODO
+BACKUP_CAMERA_CONTROL_SWITCH_GPIO: GPIO = GPIO('/dev/gpiochip6', 21, 'out')
 
 ORIENTATION_IMU_BNO055_I2C: I2C = I2C('/dev/i2c-4')
 ORIENTATION_IMU_BNO055_IMU_RESET_GPIO: GPIO = MagicMock(
@@ -429,7 +428,6 @@ PERIPHERIES: Peripheries = Peripheries(
     miscellaneous_right_indicator_light_pwm=RIGHT_INDICATOR_LIGHT_PWM,
     miscellaneous_daytime_running_lights_pwm=DAYTIME_RUNNING_LIGHTS_PWM,
     miscellaneous_brake_lights_pwm=BRAKE_LIGHTS_PWM,
-    miscellaneous_horn_switch_gpio=HORN_SWITCH_GPIO,
     miscellaneous_backup_camera_control_switch_gpio=(
         BACKUP_CAMERA_CONTROL_SWITCH_GPIO
     ),
@@ -491,6 +489,7 @@ SETTINGS: Settings = Settings(
     # Miscellaneous
 
     miscellaneous_light_timeout=0.1,
+    miscellaneous_light_flash_timeout=0.5,
     miscellaneous_orientation_timeout=0.1,
     miscellaneous_position_timeout=1,
 

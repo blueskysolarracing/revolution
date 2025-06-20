@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import auto, IntFlag
 from logging import getLogger
-from struct import unpack
+from struct import pack, unpack
 from typing import ClassVar
 
 from can import BusABC, Message
@@ -190,8 +190,8 @@ class BatteryManagementSystem:
     def clear(self, timeout: float | None = None) -> None:
         self._send(0x3, b'', timeout)
 
-    def statuses(self, timeout: float | None = None) -> None:
-        self._send(0x4, b'', timeout)
+    def update_horn(self, status: bool, timeout: float | None = None) -> None:
+        self._send(0x4, pack('<B', status), timeout)
 
     INFORMATION_TYPES: ClassVar[tuple[type[Information], ...]] = (
         CellVoltagesInformation,
