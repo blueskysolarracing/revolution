@@ -261,6 +261,7 @@ class Settings:
     # Miscellaneous
 
     miscellaneous_light_timeout: float
+    miscellaneous_light_flash_timeout: float
     miscellaneous_orientation_timeout: float
     miscellaneous_position_timeout: float
 

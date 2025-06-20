@@ -311,6 +311,7 @@ SETTINGS: Settings = Settings(
     # Miscellaneous
 
     miscellaneous_light_timeout=0.1,
+    miscellaneous_light_flash_timeout=0.5,
     miscellaneous_orientation_timeout=0.1,
     miscellaneous_position_timeout=1,
 
