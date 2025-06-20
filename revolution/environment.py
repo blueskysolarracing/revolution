@@ -207,7 +207,6 @@ class Peripheries:
     miscellaneous_right_indicator_light_pwm: PWM
     miscellaneous_daytime_running_lights_pwm: PWM
     miscellaneous_brake_lights_pwm: PWM
-    miscellaneous_horn_switch_gpio: GPIO
     miscellaneous_backup_camera_control_switch_gpio: GPIO
     miscellaneous_orientation_imu_bno055: BNO055
     miscellaneous_position_gps: GPS

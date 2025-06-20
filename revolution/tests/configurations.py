@@ -153,7 +153,6 @@ RIGHT_INDICATOR_LIGHT_PWM: PWM = MagicMock()
 DAYTIME_RUNNING_LIGHTS_PWM: PWM = MagicMock()
 BRAKE_LIGHTS_PWM: PWM = MagicMock()
 
-HORN_SWITCH_GPIO: GPIO = MagicMock()
 BACKUP_CAMERA_CONTROL_SWITCH_GPIO: GPIO = MagicMock()
 
 ORIENTATION_IMU_BNO055: BNO055 = MagicMock(
@@ -251,7 +250,6 @@ PERIPHERIES: Peripheries = Peripheries(
     miscellaneous_right_indicator_light_pwm=RIGHT_INDICATOR_LIGHT_PWM,
     miscellaneous_daytime_running_lights_pwm=DAYTIME_RUNNING_LIGHTS_PWM,
     miscellaneous_brake_lights_pwm=BRAKE_LIGHTS_PWM,
-    miscellaneous_horn_switch_gpio=HORN_SWITCH_GPIO,
     miscellaneous_backup_camera_control_switch_gpio=(
         BACKUP_CAMERA_CONTROL_SWITCH_GPIO
     ),

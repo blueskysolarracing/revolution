@@ -250,7 +250,6 @@ BRAKE_LIGHTS_PWM: PWM = PWM(3, 0)  # TODO
 BRAKE_LIGHTS_PWM.period = 0.001
 BRAKE_LIGHTS_PWM.duty_cycle = 0.25
 
-HORN_SWITCH_GPIO: GPIO = MagicMock()  # TODO
 BACKUP_CAMERA_CONTROL_SWITCH_GPIO: GPIO = MagicMock()  # TODO
 
 ORIENTATION_IMU_BNO055_I2C: I2C = I2C('/dev/i2c-4')
@@ -429,7 +428,6 @@ PERIPHERIES: Peripheries = Peripheries(
     miscellaneous_right_indicator_light_pwm=RIGHT_INDICATOR_LIGHT_PWM,
     miscellaneous_daytime_running_lights_pwm=DAYTIME_RUNNING_LIGHTS_PWM,
     miscellaneous_brake_lights_pwm=BRAKE_LIGHTS_PWM,
-    miscellaneous_horn_switch_gpio=HORN_SWITCH_GPIO,
     miscellaneous_backup_camera_control_switch_gpio=(
         BACKUP_CAMERA_CONTROL_SWITCH_GPIO
     ),

@@ -133,8 +133,8 @@ class Miscellaneous(Application):
                     self
                     .environment
                     .peripheries
-                    .miscellaneous_horn_switch_gpio
-                    .write(horn_status_input)
+                    .power_battery_management_system
+                    .update_horn(horn_status_input)
                 )
 
             if (
