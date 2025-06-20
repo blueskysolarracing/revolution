@@ -481,7 +481,7 @@ SETTINGS: Settings = Settings(
 
     # Display
 
-    display_frame_rate=1,
+    display_frame_rate=3,
     display_font_pathname='fonts/minecraft.ttf',
 
     # Driver
