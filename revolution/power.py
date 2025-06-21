@@ -85,7 +85,8 @@ class Power(Application):
                     or battery_discharge_status
                     or any(battery_cell_flags)
                     or any(battery_thermistor_flags)
-                    or battery_current_flag
+                    # TODO: remove comment!!!
+                    # or battery_current_flag
             ):
                 array_relay_status_input = False
                 battery_relay_status_input = False
@@ -98,7 +99,8 @@ class Power(Application):
                     and not battery_electric_safe_discharge_status
                     and not any(battery_cell_flags)
                     and not any(battery_thermistor_flags)
-                    and not battery_current_flag
+                    # TODO: remove comment!!!
+                    # and not battery_current_flag
             ):
                 battery_clear_status_input = True
             else:

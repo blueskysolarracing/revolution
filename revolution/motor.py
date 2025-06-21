@@ -134,6 +134,7 @@ class Motor(Application):
             .settings
             .motor_variable_field_magnet_max_enable_time
         )
+        print("vfm start")
 
         while (
                 not self._stoppage.wait(
@@ -167,6 +168,7 @@ class Motor(Application):
 
             if status_input:
                 if not previous_status_input:
+                    print("vfm reset")
                     position = 0
                     stall_count = 0
                     start_time = time()
@@ -231,6 +233,7 @@ class Motor(Application):
                     direction = None
 
                 if direction is not None:
+                    print("vfm move")
                     (
                         self
                         .environment
