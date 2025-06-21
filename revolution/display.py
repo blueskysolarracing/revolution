@@ -143,34 +143,41 @@ class Display(Application):
                 4,
             )
 
+            power_battery_min_cell_voltage = 2.3
             periphery.set_size(6, 8)
             periphery.draw_word(
-                f'{power_battery_min_cell_voltage:2.1f}',
-                73,
+                f'{power_battery_min_cell_voltage * 10:2.0f}',
+                83,
                 16,
             )
+            periphery.write_pixel(90, 18)
 
+            power_battery_max_cell_voltage = 4.5
             periphery.draw_word(
-                f'{power_battery_max_cell_voltage:2.1f}',
-                93,
-                12,
+                f'{power_battery_max_cell_voltage * 10:2.0f}',
+                103,
+                16,
             )
+            periphery.write_pixel(110, 18)
 
+            power_battery_min_thermistor_temperature = 67.8
             periphery.draw_word(
                 f'{power_battery_min_thermistor_temperature:2.0f}',
-                73,
+                83,
                 28,
             )
 
+            power_battery_min_thermistor_temperature = 91.2
             periphery.draw_word(
                 f'{power_battery_max_thermistor_temperature:2.0f}',
-                93,
+                103,
                 28,
             )
 
+            power_battery_current = 40
             periphery.draw_word(
                 f'{power_battery_current:2.0f}',
-                93,
+                103,
                 40,
             )
 
