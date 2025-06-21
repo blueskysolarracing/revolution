@@ -51,6 +51,7 @@ class Power(Application):
         previous_array_relay_status_input = False
         previous_battery_relay_status = False
         previous_all_relay_status = False
+        battery_electric_safe_discharge_flag = False
 
         while (
                 not self._stoppage.wait(
@@ -101,6 +102,7 @@ class Power(Application):
                     and not any(battery_thermistor_flags)
                     # TODO: remove comment!!!
                     # and not battery_current_flag
+                    and battery_electric_safe_discharge_flag
             ):
                 battery_clear_status_input = True
             else:
@@ -111,6 +113,9 @@ class Power(Application):
                 and battery_relay_status_input
                 and battery_relay_status
             )
+
+            if battery_electric_safe_discharge_status:
+                battery_electric_safe_discharge_flag = True
 
             if previous_all_relay_status and not all_relay_status:
                 (
@@ -245,6 +250,7 @@ class Power(Application):
                     .power_battery_management_system
                     .clear()
                 )
+                battery_electric_safe_discharge_flag = False
 
             previous_array_relay_status_input = array_relay_status_input
             previous_battery_relay_status = battery_relay_status
