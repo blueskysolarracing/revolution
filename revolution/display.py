@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from logging import getLogger
-from statistics import mean
 from typing import ClassVar
 
 from revolution.application import Application
@@ -54,11 +53,26 @@ class Display(Application):
                 motor_variable_field_magnet_position = (
                     contexts.motor_variable_field_magnet_position
                 )
-                power_battery_state_of_charges = (
-                    contexts.power_battery_state_of_charges.copy()
+                power_battery_state_of_charge = (
+                    contexts.power_battery_mean_state_of_charge
                 )
                 power_battery_discharge_status = (
                     contexts.power_battery_discharge_status
+                )
+                power_battery_min_cell_voltage = (
+                    contexts.power_battery_min_cell_voltage
+                )
+                power_battery_max_cell_voltage = (
+                    contexts.power_battery_max_cell_voltage
+                )
+                power_battery_current = (
+                    contexts.power_battery_current
+                )
+                power_battery_min_thermistor_temperature = (
+                    contexts.power_battery_min_thermistor_temperature
+                )
+                power_battery_max_thermistor_temperature = (
+                    contexts.power_battery_max_thermistor_temperature
                 )
 
             periphery = (
@@ -122,15 +136,42 @@ class Display(Application):
 
             # Power
 
-            power_battery_state_of_charge = mean(
-                power_battery_state_of_charges,
-            )
-
             periphery.set_size(8, 12)
             periphery.draw_word(
                 f'{power_battery_state_of_charge * 100:3.0f}%',
                 93,
                 4,
+            )
+
+            periphery.set_size(6, 8)
+            periphery.draw_word(
+                f'{power_battery_min_cell_voltage:2.1f}',
+                73,
+                16,
+            )
+
+            periphery.draw_word(
+                f'{power_battery_max_cell_voltage:2.1f}',
+                93,
+                12,
+            )
+
+            periphery.draw_word(
+                f'{power_battery_min_thermistor_temperature:2.0f}',
+                73,
+                28,
+            )
+
+            periphery.draw_word(
+                f'{power_battery_max_thermistor_temperature:2.0f}',
+                93,
+                28,
+            )
+
+            periphery.draw_word(
+                f'{power_battery_current:2.0f}',
+                93,
+                40,
             )
 
             if power_battery_discharge_status:

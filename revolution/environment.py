@@ -125,6 +125,10 @@ class Contexts:
         return mean(self.power_battery_cell_voltages)
 
     @property
+    def power_battery_min_thermistor_temperature(self) -> float:
+        return min(self.power_battery_thermistor_temperatures)
+
+    @property
     def power_battery_max_thermistor_temperature(self) -> float:
         return max(self.power_battery_thermistor_temperatures)
 
