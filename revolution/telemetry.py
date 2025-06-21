@@ -83,7 +83,10 @@ class Telemetry(Application):
                 for field in fields(self.Data):
                     name = field.name
                     kwargs[name] = getattr(contexts, name)
-
+                kwargs["miscellaneous_latitude"] = 0.0
+                kwargs["miscellaneous_longitude"] = 0.0
+            print("Fields: ", kwargs)
+        
             data = self.Data(**kwargs)
             data_token = data.serialize()
             checksum_token = md5(data_token).hexdigest()
@@ -107,5 +110,4 @@ class Telemetry(Application):
 
             if can_message is not None:
                 message = Message(Header.CAN, (can_message,))
-
                 self.environment.send_all(message)
