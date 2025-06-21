@@ -104,7 +104,7 @@ class Display(Application):
             periphery.set_size(18, 24)
             periphery.draw_word(f'{motor_velocity:3.0f}', 23, 20)
             periphery.set_size(8, 15)
-            periphery.draw_word('KM/H', 78, 27)
+            # periphery.draw_word('KM/H', 78, 27)
 
             motor_cruise_control_label = (
                 'ON' if motor_cruise_control_status_input else 'OFF'
@@ -143,42 +143,40 @@ class Display(Application):
                 4,
             )
 
-            power_battery_min_cell_voltage = 2.3
             periphery.set_size(6, 8)
+            periphery.draw_word('V', 85, 18)
             periphery.draw_word(
                 f'{power_battery_min_cell_voltage * 10:2.0f}',
-                83,
-                16,
+                95,
+                18,
             )
-            periphery.write_pixel(90, 18)
+            periphery.write_pixel(99, 26)
 
-            power_battery_max_cell_voltage = 4.5
             periphery.draw_word(
                 f'{power_battery_max_cell_voltage * 10:2.0f}',
-                103,
-                16,
+                112,
+                18,
             )
-            periphery.write_pixel(110, 18)
+            periphery.write_pixel(116, 26)
 
-            power_battery_min_thermistor_temperature = 67.8
+            periphery.draw_word('T', 85, 28)
             periphery.draw_word(
                 f'{power_battery_min_thermistor_temperature:2.0f}',
-                83,
+                95,
                 28,
             )
 
-            power_battery_min_thermistor_temperature = 91.2
             periphery.draw_word(
                 f'{power_battery_max_thermistor_temperature:2.0f}',
-                103,
+                112,
                 28,
             )
 
-            power_battery_current = 40
+            periphery.draw_word('I', 85, 38)
             periphery.draw_word(
                 f'{power_battery_current:2.0f}',
-                103,
-                40,
+                112,
+                38,
             )
 
             if power_battery_discharge_status:
