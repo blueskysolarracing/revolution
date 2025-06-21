@@ -96,6 +96,9 @@ class Power(Application):
             if (
                     not battery_relay_status_input
                     and not battery_electric_safe_discharge_status
+                    and not any(battery_cell_flags)
+                    and not any(battery_thermistor_flags)
+                    and not battery_current_flag
             ):
                 battery_clear_status_input = True
             else:
