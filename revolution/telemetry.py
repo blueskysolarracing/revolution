@@ -85,7 +85,6 @@ class Telemetry(Application):
                     kwargs[name] = getattr(contexts, name)
                 kwargs["miscellaneous_latitude"] = 0.0
                 kwargs["miscellaneous_longitude"] = 0.0
-            print("Fields: ", kwargs)
         
             data = self.Data(**kwargs)
             data_token = data.serialize()
