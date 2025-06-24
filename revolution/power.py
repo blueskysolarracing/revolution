@@ -77,7 +77,22 @@ class Power(Application):
                     contexts.power_battery_thermistor_flags.copy()
                 )
                 battery_current_flag = contexts.power_battery_current_flag
+                psm_battery_current = contexts.power_psm_battery_current
 
+            battery_current_flag_psm = (
+                (
+                    psm_battery_current
+                    > self.environment.settings.power_battery_overcurrent_limit
+                ) or (
+                    psm_battery_current
+                    < (
+                            self
+                            .environment
+                            .settings
+                            .power_battery_undercurrent_limit
+                    )
+                )
+            )
             if (
                     (
                         battery_relay_status_input
@@ -86,8 +101,8 @@ class Power(Application):
                     or battery_discharge_status
                     or any(battery_cell_flags)
                     or any(battery_thermistor_flags)
-                    # TODO: remove comment!!!
-                    # or battery_current_flag
+                    or battery_current_flag
+                    or battery_current_flag_psm
             ):
                 array_relay_status_input = False
                 battery_relay_status_input = False
@@ -100,8 +115,8 @@ class Power(Application):
                     and not battery_electric_safe_discharge_status
                     and not any(battery_cell_flags)
                     and not any(battery_thermistor_flags)
-                    # TODO: remove comment!!!
-                    # and not battery_current_flag
+                    and not battery_current_flag
+                    and not battery_current_flag_psm
                     and battery_electric_safe_discharge_flag
             ):
                 battery_clear_status_input = True
@@ -310,22 +325,42 @@ class Power(Application):
             )
             motor_voltage = (
                 self.environment.peripheries.power_psm_motor_ina229.bus_voltage
+                * (
+                        self
+                        .environment
+                        .settings
+                        .power_psm_motor_ina229_voltage_correction_factor
+                )
             )
             battery_current = (
                 self.environment.peripheries.power_psm_battery_ina229.current
             )
             battery_voltage = (
-                self
-                .environment
-                .peripheries
-                .power_psm_battery_ina229
-                .bus_voltage
+                (
+                    self
+                    .environment
+                    .peripheries
+                    .power_psm_battery_ina229
+                    .bus_voltage
+                )
+                * (
+                        self
+                        .environment
+                        .settings
+                        .power_psm_battery_ina229_voltage_correction_factor
+                )
             )
             array_current = (
                 self.environment.peripheries.power_psm_array_ina229.current
             )
             array_voltage = (
                 self.environment.peripheries.power_psm_array_ina229.bus_voltage
+                * (
+                    self
+                    .environment
+                    .settings
+                    .power_psm_array_ina229_voltage_correction_factor
+                )
             )
 
             with self.environment.contexts() as contexts:

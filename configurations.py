@@ -322,7 +322,7 @@ PSM_MOTOR_INA229: INA229 = INA229(
         ),
     ),
     60,
-    0.002,
+    0.02,
 )
 PSM_BATTERY_INA229: INA229 = INA229(
     MagicMock(),
@@ -514,6 +514,11 @@ SETTINGS: Settings = Settings(
     power_psm_timeout=0.1,
     power_steering_wheel_led_timeout=0.5,
     power_battery=BATTERY,
+    power_psm_motor_ina229_voltage_correction_factor=12.9,
+    power_psm_battery_ina229_voltage_correction_factor=12.9,
+    power_psm_array_ina229_voltage_correction_factor=12.9,
+    power_battery_overcurrent_limit=60.0,
+    power_battery_undercurrent_limit=-50.0,
 
     # Telemetry
 
