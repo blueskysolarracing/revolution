@@ -77,6 +77,7 @@ class Power(Application):
                     contexts.power_battery_thermistor_flags.copy()
                 )
                 battery_current_flag = contexts.power_battery_current_flag
+                battery_flags = contexts.power_battery_flags
                 psm_battery_current = contexts.power_psm_battery_current
 
             battery_current_flag_psm = (
@@ -93,6 +94,9 @@ class Power(Application):
                     )
                 )
             )
+            if battery_flags:
+                with self.environment.contexts() as contexts:
+                    contexts.power_battery_flags_hold |= battery_flags
             if (
                     (
                         battery_relay_status_input
@@ -266,6 +270,8 @@ class Power(Application):
                     .clear()
                 )
                 battery_electric_safe_discharge_flag = False
+                with self.environment.contexts() as contexts:
+                    contexts.power_battery_flags_hold = 0
 
             previous_array_relay_status_input = array_relay_status_input
             previous_battery_relay_status = battery_relay_status

@@ -103,6 +103,7 @@ class Contexts:
     power_battery_cell_flags: list[int]
     power_battery_thermistor_flags: list[int]
     power_battery_current_flag: int
+    power_battery_flags_hold: int
     power_battery_heartbeat_timestamp: float
     power_battery_state_of_charges: list[float]
     power_psm_battery_current: float

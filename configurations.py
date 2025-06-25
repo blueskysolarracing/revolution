@@ -102,6 +102,7 @@ CONTEXTS: Contexts = Contexts(
         0 for _ in range(BATTERY_THERMISTOR_COUNT)
     ],
     power_battery_current_flag=0,
+    power_battery_flags_hold=0,
     power_battery_heartbeat_timestamp=inf,
     power_battery_state_of_charges=[0 for _ in range(BATTERY_CELL_COUNT)],
     power_psm_motor_current=0,

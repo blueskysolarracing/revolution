@@ -3,6 +3,7 @@ from logging import getLogger
 from typing import ClassVar
 
 from revolution.application import Application
+from revolution.battery_management_system import BatteryFlag
 from revolution.environment import Endpoint
 from revolution.worker import Worker
 
@@ -73,6 +74,9 @@ class Display(Application):
                 )
                 power_battery_max_thermistor_temperature = (
                     contexts.power_battery_max_thermistor_temperature
+                )
+                power_battery_flags_hold = (
+                    contexts.power_battery_flags_hold
                 )
 
             periphery = (
@@ -178,6 +182,19 @@ class Display(Application):
                 112,
                 38,
             )
+
+            if (power_battery_flags_hold & BatteryFlag.OVERVOLTAGE):
+                periphery.write_pixel(83, 18)
+            if (power_battery_flags_hold & BatteryFlag.UNDERVOLTAGE):
+                periphery.write_pixel(83, 25)
+            if (power_battery_flags_hold & BatteryFlag.OVERTEMPERATURE):
+                periphery.write_pixel(83, 28)
+            if (power_battery_flags_hold & BatteryFlag.UNDERTEMPERATURE):
+                periphery.write_pixel(83, 35)
+            if (power_battery_flags_hold & BatteryFlag.OVERCURRENT):
+                periphery.write_pixel(83, 38)
+            if (power_battery_flags_hold & BatteryFlag.UNDERCURRENT):
+                periphery.write_pixel(83, 45)
 
             if power_battery_discharge_status:
                 periphery.set_size(5, 8)
