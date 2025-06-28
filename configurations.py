@@ -323,7 +323,7 @@ PSM_MOTOR_INA229: INA229 = INA229(
         ),
     ),
     60,
-    0.02,
+    0.0002,
 )
 PSM_BATTERY_INA229: INA229 = INA229(
     MagicMock(),
