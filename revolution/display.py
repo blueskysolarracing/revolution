@@ -31,6 +31,15 @@ class Display(Application):
         self._display_worker.join()
 
     def _display(self) -> None:
+
+        def clip_value(value: float, min_: float, max_: float) -> float:
+            if value > max_:
+                return max_
+            elif value < min_:
+                return min_
+            else:
+                return value
+
         timeout = 1 / self.environment.settings.display_frame_rate
 
         while not self._stoppage.wait(timeout):
@@ -106,6 +115,7 @@ class Display(Application):
             # Motor
 
             periphery.set_size(18, 24)
+            motor_velocity = clip_value(motor_velocity, -99, 180)
             periphery.draw_word(f'{motor_velocity:3.0f}', 23, 20)
             periphery.set_size(8, 15)
             # periphery.draw_word('KM/H', 78, 27)
@@ -141,6 +151,9 @@ class Display(Application):
             # Power
 
             periphery.set_size(8, 12)
+            power_battery_state_of_charge = clip_value(
+                power_battery_state_of_charge, -0.01, 1.01
+            )
             periphery.draw_word(
                 f'{power_battery_state_of_charge * 100:3.0f}%',
                 93,
@@ -149,6 +162,9 @@ class Display(Application):
 
             periphery.set_size(6, 8)
             periphery.draw_word('V', 85, 18)
+            power_battery_min_cell_voltage = clip_value(
+                power_battery_min_cell_voltage, 0.0, 9.9
+            )
             periphery.draw_word(
                 f'{power_battery_min_cell_voltage * 10:2.0f}',
                 95,
@@ -156,6 +172,9 @@ class Display(Application):
             )
             periphery.write_pixel(99, 26)
 
+            power_battery_max_cell_voltage = clip_value(
+                power_battery_max_cell_voltage, 0.0, 9.9
+            )
             periphery.draw_word(
                 f'{power_battery_max_cell_voltage * 10:2.0f}',
                 112,
@@ -164,19 +183,28 @@ class Display(Application):
             periphery.write_pixel(116, 26)
 
             periphery.draw_word('T', 85, 28)
+            power_battery_min_thermistor_temperature = clip_value(
+                power_battery_min_thermistor_temperature, 0, 99
+            )
             periphery.draw_word(
                 f'{power_battery_min_thermistor_temperature:2.0f}',
                 95,
                 28,
             )
 
+            power_battery_max_thermistor_temperature = clip_value(
+                power_battery_max_thermistor_temperature, 0, 99
+            )
             periphery.draw_word(
-                f'{power_battery_max_thermistor_temperature:2.0f}',
-                112,
+                f'{power_battery_max_thermistor_temperature:3.0f}',
+                106,
                 28,
             )
 
             periphery.draw_word('I', 85, 38)
+            power_battery_current = clip_value(
+                power_battery_current, -50, 99
+            )
             periphery.draw_word(
                 f'{power_battery_current:2.0f}',
                 112,
