@@ -91,38 +91,15 @@ class Motor(Application):
                             )
                         )
                     else:
-                        if brake_status_input:
-                            (
-                                self
-                                .environment
-                                .peripheries
-                                .motor_wavesculptor22
-                                .motor_drive(1, 0)
+                        (
+                            self
+                            .environment
+                            .peripheries
+                            .motor_wavesculptor22
+                            .motor_drive_torque_control_mode(
+                                acceleration_input,
                             )
-                        elif acceleration_input == 0:
-                            regeneration_strength = (
-                                self
-                                .environment
-                                .settings
-                                .motor_regeneration_strength
-                            )
-                            (
-                                self
-                                .environment
-                                .peripheries
-                                .motor_wavesculptor22
-                                .motor_drive(regeneration_strength, 0)
-                            )
-                        else:
-                            (
-                                self
-                                .environment
-                                .peripheries
-                                .motor_wavesculptor22
-                                .motor_drive_torque_control_mode(
-                                    acceleration_input,
-                                )
-                            )
+                        )
 
             previous_status_input = status_input
 

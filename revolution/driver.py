@@ -207,7 +207,4 @@ class Driver(Application):
 
                     setattr(contexts, value, input_)
 
-                if brake_status_input:
-                    contexts.motor_acceleration_input = 0
-
             previous_lookup = lookup
