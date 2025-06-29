@@ -196,8 +196,8 @@ class Display(Application):
                 power_battery_max_thermistor_temperature, 0, 99
             )
             periphery.draw_word(
-                f'{power_battery_max_thermistor_temperature:3.0f}',
-                106,
+                f'{power_battery_max_thermistor_temperature:2.0f}',
+                112,
                 28,
             )
 
@@ -206,8 +206,8 @@ class Display(Application):
                 power_battery_current, -50, 99
             )
             periphery.draw_word(
-                f'{power_battery_current:2.0f}',
-                112,
+                f'{power_battery_current:3.0f}',
+                106,
                 38,
             )
 
