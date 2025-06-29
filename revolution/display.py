@@ -202,14 +202,9 @@ class Display(Application):
             )
 
             periphery.draw_word('I', 85, 38)
-            power_battery_current = clip_value(
-                power_battery_current, -50, 99
-            )
-            periphery.draw_word(
-                f'{power_battery_current:3.0f}',
-                106,
-                38,
-            )
+            power_battery_current = clip_value(power_battery_current, -50, 99)
+            periphery.draw_word(f'{power_battery_current * 100:5.0f}', 94, 38)
+            periphery.write_pixel(110, 46)
 
             if (power_battery_flags_hold & BatteryFlag.OVERVOLTAGE):
                 periphery.write_pixel(83, 18)
