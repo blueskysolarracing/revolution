@@ -499,6 +499,7 @@ SETTINGS: Settings = Settings(
     motor_control_timeout=0.1,
     motor_variable_field_magnet_timeout=0.1,
 
+    motor_regeneration_strength=0.5,
     motor_variable_field_magnet_step_size=40,
     motor_variable_field_magnet_step_upper_limit=320,
     motor_variable_field_magnet_frequency=1000,

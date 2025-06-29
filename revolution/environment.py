@@ -275,6 +275,7 @@ class Settings:
     motor_control_timeout: float
     motor_variable_field_magnet_timeout: float
 
+    motor_regeneration_strength: float
     motor_variable_field_magnet_step_size: int
     motor_variable_field_magnet_step_upper_limit: int
     motor_variable_field_magnet_frequency: int

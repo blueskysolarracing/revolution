@@ -62,6 +62,7 @@ class Motor(Application):
                 cruise_control_velocity = (
                     contexts.motor_cruise_control_velocity
                 )
+                brake_status_input = contexts.miscellaneous_brake_status_input
 
             if status_input:
                 if not previous_status_input:
@@ -90,15 +91,38 @@ class Motor(Application):
                             )
                         )
                     else:
-                        (
-                            self
-                            .environment
-                            .peripheries
-                            .motor_wavesculptor22
-                            .motor_drive_torque_control_mode(
-                                acceleration_input,
+                        if brake_status_input:
+                            (
+                                self
+                                .environment
+                                .peripheries
+                                .motor_wavesculptor22
+                                .motor_drive(1, 0)
                             )
-                        )
+                        elif acceleration_input == 0:
+                            regeneration_strength = (
+                                self
+                                .environment
+                                .settings
+                                .motor_regeneration_strength
+                            )
+                            (
+                                self
+                                .environment
+                                .peripheries
+                                .motor_wavesculptor22
+                                .motor_drive(regeneration_strength, 0)
+                            )
+                        else:
+                            (
+                                self
+                                .environment
+                                .peripheries
+                                .motor_wavesculptor22
+                                .motor_drive_torque_control_mode(
+                                    acceleration_input,
+                                )
+                            )
 
             previous_status_input = status_input
 
