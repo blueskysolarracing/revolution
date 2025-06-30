@@ -314,7 +314,7 @@ class Power(Application):
                 elif estimator is not None:
                     estimator.step(
                         dt=time_difference,
-                        i_in=battery_current,
+                        i_in=-battery_current,
                         measured_v=voltage,
                     )
 
