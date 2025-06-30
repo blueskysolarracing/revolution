@@ -46,7 +46,7 @@ class Motor(Application):
             )
 
         previous_status_input = False
-
+        previous_cruise_control_status_input = False
         while (
                 not self._stoppage.wait(
                     self.environment.settings.motor_control_timeout,
@@ -59,8 +59,8 @@ class Motor(Application):
                 cruise_control_status_input = (
                     contexts.motor_cruise_control_status_input
                 )
-                cruise_control_velocity = (
-                    contexts.motor_cruise_control_velocity
+                regeneration_status_input = (
+                    contexts.motor_regeneration_status_input
                 )
 
             if status_input:
@@ -72,8 +72,27 @@ class Motor(Application):
                         .environment
                         .peripheries
                         .motor_wavesculptor22
-                        .motor_power(1)
+                        .motor_power(
+                            self
+                            .environment
+                            .settings
+                            .motor_bus_current_limit
+                        )
                     )
+
+                    if (
+                        not previous_cruise_control_status_input
+                        and cruise_control_status_input
+                    ):
+                        with self.environment.contexts() as contexts:
+                            contexts.motor_cruise_control_velocity = (
+                                contexts.motor_velocity
+                            )
+
+                    with self.environment.contexts() as contexts:
+                        cruise_control_velocity = (
+                            contexts.motor_cruise_control_velocity
+                        )
 
                     if direction_input == Direction.BACKWARD:
                         acceleration_input *= -1
@@ -89,6 +108,20 @@ class Motor(Application):
                                 kph2rpm(cruise_control_velocity),
                             )
                         )
+                    elif regeneration_status_input:
+                        regeneration_strength = (
+                            self
+                            .environment
+                            .settings
+                            .motor_regeneration_strength
+                        )
+                        (
+                            self
+                            .environment
+                            .peripheries
+                            .motor_wavesculptor22
+                            .motor_drive(regeneration_strength, 0)
+                        )
                     else:
                         (
                             self
@@ -101,6 +134,7 @@ class Motor(Application):
                         )
 
             previous_status_input = status_input
+            previous_cruise_control_status_input = cruise_control_status_input
 
     def _variable_field_magnet(self) -> None:
         previous_status_input = False

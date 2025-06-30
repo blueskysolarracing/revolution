@@ -61,6 +61,7 @@ class Miscellaneous(Application):
                 )
                 brake_lights_status_input = (
                     contexts.miscellaneous_brake_status_input
+                    or contexts.motor_regeneration_status_input
                 )
 
             self.update_pwm(

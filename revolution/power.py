@@ -8,6 +8,7 @@ from can import Message
 
 from revolution.application import Application
 from revolution.battery_management_system import (
+    BatteryFlag,
     BATTERY_CELL_COUNT,
     BusVoltageAndCurrentInformation,
     CellVoltagesInformation,
@@ -76,14 +77,15 @@ class Power(Application):
                 battery_thermistor_flags = (
                     contexts.power_battery_thermistor_flags.copy()
                 )
-                battery_current_flag = contexts.power_battery_current_flag
                 psm_battery_current = contexts.power_psm_battery_current
 
-            battery_current_flag_psm = (
-                (
+            battery_current_flag_psm = 0
+            if (
                     psm_battery_current
                     > self.environment.settings.power_battery_overcurrent_limit
-                ) or (
+            ):
+                battery_current_flag_psm |= BatteryFlag.OVERCURRENT
+            if (
                     psm_battery_current
                     < (
                             self
@@ -91,18 +93,23 @@ class Power(Application):
                             .settings
                             .power_battery_undercurrent_limit
                     )
-                )
-            )
+            ):
+                battery_current_flag_psm |= BatteryFlag.UNDERCURRENT
+            with self.environment.contexts() as contexts:
+                # contexts.power_battery_current_flag |= battery_current_flag_psm
+                battery_current_flag = contexts.power_battery_current_flag
+                battery_flags = contexts.power_battery_flags
+
+            if battery_flags:
+                with self.environment.contexts() as contexts:
+                    contexts.power_battery_flags_hold |= battery_flags
             if (
                     (
                         battery_relay_status_input
                         and battery_electric_safe_discharge_status
                     )
-                    #or battery_discharge_status
-                    #or any(battery_cell_flags)
-                    #or any(battery_thermistor_flags)
-                    #or battery_current_flag
-                    #or battery_current_flag_psm
+                    or battery_discharge_status
+                    or battery_flags
             ):
                 array_relay_status_input = False
                 battery_relay_status_input = False
@@ -113,10 +120,7 @@ class Power(Application):
             if (
                     not battery_relay_status_input
                     and not battery_electric_safe_discharge_status
-                    and not any(battery_cell_flags)
-                    and not any(battery_thermistor_flags)
-                    and not battery_current_flag
-                    and not battery_current_flag_psm
+                    and not battery_flags
                     and battery_electric_safe_discharge_flag
             ):
                 battery_clear_status_input = True
@@ -266,6 +270,8 @@ class Power(Application):
                     .clear()
                 )
                 battery_electric_safe_discharge_flag = False
+                with self.environment.contexts() as contexts:
+                    contexts.power_battery_flags_hold = 0
 
             previous_array_relay_status_input = array_relay_status_input
             previous_battery_relay_status = battery_relay_status

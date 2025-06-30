@@ -83,6 +83,7 @@ class Contexts:
     motor_direction_input: Direction
     motor_cruise_control_status_input: bool
     motor_cruise_control_velocity: float
+    motor_regeneration_status_input: bool
     motor_variable_field_magnet_up_input: int
     motor_variable_field_magnet_down_input: int
     motor_variable_field_magnet_position: int
@@ -103,6 +104,7 @@ class Contexts:
     power_battery_cell_flags: list[int]
     power_battery_thermistor_flags: list[int]
     power_battery_current_flag: int
+    power_battery_flags_hold: int
     power_battery_heartbeat_timestamp: float
     power_battery_state_of_charges: list[float]
     power_psm_battery_current: float
@@ -274,6 +276,8 @@ class Settings:
     motor_control_timeout: float
     motor_variable_field_magnet_timeout: float
 
+    motor_bus_current_limit: float
+    motor_regeneration_strength: float
     motor_variable_field_magnet_step_size: int
     motor_variable_field_magnet_step_upper_limit: int
     motor_variable_field_magnet_frequency: int
