@@ -127,13 +127,24 @@ class Motor(Application):
                             .motor_drive(regeneration_strength, 0)
                         )
                     else:
+                        if acceleration_input > filtered_acceleration_input:
+                            filtered_acceleration_input = min(
+                                (
+                                    filtered_acceleration_input
+                                    + acceleration_input_max_change
+                                ),
+                                acceleration_input
+                            )
+                        else:
+                            filtered_acceleration_input = acceleration_input
+                        
                         (
                             self
                             .environment
                             .peripheries
                             .motor_wavesculptor22
                             .motor_drive_torque_control_mode(
-                                acceleration_input,
+                                filtered_acceleration_input,
                             )
                         )
             else:
