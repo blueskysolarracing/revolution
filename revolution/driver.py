@@ -30,7 +30,9 @@ class Driver(Application):
         ),
 
         'driver_motor_direction_switch_prbs': 'motor_direction_input',
-        'driver_motor_regeneration_switch_prbs': 'motor_regeneration_input',
+        'driver_motor_regeneration_switch_prbs': (
+            'motor_regeneration_status_input'
+        ),
 
         'driver_power_array_relay_switch_prbs': (
             'power_array_relay_status_input'
@@ -64,10 +66,10 @@ class Driver(Application):
     ROTARY_ENCODERS: ClassVar[
         dict[tuple[str, str], tuple[str, tuple[float, float, float]]]
     ] = {
-        (
-            'driver_motor_cruise_control_velocity_rotary_encoder_a_prbs',
-            'driver_motor_cruise_control_velocity_rotary_encoder_b_prbs',
-        ): ('motor_cruise_control_velocity', (30, 180, 1)),
+        # (
+        #     'driver_motor_cruise_control_velocity_rotary_encoder_a_prbs',
+        #     'driver_motor_cruise_control_velocity_rotary_encoder_b_prbs',
+        # ): ('motor_cruise_control_velocity', (30, 180, 1)),
     }
     ANALOG_SIGNALS: ClassVar[dict[str, tuple[str, tuple[float, float]]]] = {
         'driver_motor_acceleration_input_input_channel': (
@@ -164,7 +166,10 @@ class Driver(Application):
 
                 contexts.miscellaneous_brake_status_input = brake_status_input
 
-                if brake_status_input or contexts.motor_acceleration_input:
+                if (
+                    brake_status_input
+                    or contexts.motor_regeneration_status_input
+                ):
                     contexts.motor_cruise_control_status_input = False
 
                 for (raw_a_prbs, raw_b_prbs), (value, (min_, max_, step)) in (

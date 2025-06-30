@@ -83,6 +83,7 @@ class Contexts:
     motor_direction_input: Direction
     motor_cruise_control_status_input: bool
     motor_cruise_control_velocity: float
+    motor_regeneration_status_input: bool
     motor_variable_field_magnet_up_input: int
     motor_variable_field_magnet_down_input: int
     motor_variable_field_magnet_position: int
@@ -275,6 +276,7 @@ class Settings:
     motor_control_timeout: float
     motor_variable_field_magnet_timeout: float
 
+    motor_bus_current_limit: float
     motor_regeneration_strength: float
     motor_variable_field_magnet_step_size: int
     motor_variable_field_magnet_step_upper_limit: int

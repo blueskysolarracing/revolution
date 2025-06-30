@@ -60,6 +60,9 @@ class Display(Application):
                 motor_cruise_control_velocity = (
                     contexts.motor_cruise_control_velocity
                 )
+                motor_regeneration_status_input = (
+                    contexts.motor_regeneration_status_input
+                )
                 motor_variable_field_magnet_position = (
                     contexts.motor_variable_field_magnet_position
                 )
@@ -98,7 +101,7 @@ class Display(Application):
 
             if miscellaneous_left_indicator_light_status:
                 periphery.set_size(10, 12)
-                periphery.draw_word('<', 5, 4)
+                periphery.draw_word('<', 18, 4)
 
             if miscellaneous_right_indicator_light_status:
                 periphery.set_size(10, 12)
@@ -113,6 +116,10 @@ class Display(Application):
                 periphery.draw_word(')', 52, 4)
 
             # Motor
+
+            if motor_regeneration_status_input:
+                periphery.set_size(10, 12)
+                periphery.draw_word('R', 5, 4)
 
             periphery.set_size(18, 24)
             motor_velocity = clip_value(motor_velocity, -99, 180)

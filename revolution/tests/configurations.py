@@ -76,6 +76,7 @@ CONTEXTS: Contexts = Contexts(
     motor_direction_input=Direction.FORWARD,
     motor_cruise_control_status_input=False,
     motor_cruise_control_velocity=0,
+    motor_regeneration_status_input=False,
     motor_variable_field_magnet_up_input=0,
     motor_variable_field_magnet_down_input=0,
     motor_variable_field_magnet_position=0,
@@ -321,7 +322,8 @@ SETTINGS: Settings = Settings(
     motor_control_timeout=0.1,
     motor_variable_field_magnet_timeout=0.1,
 
-    motor_regeneration_strength=0.5,
+    motor_bus_current_limit=0.9,
+    motor_regeneration_strength=0.3,
     motor_variable_field_magnet_step_size=40,
     motor_variable_field_magnet_step_upper_limit=320,
     motor_variable_field_magnet_frequency=1000,
