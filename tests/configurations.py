@@ -1,21 +1,19 @@
+from collections import defaultdict
+from dataclasses import make_dataclass
 from math import inf
-from os import system
-from threading import Lock
-from typing import cast
 from unittest.mock import MagicMock
 
 from adafruit_gps import GPS  # type: ignore[import-untyped]
 from battlib import Battery
-from can import BusABC, ThreadSafeBus
+from can import BusABC
 from iclib.adc78h89 import ADC78H89, InputChannel
 from iclib.bno055 import BNO055
 from iclib.ina229 import INA229
-from iclib.mcp23s17 import MCP23S17, Port, PortRegisterBit as PRB, Register
+from iclib.mcp23s17 import MCP23S17, PortRegisterBit as PRB
 from iclib.nhd_c12864a1z_fsw_fbw_htt import NHDC12864A1ZFSWFBWHTT
-from iclib.utilities import LockedSPI, ManualCSSPI
 from iclib.wavesculptor22 import WaveSculptor22
 from json import load
-from periphery import GPIO, I2C, PWM, SPI
+from periphery import GPIO, PWM
 from serial import Serial
 
 from revolution import (
@@ -77,7 +75,7 @@ CONTEXTS: Contexts = Contexts(
     motor_acceleration_input=0,
     motor_direction_input=Direction.FORWARD,
     motor_cruise_control_status_input=False,
-    motor_cruise_control_velocity=30,
+    motor_cruise_control_velocity=0,
     motor_variable_field_magnet_up_input=0,
     motor_variable_field_magnet_down_input=0,
     motor_variable_field_magnet_position=0,
@@ -114,113 +112,29 @@ CONTEXTS: Contexts = Contexts(
     # Telemetry
 )
 
-CAN_BUS_CHANNEL: str = 'can0'
-CAN_BUS_TXQUEUELEN: int = 1000
-CAN_BUS_BITRATE: int = 500000
+CAN_BUS: BusABC = MagicMock()
 
-system(f'ip link set {CAN_BUS_CHANNEL} down')
-system(
-    (
-        f'ip link set {CAN_BUS_CHANNEL} up'
-        f' txqueuelen {CAN_BUS_TXQUEUELEN}'
-        f' type can bitrate {CAN_BUS_BITRATE}'
-    ),
+NHD_C12864A1Z_FSW_FBW_HTT: NHDC12864A1ZFSWFBWHTT = MagicMock()
+
+STEERING_WHEEL_MCP23S17: MCP23S17 = MagicMock(
+    read_register=lambda *_: [0xFF],
 )
 
-CAN_BUS: BusABC = ThreadSafeBus(  # type: ignore[no-untyped-call]
-    channel=CAN_BUS_CHANNEL,
-    interface='socketcan',
+SHIFT_SWITCH_PRB: PRB = MagicMock()
+
+PEDALS_ADC78H89: ADC78H89 = MagicMock(
+    sample_all=lambda *_: defaultdict(float),
 )
 
-STEERING_WHEEL_SPI: SPI = SPI('/dev/spidev0.0', 0b11, 1e5)
-STEERING_WHEEL_SPI_LOCK: Lock = Lock()
+UNUSED_SWITCH_PRBS: PRBS = PRB.GPIOA_GP1, False
 
-STEERING_WHEEL_MCP23S17: MCP23S17 = MCP23S17(
-    MagicMock(),
-    MagicMock(),
-    MagicMock(),
-    cast(
-        SPI,
-        LockedSPI(
-            cast(
-                SPI,
-                ManualCSSPI(
-                    GPIO('/dev/gpiochip3', 5, 'out', inverted=True),
-                    STEERING_WHEEL_SPI,
-                ),
-            ),
-            STEERING_WHEEL_SPI_LOCK,
-        ),
-    ),
-)
-
-STEERING_WHEEL_MCP23S17.write_register(
-    Port.PORTA,
-    Register.IODIR,
-    [0b11111111],
-)
-STEERING_WHEEL_MCP23S17.write_register(
-    Port.PORTB,
-    Register.IODIR,
-    [0b00111111],
-)
-
-NHD_C12864A1Z_FSW_FBW_HTT: NHDC12864A1ZFSWFBWHTT = NHDC12864A1ZFSWFBWHTT(
-    cast(
-        SPI,
-        LockedSPI(
-            cast(
-                SPI,
-                ManualCSSPI(
-                    GPIO('/dev/gpiochip3', 6, 'out', inverted=True),
-                    STEERING_WHEEL_SPI,
-                ),
-            ),
-            STEERING_WHEEL_SPI_LOCK,
-        ),
-    ),
-    cast(
-        GPIO,
-        STEERING_WHEEL_MCP23S17.get_line(
-            Port.PORTB,
-            7,
-            direction='out',
-        ),
-    ),
-    cast(
-        GPIO,
-        STEERING_WHEEL_MCP23S17.get_line(
-            Port.PORTB,
-            6,
-            direction='out',
-            inverted=True,
-        ),
-    ),
-)
-
-SHIFT_SWITCH_PRB: PRB = PRB.GPIOB_GP5
-
-PEDALS_SPI: SPI = cast(SPI, LockedSPI(SPI('/dev/spidev2.0', 0b11, 1e6)))
-PEDALS_ADC78H89: ADC78H89 = ADC78H89(
-    cast(
-        SPI,
-        ManualCSSPI(
-            GPIO('/dev/gpiochip3', 10, 'out', inverted=True),
-            PEDALS_SPI,
-        ),
-    ),
-    3.3,
-)
-
-UNUSED_SWITCH_PRBS: PRBS = PRB.GPIOA_GP2, False
-
-LEFT_INDICATOR_LIGHT_SWITCH_PRBS: PRBS = PRB.GPIOB_GP1
-RIGHT_INDICATOR_LIGHT_SWITCH_PRBS: PRBS = PRB.GPIOB_GP0
-HAZARD_LIGHTS_SWITCH_PRBS: PRBS = PRB.GPIOA_GP0, True
-DAYTIME_RUNNING_LIGHTS_SWITCH_PRBS: PRBS = PRB.GPIOA_GP2, True
-HORN_SWITCH_PRBS: PRBS = PRB.GPIOA_GP0, False
-BACKUP_CAMERA_CONTROL_SWITCH_PRBS: PRBS = PRB.GPIOA_GP1, True
-BRAKE_SWITCH_GPIO: GPIO = GPIO('/dev/gpiochip6', 20, 'in')
+LEFT_INDICATOR_LIGHT_SWITCH_PRBS: PRBS = PRB.GPIOB_GP0
+RIGHT_INDICATOR_LIGHT_SWITCH_PRBS: PRBS = PRB.GPIOA_GP7
+HAZARD_LIGHTS_SWITCH_PRBS: PRBS = PRB.GPIOB_GP7, True
+DAYTIME_RUNNING_LIGHTS_SWITCH_PRBS: PRBS = PRB.GPIOA_GP1, True
+HORN_SWITCH_PRBS: PRBS = PRB.GPIOB_GP7, False
+BACKUP_CAMERA_CONTROL_SWITCH_PRBS: PRBS = PRB.GPIOA_GP0, True
+BRAKE_SWITCH_GPIO: GPIO = MagicMock(read=lambda *_: False)
 
 CRUISE_CONTROL_ROTARY_ENCODER_A_PRBS: PRBS = PRB.GPIOA_GP3
 CRUISE_CONTROL_ROTARY_ENCODER_B_PRBS: PRBS = PRB.GPIOA_GP4
@@ -234,134 +148,42 @@ ACCELERATION_INPUT_INPUT_CHANNEL: InputChannel = InputChannel.AIN2
 ARRAY_RELAY_SWITCH_PRBS: PRBS = PRB.GPIOA_GP7
 BATTERY_RELAY_SWITCH_PRBS: PRBS = PRB.GPIOA_GP6
 
-LEFT_INDICATOR_LIGHT_PWM: PWM = PWM(3, 0)
-LEFT_INDICATOR_LIGHT_PWM.period = 0.001
-LEFT_INDICATOR_LIGHT_PWM.duty_cycle = 0.10
+LEFT_INDICATOR_LIGHT_PWM: PWM = MagicMock()
+RIGHT_INDICATOR_LIGHT_PWM: PWM = MagicMock()
+DAYTIME_RUNNING_LIGHTS_PWM: PWM = MagicMock()
+BRAKE_LIGHTS_PWM: PWM = MagicMock()
 
-RIGHT_INDICATOR_LIGHT_PWM: PWM = PWM(0, 0)
-RIGHT_INDICATOR_LIGHT_PWM.period = 0.001
-RIGHT_INDICATOR_LIGHT_PWM.duty_cycle = 0.10
+BACKUP_CAMERA_CONTROL_SWITCH_GPIO: GPIO = MagicMock()
 
-DAYTIME_RUNNING_LIGHTS_PWM: PWM = PWM(2, 0)
-DAYTIME_RUNNING_LIGHTS_PWM.period = 0.001
-DAYTIME_RUNNING_LIGHTS_PWM.duty_cycle = 0.10
-
-BRAKE_LIGHTS_PWM: PWM = PWM(1, 0)
-BRAKE_LIGHTS_PWM.period = 0.001
-BRAKE_LIGHTS_PWM.duty_cycle = 0.10
-
-BACKUP_CAMERA_CONTROL_SWITCH_GPIO: GPIO = GPIO('/dev/gpiochip6', 21, 'out')
-
-ORIENTATION_IMU_BNO055_I2C: I2C = I2C('/dev/i2c-4')
-ORIENTATION_IMU_BNO055_IMU_RESET_GPIO: GPIO = MagicMock(
-    direction='out',
-    inverted=True,
-)
-ORIENTATION_IMU_BNO055: BNO055 = BNO055(
-    ORIENTATION_IMU_BNO055_I2C,
-    ORIENTATION_IMU_BNO055_IMU_RESET_GPIO,
+ORIENTATION_IMU_BNO055: BNO055 = MagicMock(
+    orientation=make_dataclass('', [])(),
 )
 
-POSITION_GPS_SERIAL: Serial = Serial('/dev/ttyLP0', timeout=10)
-POSITION_GPS: GPS = GPS(POSITION_GPS_SERIAL, debug=False)
+POSITION_GPS: GPS = MagicMock()
 
-POSITION_GPS.send_command(b'PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0')
-POSITION_GPS.send_command(b'PMTK220,1000')
+ARRAY_RELAY_LOW_SIDE_GPIO: GPIO = MagicMock()
+ARRAY_RELAY_HIGH_SIDE_GPIO: GPIO = MagicMock()
+ARRAY_RELAY_PRE_CHARGE_GPIO: GPIO = MagicMock()
+POWER_POINT_TRACKING_SWITCH_1_GPIO: GPIO = MagicMock()
+POWER_POINT_TRACKING_SWITCH_2_GPIO: GPIO = MagicMock()
 
-ARRAY_RELAY_LOW_SIDE_GPIO: GPIO = GPIO('/dev/gpiochip4', 1, 'out')
-ARRAY_RELAY_HIGH_SIDE_GPIO: GPIO = GPIO('/dev/gpiochip0', 13, 'out')
-ARRAY_RELAY_PRE_CHARGE_GPIO: GPIO = GPIO('/dev/gpiochip4', 2, 'out')
-POWER_POINT_TRACKING_SWITCH_1_GPIO: GPIO = GPIO('/dev/gpiochip3', 26, 'out')
-POWER_POINT_TRACKING_SWITCH_2_GPIO: GPIO = GPIO('/dev/gpiochip3', 28, 'out')
+VARIABLE_FIELD_MAGNET_DIRECTION_GPIO: GPIO = MagicMock()
+VARIABLE_FIELD_MAGNET_STALL_GPIO: GPIO = MagicMock()
+VARIABLE_FIELD_MAGNET_ENCODER_A_GPIO: GPIO = MagicMock()
+VARIABLE_FIELD_MAGNET_ENCODER_B_GPIO: GPIO = MagicMock()
+VARIABLE_FIELD_MAGNET_ENABLE_GPIO: GPIO = MagicMock()
 
-VARIABLE_FIELD_MAGNET_DIRECTION_GPIO: GPIO = GPIO('/dev/gpiochip1', 13, 'out')
-VARIABLE_FIELD_MAGNET_STALL_GPIO: GPIO = GPIO('/dev/gpiochip0', 1, 'in')
-VARIABLE_FIELD_MAGNET_ENCODER_A_GPIO: GPIO = GPIO(
-    '/dev/gpiochip0',
-    0,
-    'in',
-    edge='rising',
-)
-VARIABLE_FIELD_MAGNET_ENCODER_B_GPIO: GPIO = GPIO(
-    '/dev/gpiochip1',
-    12,
-    'in',
-    edge='rising',
-)
-VARIABLE_FIELD_MAGNET_ENABLE_GPIO: GPIO = GPIO('/dev/gpiochip0', 8, 'out')
+RADIO_SERIAL: Serial = MagicMock()
 
-RADIO_SERIAL: Serial = Serial('/dev/ttyLP2', 115200, timeout=1)
+WAVESCULPTOR22: WaveSculptor22 = MagicMock()
 
-if CAN_BUS_BITRATE not in WaveSculptor22.CAN_BUS_BITRATES:
-    raise ValueError('invalid can bus bitrate')
+BATTERY_MANAGEMENT_SYSTEM: BatteryManagementSystem = MagicMock()
 
-WAVESCULPTOR22_REVOLUTION_BASE_ADDRESS: int = 0x500
-WAVESCULPTOR22_BASE_ADDRESS: int = 0x400
+PSM_MOTOR_INA229: INA229 = MagicMock()
+PSM_BATTERY_INA229: INA229 = MagicMock()
+PSM_ARRAY_INA229: INA229 = MagicMock()
 
-WAVESCULPTOR22: WaveSculptor22 = WaveSculptor22(
-    CAN_BUS,
-    WAVESCULPTOR22_REVOLUTION_BASE_ADDRESS,
-    WAVESCULPTOR22_BASE_ADDRESS,
-)
-
-BATTERY_MANAGEMENT_SYSTEM_REVOLUTION_BASE_ADDRESS: int = 0x300
-
-BATTERY_MANAGEMENT_SYSTEM: BatteryManagementSystem = BatteryManagementSystem(
-    CAN_BUS,
-    BATTERY_MANAGEMENT_SYSTEM_REVOLUTION_BASE_ADDRESS,
-)
-
-PSM_SPI: SPI = SPI('/dev/spidev1.0', 1, 1e6)
-PSM_MOTOR_INA229: INA229 = INA229(
-    MagicMock(),
-    cast(
-        SPI,
-        ManualCSSPI(
-            GPIO('/dev/gpiochip5', 19, 'out', inverted=True),
-            PSM_SPI,
-        ),
-    ),
-    60,
-    0.0002,
-)
-PSM_BATTERY_INA229: INA229 = INA229(
-    MagicMock(),
-    cast(
-        SPI,
-        ManualCSSPI(
-            GPIO('/dev/gpiochip5', 21, 'out', inverted=True),
-            PSM_SPI,
-        ),
-    ),
-    60,
-    0.002,
-)
-PSM_ARRAY_INA229: INA229 = INA229(
-    MagicMock(),
-    cast(
-        SPI,
-        ManualCSSPI(
-            GPIO('/dev/gpiochip5', 20, 'out', inverted=True),
-            PSM_SPI,
-        ),
-    ),
-    60,
-    0.002,
-)
-PSM_INA229: INA229 = INA229(
-    MagicMock(),
-    cast(
-        SPI,
-        ManualCSSPI(
-            GPIO('/dev/gpiochip4', 26, 'out', inverted=True),
-            PSM_SPI,
-        ),
-    ),
-    60,
-    0.002,
-)
-
-STEERING_WHEEL_LED_GPIO: GPIO = GPIO('/dev/gpiochip1', 10, 'out')
+STEERING_WHEEL_LED_GPIO: GPIO = MagicMock()
 
 PERIPHERIES: Peripheries = Peripheries(
     # General
@@ -479,7 +301,7 @@ SETTINGS: Settings = Settings(
 
     # Display
 
-    display_frame_rate=3,
+    display_frame_rate=1,
     display_font_pathname='fonts/minecraft.ttf',
 
     # Driver
