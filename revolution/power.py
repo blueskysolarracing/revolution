@@ -96,7 +96,7 @@ class Power(Application):
             ):
                 battery_current_flag_psm |= BatteryFlag.UNDERCURRENT
             with self.environment.contexts() as contexts:
-                contexts.power_battery_current_flag |= battery_current_flag_psm
+                # contexts.power_battery_current_flag |= battery_current_flag_psm
                 battery_current_flag = contexts.power_battery_current_flag
                 battery_flags = contexts.power_battery_flags
 
