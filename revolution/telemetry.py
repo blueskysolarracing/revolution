@@ -51,6 +51,7 @@ class Telemetry(Application):
         power_psm_motor_current: float
         power_psm_motor_voltage: float
 
+        miscellaneous_daytime_running_lights_status_input: bool
         miscellaneous_orientation: dict[str, float]
         miscellaneous_latitude: float
         miscellaneous_longitude: float
