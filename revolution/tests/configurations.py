@@ -335,7 +335,7 @@ SETTINGS: Settings = Settings(
 
     # Power
 
-    power_monitor_timeout=0.1,
+    power_monitor_timeout=0.2,
     power_array_relay_timeout=2.5,
     power_point_tracking_timeout=1.0,
     power_soc_timeout=0.05,

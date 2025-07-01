@@ -164,20 +164,20 @@ class Display(Application):
             periphery.draw_word(
                 f'{power_battery_state_of_charge * 100:3.0f}%',
                 93,
-                4,
+                2,
             )
 
             periphery.set_size(6, 8)
-            periphery.draw_word('V', 85, 18)
+            periphery.draw_word('V', 85, 16)
             power_battery_min_cell_voltage = clip_value(
                 power_battery_min_cell_voltage, 0.0, 9.9
             )
             periphery.draw_word(
                 f'{power_battery_min_cell_voltage * 10:2.0f}',
                 95,
-                18,
+                16,
             )
-            periphery.write_pixel(99, 26)
+            periphery.write_pixel(99, 24)
 
             power_battery_max_cell_voltage = clip_value(
                 power_battery_max_cell_voltage, 0.0, 9.9
@@ -185,18 +185,18 @@ class Display(Application):
             periphery.draw_word(
                 f'{power_battery_max_cell_voltage * 10:2.0f}',
                 112,
-                18,
+                16,
             )
-            periphery.write_pixel(116, 26)
+            periphery.write_pixel(116, 24)
 
-            periphery.draw_word('T', 85, 28)
+            periphery.draw_word('T', 85, 26)
             power_battery_min_thermistor_temperature = clip_value(
                 power_battery_min_thermistor_temperature, 0, 99
             )
             periphery.draw_word(
                 f'{power_battery_min_thermistor_temperature:2.0f}',
                 95,
-                28,
+                26,
             )
 
             power_battery_max_thermistor_temperature = clip_value(
@@ -205,29 +205,29 @@ class Display(Application):
             periphery.draw_word(
                 f'{power_battery_max_thermistor_temperature:2.0f}',
                 112,
-                28,
+                26,
             )
 
-            periphery.draw_word('I', 85, 38)
+            periphery.draw_word('I', 85, 36)
             power_battery_current = clip_value(power_battery_current, -50, 99)
-            periphery.draw_word(f'{power_battery_current * 100:5.0f}', 94, 38)
-            periphery.write_pixel(110, 46)
+            periphery.draw_word(f'{power_battery_current * 100:5.0f}', 94, 36)
+            periphery.write_pixel(110, 44)
 
             if (power_battery_flags_hold & BatteryFlag.OVERVOLTAGE):
-                periphery.write_pixel(83, 18)
+                periphery.write_pixel(83, 16)
             if (power_battery_flags_hold & BatteryFlag.UNDERVOLTAGE):
-                periphery.write_pixel(83, 25)
+                periphery.write_pixel(83, 23)
             if (power_battery_flags_hold & BatteryFlag.OVERTEMPERATURE):
-                periphery.write_pixel(83, 28)
+                periphery.write_pixel(83, 26)
             if (power_battery_flags_hold & BatteryFlag.UNDERTEMPERATURE):
-                periphery.write_pixel(83, 35)
+                periphery.write_pixel(83, 33)
             if (power_battery_flags_hold & BatteryFlag.OVERCURRENT):
-                periphery.write_pixel(83, 38)
+                periphery.write_pixel(83, 36)
             if (power_battery_flags_hold & BatteryFlag.UNDERCURRENT):
-                periphery.write_pixel(83, 45)
+                periphery.write_pixel(83, 43)
 
             if power_battery_discharge_status:
                 periphery.set_size(5, 8)
-                periphery.draw_word('[-+]!', 64, 6)
+                periphery.draw_word('[-+]!', 64, 4)
 
             periphery.display()
