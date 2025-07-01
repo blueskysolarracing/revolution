@@ -296,6 +296,7 @@ class Settings:
     power_psm_timeout: float
     power_steering_wheel_led_timeout: float
     power_battery: Battery
+    power_disable_charging_battery_soc_threshold: float
     power_psm_motor_ina229_voltage_correction_factor: float
     power_psm_battery_ina229_voltage_correction_factor: float
     power_psm_array_ina229_voltage_correction_factor: float
