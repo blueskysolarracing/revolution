@@ -500,8 +500,9 @@ SETTINGS: Settings = Settings(
     motor_control_timeout=0.1,
     motor_variable_field_magnet_timeout=0.1,
 
-    motor_acceleration_input_max_change=0.1,
-    motor_bus_current_limit=0.9,
+    motor_acceleration_input_max_increase=0.1,
+    motor_acceleration_input_max_decrease=0.3,
+    motor_bus_current_limit=0.5,
     motor_regeneration_strength=0.3,
     motor_variable_field_magnet_step_size=40,
     motor_variable_field_magnet_step_upper_limit=320,

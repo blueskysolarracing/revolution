@@ -48,8 +48,11 @@ class Motor(Application):
         previous_status_input = False
         previous_cruise_control_status_input = False
         filtered_acceleration_input = 0.0
-        acceleration_input_max_change = (
-            self.environment.settings.motor_acceleration_input_max_change
+        acceleration_input_max_increase = (
+            self.environment.settings.motor_acceleration_input_max_increase
+        )
+        acceleration_input_max_decrease = (
+            self.environment.settings.motor_acceleration_input_max_decrease
         )
         while (
                 not self._stoppage.wait(
@@ -131,13 +134,19 @@ class Motor(Application):
                             filtered_acceleration_input = min(
                                 (
                                     filtered_acceleration_input
-                                    + acceleration_input_max_change
+                                    + acceleration_input_max_increase
                                 ),
                                 acceleration_input
                             )
                         else:
-                            filtered_acceleration_input = acceleration_input
-                        
+                            filtered_acceleration_input = max(
+                                (
+                                    filtered_acceleration_input
+                                    - acceleration_input_max_decrease
+                                ),
+                                acceleration_input
+                            )
+
                         (
                             self
                             .environment
@@ -192,7 +201,6 @@ class Motor(Application):
             .settings
             .motor_variable_field_magnet_max_enable_time_move
         )
-        print("vfm start")
 
         while (
                 not self._stoppage.wait(
@@ -226,7 +234,6 @@ class Motor(Application):
 
             if status_input:
                 if not previous_status_input:
-                    print("vfm reset")
                     position = 0
                     stall_count = 0
                     start_time = time()
@@ -291,7 +298,6 @@ class Motor(Application):
                     direction = None
 
                 if direction is not None:
-                    print("vfm move")
                     (
                         self
                         .environment

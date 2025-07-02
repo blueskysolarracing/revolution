@@ -276,7 +276,8 @@ class Settings:
     motor_control_timeout: float
     motor_variable_field_magnet_timeout: float
 
-    motor_acceleration_input_max_change: float
+    motor_acceleration_input_max_increase: float
+    motor_acceleration_input_max_decrease: float
     motor_bus_current_limit: float
     motor_regeneration_strength: float
     motor_variable_field_magnet_step_size: int
