@@ -276,6 +276,7 @@ class Settings:
     motor_control_timeout: float
     motor_variable_field_magnet_timeout: float
 
+    motor_acceleration_input_max_change: float
     motor_bus_current_limit: float
     motor_regeneration_strength: float
     motor_variable_field_magnet_step_size: int
@@ -283,7 +284,8 @@ class Settings:
     motor_variable_field_magnet_frequency: int
     motor_variable_field_magnet_duty_cycle: float
     motor_variable_field_magnet_stall_threshold: int
-    motor_variable_field_magnet_max_enable_time: float
+    motor_variable_field_magnet_max_enable_time_reset: float
+    motor_variable_field_magnet_max_enable_time_move: float
 
     # Power
 
@@ -294,6 +296,7 @@ class Settings:
     power_psm_timeout: float
     power_steering_wheel_led_timeout: float
     power_battery: Battery
+    power_disable_charging_battery_soc_threshold: float
     power_psm_motor_ina229_voltage_correction_factor: float
     power_psm_battery_ina229_voltage_correction_factor: float
     power_psm_array_ina229_voltage_correction_factor: float

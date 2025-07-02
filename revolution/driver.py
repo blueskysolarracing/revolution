@@ -172,6 +172,14 @@ class Driver(Application):
                 ):
                     contexts.motor_cruise_control_status_input = False
 
+                if contexts.power_battery_mean_state_of_charge >= (
+                    self
+                    .environment
+                    .settings
+                    .power_disable_charging_battery_soc_threshold
+                ):
+                    contexts.motor_regeneration_status_input = False
+
                 for (raw_a_prbs, raw_b_prbs), (value, (min_, max_, step)) in (
                         self.ROTARY_ENCODERS.items()
                 ):

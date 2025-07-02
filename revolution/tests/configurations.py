@@ -322,6 +322,7 @@ SETTINGS: Settings = Settings(
     motor_control_timeout=0.1,
     motor_variable_field_magnet_timeout=0.1,
 
+    motor_acceleration_input_max_change=0.1,
     motor_bus_current_limit=0.9,
     motor_regeneration_strength=0.3,
     motor_variable_field_magnet_step_size=40,
@@ -329,7 +330,8 @@ SETTINGS: Settings = Settings(
     motor_variable_field_magnet_frequency=1000,
     motor_variable_field_magnet_duty_cycle=0.75,
     motor_variable_field_magnet_stall_threshold=20,
-    motor_variable_field_magnet_max_enable_time=15.0,
+    motor_variable_field_magnet_max_enable_time_reset=15.0,
+    motor_variable_field_magnet_max_enable_time_move=0.5,
 
     # Power
 
@@ -340,6 +342,7 @@ SETTINGS: Settings = Settings(
     power_psm_timeout=0.1,
     power_steering_wheel_led_timeout=0.5,
     power_battery=BATTERY,
+    power_disable_charging_battery_soc_threshold=0.98,
     power_psm_motor_ina229_voltage_correction_factor=12.9,
     power_psm_battery_ina229_voltage_correction_factor=12.9,
     power_psm_array_ina229_voltage_correction_factor=12.9,

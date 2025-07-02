@@ -47,6 +47,10 @@ class Motor(Application):
 
         previous_status_input = False
         previous_cruise_control_status_input = False
+        filtered_acceleration_input = 0.0
+        acceleration_input_max_change = (
+            self.environment.settings.motor_acceleration_input_max_change
+        )
         while (
                 not self._stoppage.wait(
                     self.environment.settings.motor_control_timeout,
@@ -123,15 +127,29 @@ class Motor(Application):
                             .motor_drive(regeneration_strength, 0)
                         )
                     else:
+                        if acceleration_input > filtered_acceleration_input:
+                            filtered_acceleration_input = min(
+                                (
+                                    filtered_acceleration_input
+                                    + acceleration_input_max_change
+                                ),
+                                acceleration_input
+                            )
+                        else:
+                            filtered_acceleration_input = acceleration_input
+                        
                         (
                             self
                             .environment
                             .peripheries
                             .motor_wavesculptor22
                             .motor_drive_torque_control_mode(
-                                acceleration_input,
+                                filtered_acceleration_input,
                             )
                         )
+            else:
+                with self.environment.contexts() as contexts:
+                    contexts.motor_cruise_control_status_input = False
 
             previous_status_input = status_input
             previous_cruise_control_status_input = cruise_control_status_input
@@ -162,11 +180,17 @@ class Motor(Application):
             .settings
             .motor_variable_field_magnet_stall_threshold
         )
-        max_enable_time = (
+        max_enable_time_reset = (
             self
             .environment
             .settings
-            .motor_variable_field_magnet_max_enable_time
+            .motor_variable_field_magnet_max_enable_time_reset
+        )
+        max_enable_time_move = (
+            self
+            .environment
+            .settings
+            .motor_variable_field_magnet_max_enable_time_move
         )
         print("vfm start")
 
@@ -217,7 +241,7 @@ class Motor(Application):
 
                     while (
                             stall_count < stall_threshold
-                            and (time() - start_time) < max_enable_time
+                            and (time() - start_time) < max_enable_time_reset
                     ):
                         if (
                                 (
@@ -286,7 +310,7 @@ class Motor(Application):
                     while (
                             step_count
                             and stall_count < stall_threshold
-                            and (time() - start_time) < max_enable_time
+                            and (time() - start_time) < max_enable_time_move
                     ):
                         if (
                                 (

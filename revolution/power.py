@@ -77,6 +77,9 @@ class Power(Application):
                 battery_thermistor_flags = (
                     contexts.power_battery_thermistor_flags.copy()
                 )
+                battery_mean_state_of_charge = (
+                    contexts.power_battery_mean_state_of_charge
+                )
                 psm_battery_current = contexts.power_psm_battery_current
 
             battery_current_flag_psm = 0
@@ -103,6 +106,13 @@ class Power(Application):
             if battery_flags:
                 with self.environment.contexts() as contexts:
                     contexts.power_battery_flags_hold |= battery_flags
+            if battery_mean_state_of_charge >= (
+                self
+                .environment
+                .settings
+                .power_disable_charging_battery_soc_threshold
+            ):
+                array_relay_status_input = False
             if (
                     (
                         battery_relay_status_input
@@ -314,7 +324,7 @@ class Power(Application):
                 elif estimator is not None:
                     estimator.step(
                         dt=time_difference,
-                        i_in=battery_current,
+                        i_in=-battery_current,
                         measured_v=voltage,
                     )
 
