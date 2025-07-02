@@ -51,7 +51,6 @@ class Power(Application):
     def _monitor(self) -> None:
         previous_array_relay_status_input = False
         previous_battery_relay_status = False
-        previous_all_relay_status = False
         battery_electric_safe_discharge_flag = False
 
         while (
@@ -137,35 +136,13 @@ class Power(Application):
             else:
                 battery_clear_status_input = False
 
-            all_relay_status = (
-                array_relay_status_input
-                and battery_relay_status_input
-                and battery_relay_status
-            )
-
             if battery_electric_safe_discharge_status:
                 battery_electric_safe_discharge_flag = True
-
-            if previous_all_relay_status and not all_relay_status:
-                (
-                    self
-                    .environment
-                    .peripheries
-                    .power_point_tracking_switch_1_gpio
-                    .write(False)
-                )
-                (
-                    self
-                    .environment
-                    .peripheries
-                    .power_point_tracking_switch_2_gpio
-                    .write(False)
-                )
-                sleep(self.environment.settings.power_point_tracking_timeout)
 
             if (
                     not previous_array_relay_status_input
                     and array_relay_status_input
+                    and battery_relay_status
             ):
                 (
                     self
@@ -189,10 +166,65 @@ class Power(Application):
                     .power_array_relay_pre_charge_gpio
                     .write(True)
                 )
+                sleep(self.environment.settings.power_point_tracking_timeout)
+                (
+                    self
+                    .environment
+                    .peripheries
+                    .power_point_tracking_switch_1_gpio
+                    .write(True)
+                )
+                (
+                    self
+                    .environment
+                    .peripheries
+                    .power_point_tracking_switch_2_gpio
+                    .write(True)
+                )
+                previous_array_relay_status_input = array_relay_status_input
+            
+            if not battery_relay_status and battery_relay_status_input:
+                (
+                    self
+                    .environment
+                    .peripheries
+                    .power_battery_management_system
+                    .close_relay()
+                )
+                previous_battery_relay_status = battery_relay_status
             elif (
+                battery_relay_status
+                and not battery_relay_status_input
+                and not array_relay_status_input
+            ):
+                (
+                    self
+                    .environment
+                    .peripheries
+                    .power_battery_management_system
+                    .open_relay()
+                )
+                previous_battery_relay_status = battery_relay_status
+
+            if (
                     previous_array_relay_status_input
                     and not array_relay_status_input
             ):
+                (
+                    self
+                    .environment
+                    .peripheries
+                    .power_point_tracking_switch_1_gpio
+                    .write(False)
+                )
+                (
+                    self
+                    .environment
+                    .peripheries
+                    .power_point_tracking_switch_2_gpio
+                    .write(False)
+                )
+                sleep(self.environment.settings.power_point_tracking_timeout)
                 (
                     self
                     .environment
@@ -214,40 +246,7 @@ class Power(Application):
                     .power_array_relay_pre_charge_gpio
                     .write(False)
                 )
-
-            if not previous_all_relay_status and all_relay_status:
-                sleep(self.environment.settings.power_point_tracking_timeout)
-                (
-                    self
-                    .environment
-                    .peripheries
-                    .power_point_tracking_switch_1_gpio
-                    .write(True)
-                )
-                (
-                    self
-                    .environment
-                    .peripheries
-                    .power_point_tracking_switch_2_gpio
-                    .write(True)
-                )
-
-            if not battery_relay_status and battery_relay_status_input:
-                (
-                    self
-                    .environment
-                    .peripheries
-                    .power_battery_management_system
-                    .close_relay()
-                )
-            elif battery_relay_status and not battery_relay_status_input:
-                (
-                    self
-                    .environment
-                    .peripheries
-                    .power_battery_management_system
-                    .open_relay()
-                )
+                previous_array_relay_status_input = array_relay_status_input
 
             if previous_battery_relay_status != battery_relay_status:
                 with self.environment.contexts() as contexts:
@@ -282,10 +281,6 @@ class Power(Application):
                 battery_electric_safe_discharge_flag = False
                 with self.environment.contexts() as contexts:
                     contexts.power_battery_flags_hold = 0
-
-            previous_array_relay_status_input = array_relay_status_input
-            previous_battery_relay_status = battery_relay_status
-            previous_all_relay_status = all_relay_status
 
     def _soc(self) -> None:
         estimators: list[EKFSOCEstimator | None] = [
