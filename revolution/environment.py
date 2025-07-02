@@ -90,6 +90,12 @@ class Contexts:
     motor_velocity: float
     motor_heartbeat_timestamp: float
 
+    motor_controller_limit_flags: int
+    motor_controller_error_flags: int
+    motor_controller_active_motor: int
+    motor_controller_transmit_error_count: int
+    motor_controller_receive_error_count: int
+
     # Power
 
     power_array_relay_status_input: bool

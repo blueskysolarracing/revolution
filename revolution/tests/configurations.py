@@ -83,6 +83,12 @@ CONTEXTS: Contexts = Contexts(
     motor_velocity=0,
     motor_heartbeat_timestamp=inf,
 
+    motor_controller_limit_flags=0,
+    motor_controller_error_flags=0,
+    motor_controller_active_motor=0,
+    motor_controller_transmit_error_count=0,
+    motor_controller_receive_error_count=0,
+
     # Power
 
     power_array_relay_status_input=False,

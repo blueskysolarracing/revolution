@@ -24,6 +24,12 @@ class Telemetry(Application):
         motor_variable_field_magnet_position: int
         motor_velocity: float
 
+        motor_controller_limit_flags: int
+        motor_controller_error_flags: int
+        motor_controller_active_motor: int
+        motor_controller_transmit_error_count: int
+        motor_controller_receive_error_count: int
+
         power_array_relay_status_input: bool
         power_battery_relay_status_input: bool
         power_battery_min_cell_voltage: float
