@@ -83,6 +83,12 @@ CONTEXTS: Contexts = Contexts(
     motor_velocity=0,
     motor_heartbeat_timestamp=inf,
 
+    motor_controller_limit_flags=0,
+    motor_controller_error_flags=0,
+    motor_controller_active_motor=0,
+    motor_controller_transmit_error_count=0,
+    motor_controller_receive_error_count=0,
+
     # Power
 
     power_array_relay_status_input=False,
@@ -303,7 +309,7 @@ SETTINGS: Settings = Settings(
 
     # Display
 
-    display_frame_rate=1,
+    display_frame_rate=3,
     display_font_pathname='fonts/minecraft.ttf',
 
     # Driver
@@ -322,8 +328,9 @@ SETTINGS: Settings = Settings(
     motor_control_timeout=0.1,
     motor_variable_field_magnet_timeout=0.1,
 
-    motor_acceleration_input_max_change=0.1,
-    motor_bus_current_limit=0.9,
+    motor_acceleration_input_max_increase=1,
+    motor_acceleration_input_max_decrease=1,
+    motor_bus_current_limit=0.7,
     motor_regeneration_strength=0.3,
     motor_variable_field_magnet_step_size=40,
     motor_variable_field_magnet_step_upper_limit=320,
@@ -351,7 +358,7 @@ SETTINGS: Settings = Settings(
 
     # Telemetry
 
-    telemetry_timeout=1,
+    telemetry_timeout=0.2,
     telemetry_begin_token=b'',
     telemetry_separator_token=b'_',
     telemetry_end_token=b'\r\n',

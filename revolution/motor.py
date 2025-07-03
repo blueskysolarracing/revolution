@@ -5,7 +5,7 @@ from time import sleep, time
 from typing import ClassVar
 
 from can import Message
-from iclib.wavesculptor22 import VelocityMeasurement
+from iclib.wavesculptor22 import StatusInformation, VelocityMeasurement
 
 from revolution.application import Application
 from revolution.environment import Endpoint
@@ -48,8 +48,11 @@ class Motor(Application):
         previous_status_input = False
         previous_cruise_control_status_input = False
         filtered_acceleration_input = 0.0
-        acceleration_input_max_change = (
-            self.environment.settings.motor_acceleration_input_max_change
+        acceleration_input_max_increase = (
+            self.environment.settings.motor_acceleration_input_max_increase
+        )
+        acceleration_input_max_decrease = (
+            self.environment.settings.motor_acceleration_input_max_decrease
         )
         while (
                 not self._stoppage.wait(
@@ -131,13 +134,19 @@ class Motor(Application):
                             filtered_acceleration_input = min(
                                 (
                                     filtered_acceleration_input
-                                    + acceleration_input_max_change
+                                    + acceleration_input_max_increase
                                 ),
                                 acceleration_input
                             )
                         else:
-                            filtered_acceleration_input = acceleration_input
-                        
+                            filtered_acceleration_input = max(
+                                (
+                                    filtered_acceleration_input
+                                    - acceleration_input_max_decrease
+                                ),
+                                acceleration_input
+                            )
+
                         (
                             self
                             .environment
@@ -192,7 +201,6 @@ class Motor(Application):
             .settings
             .motor_variable_field_magnet_max_enable_time_move
         )
-        print("vfm start")
 
         while (
                 not self._stoppage.wait(
@@ -226,7 +234,6 @@ class Motor(Application):
 
             if status_input:
                 if not previous_status_input:
-                    print("vfm reset")
                     position = 0
                     stall_count = 0
                     start_time = time()
@@ -291,7 +298,6 @@ class Motor(Application):
                     direction = None
 
                 if direction is not None:
-                    print("vfm move")
                     (
                         self
                         .environment
@@ -399,6 +405,22 @@ class Motor(Application):
             if isinstance(broadcast_message, VelocityMeasurement):
                 contexts.motor_velocity = rpm2kph(
                     broadcast_message.motor_velocity,
+                )
+            if isinstance(broadcast_message, StatusInformation):
+                contexts.motor_controller_limit_flags = (
+                    broadcast_message.limit_flags
+                )
+                contexts.motor_controller_error_flags = (
+                    broadcast_message.error_flags
+                )
+                contexts.motor_controller_active_motor = (
+                    broadcast_message.active_motor
+                )
+                contexts.motor_controller_transmit_error_count = (
+                    broadcast_message.transmit_error_count
+                )
+                contexts.motor_controller_receive_error_count = (
+                    broadcast_message.receive_error_count
                 )
 
             contexts.motor_heartbeat_timestamp = time()

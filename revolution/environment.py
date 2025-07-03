@@ -90,6 +90,12 @@ class Contexts:
     motor_velocity: float
     motor_heartbeat_timestamp: float
 
+    motor_controller_limit_flags: int
+    motor_controller_error_flags: int
+    motor_controller_active_motor: int
+    motor_controller_transmit_error_count: int
+    motor_controller_receive_error_count: int
+
     # Power
 
     power_array_relay_status_input: bool
@@ -276,7 +282,8 @@ class Settings:
     motor_control_timeout: float
     motor_variable_field_magnet_timeout: float
 
-    motor_acceleration_input_max_change: float
+    motor_acceleration_input_max_increase: float
+    motor_acceleration_input_max_decrease: float
     motor_bus_current_limit: float
     motor_regeneration_strength: float
     motor_variable_field_magnet_step_size: int
