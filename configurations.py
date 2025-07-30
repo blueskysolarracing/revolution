@@ -124,7 +124,7 @@ CONTEXTS: Contexts = Contexts(
 
 CAN_BUS_CHANNEL: str = 'can0'
 CAN_BUS_TXQUEUELEN: int = 1000
-CAN_BUS_BITRATE: int = 125000
+CAN_BUS_BITRATE: int = 500000
 
 system(f'ip link set {CAN_BUS_CHANNEL} down')
 system(
@@ -140,7 +140,7 @@ CAN_BUS: BusABC = ThreadSafeBus(  # type: ignore[no-untyped-call]
     interface='socketcan',
 )
 
-STEERING_WHEEL_SPI: SPI = SPI('/dev/spidev0.0', 0b11, 1e5)
+STEERING_WHEEL_SPI: SPI = SPI('/dev/spidev0.0', 0b11, 4e5)
 STEERING_WHEEL_SPI_LOCK: Lock = Lock()
 
 STEERING_WHEEL_MCP23S17: MCP23S17 = MCP23S17(
@@ -487,12 +487,12 @@ SETTINGS: Settings = Settings(
 
     # Display
 
-    display_frame_rate=3,
+    display_frame_rate=10,
     display_font_pathname='fonts/minecraft.ttf',
 
     # Driver
 
-    driver_timeout=0.001,
+    driver_timeout=0.01,
 
     # Miscellaneous
 
