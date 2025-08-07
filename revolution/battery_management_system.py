@@ -156,7 +156,7 @@ class UndervoltageAndTemperatureFlagsInformation(BatteryPackFlagsInformation):
 
 @dataclass
 class BatteryManagementSystem:
-    BASE_ADDRESS: ClassVar[int] = 0x600
+    BASE_ADDRESS: ClassVar[int] = 0x400
     can_bus: BusABC
     driver_controls_base_address: int
 

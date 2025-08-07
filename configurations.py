@@ -304,7 +304,7 @@ if CAN_BUS_BITRATE not in WaveSculptor22.CAN_BUS_BITRATES:
     raise ValueError('invalid can bus bitrate')
 
 WAVESCULPTOR22_REVOLUTION_BASE_ADDRESS: int = 0x500
-WAVESCULPTOR22_BASE_ADDRESS: int = 0x400
+WAVESCULPTOR22_BASE_ADDRESS: int = 0x600
 
 WAVESCULPTOR22: WaveSculptor22 = WaveSculptor22(
     CAN_BUS,
