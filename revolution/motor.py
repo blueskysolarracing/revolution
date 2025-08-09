@@ -5,7 +5,9 @@ from time import sleep, time
 from typing import ClassVar
 
 from can import Message
-from iclib.wavesculptor22 import StatusInformation, VelocityMeasurement
+from iclib.wavesculptor22 import (
+    StatusInformation, VelocityMeasurement, VoltageRailMeasurement15V
+)
 
 from revolution.application import Application
 from revolution.environment import Endpoint
@@ -421,6 +423,10 @@ class Motor(Application):
                 )
                 contexts.motor_controller_receive_error_count = (
                     broadcast_message.receive_error_count
+                )
+            if isinstance(broadcast_message, VoltageRailMeasurement15V):
+                contexts.motor_controller_15V_rail_voltage = (
+                    broadcast_message.supply_15v
                 )
 
             contexts.motor_heartbeat_timestamp = time()

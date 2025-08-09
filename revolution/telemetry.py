@@ -30,6 +30,8 @@ class Telemetry(Application):
         motor_controller_transmit_error_count: int
         motor_controller_receive_error_count: int
 
+        motor_controller_15V_rail_voltage: float
+
         power_array_relay_status_input: bool
         power_battery_relay_status_input: bool
         power_battery_min_cell_voltage: float

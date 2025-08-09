@@ -89,6 +89,8 @@ CONTEXTS: Contexts = Contexts(
     motor_controller_transmit_error_count=0,
     motor_controller_receive_error_count=0,
 
+    motor_controller_15V_rail_voltage=0,
+
     # Power
 
     power_array_relay_status_input=False,
