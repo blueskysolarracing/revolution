@@ -104,8 +104,12 @@ class Contexts:
     power_battery_relay_status_input: bool
     power_battery_cell_voltages: list[float]
     power_battery_thermistor_temperatures: list[float]
-    power_battery_bus_voltage: float
-    power_battery_current: float
+    power_battery_HV_bus_voltage: float
+    power_battery_HV_current: float
+    power_battery_LV_bus_voltage: float
+    power_battery_LV_current: float
+    power_battery_supp_voltage: float
+
     power_battery_relay_status: bool
     power_battery_electric_safe_discharge_status: bool
     power_battery_discharge_status: bool
@@ -115,6 +119,7 @@ class Contexts:
     power_battery_flags_hold: int
     power_battery_heartbeat_timestamp: float
     power_battery_state_of_charges: list[float]
+
     power_psm_battery_current: float
     power_psm_battery_voltage: float
     power_psm_array_current: float

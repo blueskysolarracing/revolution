@@ -101,8 +101,12 @@ CONTEXTS: Contexts = Contexts(
     power_battery_thermistor_temperatures=[
         0 for _ in range(BATTERY_THERMISTOR_COUNT)
     ],
-    power_battery_bus_voltage=0,
-    power_battery_current=0,
+    power_battery_HV_bus_voltage=0,
+    power_battery_HV_current=0,
+    power_battery_LV_bus_voltage=0,
+    power_battery_LV_current=0,
+    power_battery_supp_voltage=0,
+
     power_battery_relay_status=False,
     power_battery_electric_safe_discharge_status=False,
     power_battery_discharge_status=False,
@@ -114,6 +118,7 @@ CONTEXTS: Contexts = Contexts(
     power_battery_flags_hold=0,
     power_battery_heartbeat_timestamp=inf,
     power_battery_state_of_charges=[0 for _ in range(BATTERY_CELL_COUNT)],
+
     power_psm_motor_current=0,
     power_psm_motor_voltage=0,
     power_psm_battery_current=0,

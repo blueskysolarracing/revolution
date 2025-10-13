@@ -10,8 +10,9 @@ from revolution.application import Application
 from revolution.battery_management_system import (
     BatteryFlag,
     BATTERY_CELL_COUNT,
-    BusVoltageAndCurrentInformation,
     CellVoltagesInformation,
+    HVBusVoltageAndCurrentInformation,
+    LVBusVoltageAndCurrentInformation,
     OvervoltageTemperatureAndCurrentFlagsInformation,
     StatusesInformation,
     ThermistorTemperaturesInformation,
@@ -302,7 +303,7 @@ class Power(Application):
                 battery_cell_voltages = (
                     contexts.power_battery_cell_voltages.copy()
                 )
-                battery_current = contexts.power_battery_current
+                battery_current = contexts.power_battery_HV_current
 
                 for i, estimator in enumerate(estimators):
                     if estimator is not None:
@@ -432,9 +433,12 @@ class Power(Application):
                     contexts.power_battery_thermistor_temperatures[i] = (
                         temperature
                     )
-            elif isinstance(information, BusVoltageAndCurrentInformation):
-                contexts.power_battery_bus_voltage = information.bus_voltage
-                contexts.power_battery_current = information.current
+            elif isinstance(information, HVBusVoltageAndCurrentInformation):
+                contexts.power_battery_HV_bus_voltage = information.bus_voltage
+                contexts.power_battery_HV_current = information.current
+            elif isinstance(information, LVBusVoltageAndCurrentInformation):
+                contexts.power_battery_LV_bus_voltage = information.bus_voltage
+                contexts.power_battery_LV_current = information.current
             elif isinstance(information, StatusesInformation):
                 contexts.power_battery_relay_status = information.relay_status
                 contexts.power_battery_electric_safe_discharge_status = (
@@ -443,6 +447,7 @@ class Power(Application):
                 contexts.power_battery_discharge_status = (
                     information.discharge_status
                 )
+                contexts.power_battery_supp_voltage = information.supp_voltage
             elif (
                     isinstance(
                         information,

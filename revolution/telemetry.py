@@ -40,8 +40,11 @@ class Telemetry(Application):
         power_battery_max_thermistor_temperature: float
         power_battery_mean_thermistor_temperature: float
 
-        power_battery_bus_voltage: float
-        power_battery_current: float
+        power_battery_HV_bus_voltage: float
+        power_battery_HV_current: float
+        power_battery_LV_bus_voltage: float
+        power_battery_LV_current: float
+        power_battery_supp_voltage: float
         power_battery_relay_status: bool
         power_battery_electric_safe_discharge_status: bool
         power_battery_discharge_status: bool

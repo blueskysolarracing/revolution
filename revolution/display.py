@@ -78,8 +78,8 @@ class Display(Application):
                 power_battery_max_cell_voltage = (
                     contexts.power_battery_max_cell_voltage
                 )
-                power_battery_current = (
-                    contexts.power_battery_current
+                power_battery_HV_current = (
+                    contexts.power_battery_HV_current
                 )
                 power_battery_min_thermistor_temperature = (
                     contexts.power_battery_min_thermistor_temperature
@@ -209,8 +209,12 @@ class Display(Application):
             )
 
             periphery.draw_word('I', 85, 38)
-            power_battery_current = clip_value(power_battery_current, -50, 99)
-            periphery.draw_word(f'{power_battery_current * 100:5.0f}', 94, 38)
+            power_battery_HV_current = clip_value(
+                power_battery_HV_current, -50, 99
+            )
+            periphery.draw_word(
+                f'{power_battery_HV_current * 100:5.0f}', 94, 38
+            )
             periphery.write_pixel(110, 46)
 
             if (power_battery_flags_hold & BatteryFlag.OVERVOLTAGE):

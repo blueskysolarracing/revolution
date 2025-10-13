@@ -64,7 +64,7 @@ class ThermistorTemperaturesInformation(PartialInformation):
 
 
 @dataclass
-class BusVoltageAndCurrentInformation(Information):
+class HVBusVoltageAndCurrentInformation(Information):
     MESSAGE_IDENTIFIERS = range(27, 28)
     FORMAT = '<ff'
     bus_voltage: float
@@ -74,8 +74,9 @@ class BusVoltageAndCurrentInformation(Information):
 @dataclass
 class StatusesInformation(Information):
     MESSAGE_IDENTIFIERS = range(28, 29)
-    FORMAT = '<Q'
+    FORMAT = '<If'
     statuses: int
+    supp_voltage: float
 
     @property
     def relay_status(self) -> bool:
@@ -155,6 +156,14 @@ class UndervoltageAndTemperatureFlagsInformation(BatteryPackFlagsInformation):
 
 
 @dataclass
+class LVBusVoltageAndCurrentInformation(Information):
+    MESSAGE_IDENTIFIERS = range(31, 32)
+    FORMAT = '<ff'
+    bus_voltage: float
+    current: float
+
+
+@dataclass
 class BatteryManagementSystem:
     BASE_ADDRESS: ClassVar[int] = 0x400
     can_bus: BusABC
@@ -196,7 +205,8 @@ class BatteryManagementSystem:
     INFORMATION_TYPES: ClassVar[tuple[type[Information], ...]] = (
         CellVoltagesInformation,
         ThermistorTemperaturesInformation,
-        BusVoltageAndCurrentInformation,
+        HVBusVoltageAndCurrentInformation,
+        LVBusVoltageAndCurrentInformation,
         StatusesInformation,
         OvervoltageTemperatureAndCurrentFlagsInformation,
         UndervoltageAndTemperatureFlagsInformation,
