@@ -14,8 +14,10 @@ from door.threading2 import AcquirableDoor
 from iclib.adc78h89 import ADC78H89, InputChannel
 from iclib.bno055 import BNO055
 from iclib.ina229 import INA229
+from iclib.lis2ds12 import LIS2DS12
 from iclib.mcp23s17 import MCP23S17, PortRegisterBit as PRB
 from iclib.nhd_c12864a1z_fsw_fbw_htt import NHDC12864A1ZFSWFBWHTT
+from iclib.tmag5273 import TMAG5273
 from iclib.wavesculptor22 import WaveSculptor22
 from periphery import GPIO, PWM
 from serial import Serial
@@ -75,6 +77,13 @@ class Contexts:
     miscellaneous_orientation: dict[str, float]
     miscellaneous_latitude: float
     miscellaneous_longitude: float
+
+    miscellaneous_left_wheel_velocity: float
+    miscellaneous_left_wheel_magnetic_field: float
+    miscellaneous_right_wheel_velocity: float
+    miscellaneous_right_wheel_magnetic_field: float
+    miscellaneous_left_wheel_accelerations: list[float]
+    miscellaneous_right_wheel_accelerations: list[float]
 
     # Motor
 
@@ -229,6 +238,10 @@ class Peripheries:
     miscellaneous_backup_camera_control_switch_gpio: GPIO
     miscellaneous_orientation_imu_bno055: BNO055
     miscellaneous_position_gps: GPS
+    miscellaneous_left_wheel_hall_effect: TMAG5273
+    miscellaneous_right_wheel_hall_effect: TMAG5273
+    miscellaneous_left_wheel_accelerometer: LIS2DS12
+    miscellaneous_right_wheel_accelerometer: LIS2DS12
 
     # Motor
 
@@ -283,6 +296,7 @@ class Settings:
     miscellaneous_light_flash_timeout: float
     miscellaneous_orientation_timeout: float
     miscellaneous_position_timeout: float
+    miscellaneous_front_wheels_timeout: float
 
     # Motor
 

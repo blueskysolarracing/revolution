@@ -1,9 +1,11 @@
 from dataclasses import asdict, dataclass
 from logging import getLogger
+from math import pi
 from typing import ClassVar
 
 from periphery import PWM
 
+from iclib.utilities import ContinuousFrequencyMonitor
 from revolution.application import Application
 from revolution.environment import Endpoint
 from revolution.worker import Worker
@@ -22,17 +24,20 @@ class Miscellaneous(Application):
         self._indicator_light_worker = Worker(target=self._indicator_light)
         self._orientation_worker = Worker(target=self._orientation)
         self._position_worker = Worker(target=self._position)
+        self._front_wheels_worker = Worker(target=self._front_wheels)
 
         self._light_worker.start()
         self._indicator_light_worker.start()
         self._orientation_worker.start()
         self._position_worker.start()
+        self._front_wheels_worker.start()
 
     def _teardown(self) -> None:
         self._light_worker.join()
         self._indicator_light_worker.join()
         self._orientation_worker.join()
         self._position_worker.join()
+        self._front_wheels_worker.join()
 
     def update_pwm(self, pwm: PWM, previous_input: bool, input: bool) -> None:
         if not previous_input and input:
@@ -247,3 +252,84 @@ class Miscellaneous(Application):
                 with self.environment.contexts() as contexts:
                     contexts.miscellaneous_latitude = periphery.latitude
                     contexts.miscellaneous_longitude = periphery.longitude
+
+    def _front_wheels(self) -> None:
+
+        def hz2kph(hz: float) -> float:
+            return (
+                pi
+                * self.environment.settings.general_wheel_diameter
+                * hz
+                * 3600
+                / 1000
+            )
+
+        def left_hall_effect_getter() -> float:
+            left_hall_effect = (
+                self
+                .environment
+                .peripheries
+                .miscellaneous_left_wheel_hall_effect
+            )
+            valid = False
+            reading = 0.0
+            while (not valid):
+                values, channels = left_hall_effect.channels
+                reading = values[0]
+            return reading
+
+        def right_hall_effect_getter() -> float:
+            right_hall_effect = (
+                self
+                .environment
+                .peripheries
+                .miscellaneous_right_wheel_hall_effect
+            )
+            valid = False
+            reading = 0.0
+            while (not valid):
+                values, channels = right_hall_effect.channels
+                reading = values[0]
+            return reading
+
+        left_hall_effect_frequency_monitor = ContinuousFrequencyMonitor(
+            0.0,
+            left_hall_effect_getter,
+            3,
+            ContinuousFrequencyMonitor.Edge.BOTH,
+            5
+        )
+
+        right_hall_effect_frequency_monitor = ContinuousFrequencyMonitor(
+            0.0,
+            right_hall_effect_getter,
+            3,
+            ContinuousFrequencyMonitor.Edge.BOTH,
+            5
+        )
+
+        while (
+                not self._stoppage.wait(
+                    (
+                        self
+                        .environment
+                        .settings
+                        .miscellaneous_front_wheels_timeout
+                    ),
+                )
+        ):
+            with self.environment.contexts() as contexts:
+                contexts.miscellaneous_left_wheel_velocity = hz2kph(
+                    left_hall_effect_frequency_monitor.frequency
+                )
+                contexts.miscellaneous_left_wheel_magnetic_field = (
+                    left_hall_effect_frequency_monitor.reading
+                )
+                contexts.miscellaneous_right_wheel_velocity = hz2kph(
+                    right_hall_effect_frequency_monitor.frequency
+                )
+                contexts.miscellaneous_right_wheel_magnetic_field = (
+                    right_hall_effect_frequency_monitor.reading
+                )
+
+                # TODO: update accelerations

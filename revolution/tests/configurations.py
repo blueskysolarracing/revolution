@@ -9,8 +9,10 @@ from can import BusABC
 from iclib.adc78h89 import ADC78H89, InputChannel
 from iclib.bno055 import BNO055
 from iclib.ina229 import INA229
+from iclib.lis2ds12 import LIS2DS12
 from iclib.mcp23s17 import MCP23S17, PortRegisterBit as PRB
 from iclib.nhd_c12864a1z_fsw_fbw_htt import NHDC12864A1ZFSWFBWHTT
+from iclib.tmag5273 import TMAG5273
 from iclib.wavesculptor22 import WaveSculptor22
 from json import load
 from periphery import GPIO, PWM
@@ -68,6 +70,13 @@ CONTEXTS: Contexts = Contexts(
     miscellaneous_orientation={},
     miscellaneous_latitude=0,
     miscellaneous_longitude=0,
+
+    miscellaneous_left_wheel_velocity=0,
+    miscellaneous_left_wheel_magnetic_field=0,
+    miscellaneous_right_wheel_velocity=0,
+    miscellaneous_right_wheel_magnetic_field=0,
+    miscellaneous_left_wheel_accelerations=[0, 0, 0],
+    miscellaneous_right_wheel_accelerations=[0, 0, 0],
 
     # Motor
 
@@ -175,6 +184,10 @@ ORIENTATION_IMU_BNO055: BNO055 = MagicMock(
 )
 
 POSITION_GPS: GPS = MagicMock()
+LEFT_WHEEL_HALL_EFFECT: TMAG5273 = MagicMock()
+RIGHT_WHEEL_HALL_EFFECT: TMAG5273 = MagicMock()
+LEFT_WHEEL_ACCELEROMETER: LIS2DS12 = MagicMock()
+RIGHT_WHEEL_ACCELEROMETER: LIS2DS12 = MagicMock()
 
 ARRAY_RELAY_LOW_SIDE_GPIO: GPIO = MagicMock()
 ARRAY_RELAY_HIGH_SIDE_GPIO: GPIO = MagicMock()
@@ -270,6 +283,10 @@ PERIPHERIES: Peripheries = Peripheries(
     ),
     miscellaneous_orientation_imu_bno055=ORIENTATION_IMU_BNO055,
     miscellaneous_position_gps=POSITION_GPS,
+    miscellaneous_left_wheel_hall_effect=LEFT_WHEEL_HALL_EFFECT,
+    miscellaneous_right_wheel_hall_effect=RIGHT_WHEEL_HALL_EFFECT,
+    miscellaneous_left_wheel_accelerometer=LEFT_WHEEL_ACCELEROMETER,
+    miscellaneous_right_wheel_accelerometer=RIGHT_WHEEL_ACCELEROMETER,
 
     # Motor
 
@@ -329,6 +346,7 @@ SETTINGS: Settings = Settings(
     miscellaneous_light_flash_timeout=0.5,
     miscellaneous_orientation_timeout=0.1,
     miscellaneous_position_timeout=1,
+    miscellaneous_front_wheels_timeout=1,
 
     # Motor
 
