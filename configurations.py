@@ -283,7 +283,7 @@ BRAKE_LIGHTS_PWM.duty_cycle = 0.10
 
 BACKUP_CAMERA_CONTROL_SWITCH_GPIO: GPIO = GPIO('/dev/gpiochip6', 21, 'out')
 
-ORIENTATION_IMU_BNO055_I2C: I2C = I2C('/dev/i2c-4')
+ORIENTATION_IMU_BNO055_I2C: I2C = I2C('/dev/apalis-i2c3')
 ORIENTATION_IMU_BNO055_IMU_RESET_GPIO: GPIO = MagicMock(
     direction='out',
     inverted=True,
@@ -299,10 +299,9 @@ POSITION_GPS: GPS = GPS(POSITION_GPS_SERIAL, debug=False)
 POSITION_GPS.send_command(b'PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0')
 POSITION_GPS.send_command(b'PMTK220,1000')
 
-# TODO: confirm i2c chip
 FRONT_WHEELS_I2C_LOCK: Lock = Lock()
 FRONT_WHEELS_I2C: I2C = cast(
-    I2C, LockedI2C(I2C('/dev/i2c-4'), FRONT_WHEELS_I2C_LOCK)
+    I2C, LockedI2C(I2C('/dev/apalis-i2c1'), FRONT_WHEELS_I2C_LOCK)
 )
 LEFT_WHEEL_HALL_EFFECT: TMAG5273 = TMAG5273(
     FRONT_WHEELS_I2C, TMAG5273Variant.B1
@@ -320,15 +319,15 @@ RIGHT_WHEEL_HALL_EFFECT.operating_mode = TMAG5273OperatingMode.CONTINUOUS
 RIGHT_WHEEL_HALL_EFFECT.magnetic_channel = TMAG5273MagneticChannel.X
 RIGHT_WHEEL_HALL_EFFECT.i2c_read_mode = TMAG5273I2CReadMode.SHORT_8BIT_DATA
 
-# TODO: configurations for accelerometers
 LEFT_WHEEL_ACCELEROMETER: LIS2DS12 = LIS2DS12(
     FRONT_WHEELS_I2C, 0x1E
 )
+# TODO: add left accelerometer configurations here
 
 RIGHT_WHEEL_ACCELEROMETER: LIS2DS12 = LIS2DS12(
     FRONT_WHEELS_I2C, 0x1D
 )
-
+# TODO: add right accelerometer configurations here
 
 ARRAY_RELAY_LOW_SIDE_GPIO: GPIO = GPIO('/dev/gpiochip4', 1, 'out')
 ARRAY_RELAY_HIGH_SIDE_GPIO: GPIO = GPIO('/dev/gpiochip0', 13, 'out')
