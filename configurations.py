@@ -504,8 +504,13 @@ PERIPHERIES: Peripheries = Peripheries(
     miscellaneous_backup_camera_control_switch_gpio=(
         BACKUP_CAMERA_CONTROL_SWITCH_GPIO
     ),
+    miscellaneous_orientation_imu_bno055=None,
     # miscellaneous_orientation_imu_bno055=ORIENTATION_IMU_BNO055,
     miscellaneous_position_gps=POSITION_GPS,
+    miscellaneous_left_wheel_hall_effect=None,
+    miscellaneous_right_wheel_hall_effect=None,
+    miscellaneous_left_wheel_accelerometer=None,
+    miscellaneous_right_wheel_accelerometer=None,
     # miscellaneous_left_wheel_hall_effect=LEFT_WHEEL_HALL_EFFECT,
     # miscellaneous_right_wheel_hall_effect=RIGHT_WHEEL_HALL_EFFECT,
     # miscellaneous_left_wheel_accelerometer=LEFT_WHEEL_ACCELEROMETER,
