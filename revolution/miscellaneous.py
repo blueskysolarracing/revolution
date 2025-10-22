@@ -331,5 +331,27 @@ class Miscellaneous(Application):
                 contexts.miscellaneous_right_wheel_magnetic_field = (
                     right_hall_effect_frequency_monitor.reading
                 )
-
-                # TODO: update accelerations
+                left_accel = (
+                    self
+                    .environment
+                    .peripheries
+                    .miscellaneous_left_wheel_accelerometer
+                    .read_accel()
+                )
+                right_accel = (
+                    self
+                    .environment
+                    .peripheries
+                    .miscellaneous_right_wheel_accelerometer
+                    .read_accel()
+                )
+                contexts.miscellaneous_left_wheel_accelerations = [
+                    left_accel.x,
+                    left_accel.y,
+                    left_accel.z,
+                ]
+                contexts.miscellaneous_right_wheel_accelerations = [
+                    right_accel.x,
+                    right_accel.y,
+                    right_accel.z,
+                ]

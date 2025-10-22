@@ -10,7 +10,7 @@ from can import BusABC, ThreadSafeBus
 from iclib.adc78h89 import ADC78H89, InputChannel
 from iclib.bno055 import BNO055
 from iclib.ina229 import INA229
-from iclib.lis2ds12 import LIS2DS12
+from iclib.lis2ds12 import LIS2DS12, OutputDataRate, FullScale
 from iclib.mcp23s17 import MCP23S17, Port, PortRegisterBit as PRB, Register
 from iclib.nhd_c12864a1z_fsw_fbw_htt import NHDC12864A1ZFSWFBWHTT
 from iclib.tmag5273 import (
@@ -322,12 +322,20 @@ RIGHT_WHEEL_HALL_EFFECT.i2c_read_mode = TMAG5273I2CReadMode.SHORT_8BIT_DATA
 LEFT_WHEEL_ACCELEROMETER: LIS2DS12 = LIS2DS12(
     FRONT_WHEELS_I2C, 0x1E
 )
-# TODO: add left accelerometer configurations here
+LEFT_WHEEL_ACCELEROMETER.init(
+    odr=OutputDataRate.ODR_100_HZ_HR,  # High-resolution 100 Hz
+    fs=FullScale.FS_4G,  # ±4g range for wheel dynamics
+    discard_samples=4,
+)
 
 RIGHT_WHEEL_ACCELEROMETER: LIS2DS12 = LIS2DS12(
     FRONT_WHEELS_I2C, 0x1D
 )
-# TODO: add right accelerometer configurations here
+RIGHT_WHEEL_ACCELEROMETER.init(
+    odr=OutputDataRate.ODR_100_HZ_HR,  # High-resolution 100 Hz
+    fs=FullScale.FS_4G,  # ±4g range for wheel dynamics
+    discard_samples=4,
+)
 
 ARRAY_RELAY_LOW_SIDE_GPIO: GPIO = GPIO('/dev/gpiochip4', 1, 'out')
 ARRAY_RELAY_HIGH_SIDE_GPIO: GPIO = GPIO('/dev/gpiochip0', 13, 'out')
