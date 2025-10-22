@@ -50,7 +50,7 @@ APPLICATION_TYPES: tuple[type[Application], ...] = (
     Debugger,
     Display,
     Driver,
-    Miscellaneous,
+    # Miscellaneous,
     Motor,
     Power,
     Telemetry,
@@ -283,6 +283,7 @@ BRAKE_LIGHTS_PWM.duty_cycle = 0.10
 
 BACKUP_CAMERA_CONTROL_SWITCH_GPIO: GPIO = GPIO('/dev/gpiochip6', 21, 'out')
 
+"""
 ORIENTATION_IMU_BNO055_I2C: I2C = I2C('/dev/apalis-i2c3')
 ORIENTATION_IMU_BNO055_IMU_RESET_GPIO: GPIO = MagicMock(
     direction='out',
@@ -292,6 +293,7 @@ ORIENTATION_IMU_BNO055: BNO055 = BNO055(
     ORIENTATION_IMU_BNO055_I2C,
     ORIENTATION_IMU_BNO055_IMU_RESET_GPIO,
 )
+"""
 
 POSITION_GPS_SERIAL: Serial = Serial('/dev/ttyLP0', timeout=10)
 POSITION_GPS: GPS = GPS(POSITION_GPS_SERIAL, debug=False)
@@ -299,6 +301,7 @@ POSITION_GPS: GPS = GPS(POSITION_GPS_SERIAL, debug=False)
 POSITION_GPS.send_command(b'PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0')
 POSITION_GPS.send_command(b'PMTK220,1000')
 
+"""
 FRONT_WHEELS_I2C_LOCK: Lock = Lock()
 FRONT_WHEELS_I2C: I2C = cast(
     I2C, LockedI2C(I2C('/dev/apalis-i2c1'), FRONT_WHEELS_I2C_LOCK)
@@ -324,7 +327,7 @@ LEFT_WHEEL_ACCELEROMETER: LIS2DS12 = LIS2DS12(
 )
 LEFT_WHEEL_ACCELEROMETER.init(
     odr=OutputDataRate.ODR_100_HZ_HR,  # High-resolution 100 Hz
-    fs=FullScale.FS_4G,  # ±4g range for wheel dynamics
+    fs=FullScale.FS_4G,  # +-4g range for wheel dynamics
     discard_samples=4,
 )
 
@@ -333,9 +336,10 @@ RIGHT_WHEEL_ACCELEROMETER: LIS2DS12 = LIS2DS12(
 )
 RIGHT_WHEEL_ACCELEROMETER.init(
     odr=OutputDataRate.ODR_100_HZ_HR,  # High-resolution 100 Hz
-    fs=FullScale.FS_4G,  # ±4g range for wheel dynamics
+    fs=FullScale.FS_4G,  # +-4g range for wheel dynamics
     discard_samples=4,
 )
+"""
 
 ARRAY_RELAY_LOW_SIDE_GPIO: GPIO = GPIO('/dev/gpiochip4', 1, 'out')
 ARRAY_RELAY_HIGH_SIDE_GPIO: GPIO = GPIO('/dev/gpiochip0', 13, 'out')
@@ -500,12 +504,12 @@ PERIPHERIES: Peripheries = Peripheries(
     miscellaneous_backup_camera_control_switch_gpio=(
         BACKUP_CAMERA_CONTROL_SWITCH_GPIO
     ),
-    miscellaneous_orientation_imu_bno055=ORIENTATION_IMU_BNO055,
+    # miscellaneous_orientation_imu_bno055=ORIENTATION_IMU_BNO055,
     miscellaneous_position_gps=POSITION_GPS,
-    miscellaneous_left_wheel_hall_effect=LEFT_WHEEL_HALL_EFFECT,
-    miscellaneous_right_wheel_hall_effect=RIGHT_WHEEL_HALL_EFFECT,
-    miscellaneous_left_wheel_accelerometer=LEFT_WHEEL_ACCELEROMETER,
-    miscellaneous_right_wheel_accelerometer=RIGHT_WHEEL_ACCELEROMETER,
+    # miscellaneous_left_wheel_hall_effect=LEFT_WHEEL_HALL_EFFECT,
+    # miscellaneous_right_wheel_hall_effect=RIGHT_WHEEL_HALL_EFFECT,
+    # miscellaneous_left_wheel_accelerometer=LEFT_WHEEL_ACCELEROMETER,
+    # miscellaneous_right_wheel_accelerometer=RIGHT_WHEEL_ACCELEROMETER,
 
     # Motor
 
