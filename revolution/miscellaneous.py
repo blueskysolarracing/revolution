@@ -255,58 +255,58 @@ class Miscellaneous(Application):
 
     def _front_wheels(self) -> None:
 
-        def hz2kph(hz: float) -> float:
-            return (
-                pi
-                * self.environment.settings.general_wheel_diameter
-                * hz
-                * 3600
-                / 1000
-            )
+        # def hz2kph(hz: float) -> float:
+        #     return (
+        #         pi
+        #         * self.environment.settings.general_wheel_diameter
+        #         * hz
+        #         * 3600
+        #         / 1000
+        #     )
 
-        def left_hall_effect_getter() -> float:
-            left_hall_effect = (
-                self
-                .environment
-                .peripheries
-                .miscellaneous_left_wheel_hall_effect
-            )
-            valid = False
-            reading = 0.0
-            while (not valid):
-                values, channels = left_hall_effect.channels
-                reading = values[0]
-            return reading
+        # def left_hall_effect_getter() -> float:
+        #     left_hall_effect = (
+        #         self
+        #         .environment
+        #         .peripheries
+        #         .miscellaneous_left_wheel_hall_effect
+        #     )
+        #     valid = False
+        #     reading = 0.0
+        #     while (not valid):
+        #         values, valid = left_hall_effect.channels
+        #         reading = values[0]
+        #     return reading
 
-        def right_hall_effect_getter() -> float:
-            right_hall_effect = (
-                self
-                .environment
-                .peripheries
-                .miscellaneous_right_wheel_hall_effect
-            )
-            valid = False
-            reading = 0.0
-            while (not valid):
-                values, channels = right_hall_effect.channels
-                reading = values[0]
-            return reading
+        # def right_hall_effect_getter() -> float:
+        #     right_hall_effect = (
+        #         self
+        #         .environment
+        #         .peripheries
+        #         .miscellaneous_right_wheel_hall_effect
+        #     )
+        #     valid = False
+        #     reading = 0.0
+        #     while (not valid):
+        #         values, valid = right_hall_effect.channels
+        #         reading = values[0]
+        #     return reading
 
-        left_hall_effect_frequency_monitor = ContinuousFrequencyMonitor(
-            0.0,
-            left_hall_effect_getter,
-            3,
-            ContinuousFrequencyMonitor.Edge.BOTH,
-            5
-        )
+        # left_hall_effect_frequency_monitor = ContinuousFrequencyMonitor(
+        #     0.0,
+        #     left_hall_effect_getter,
+        #     3,
+        #     ContinuousFrequencyMonitor.Edge.BOTH,
+        #     5
+        # )
 
-        right_hall_effect_frequency_monitor = ContinuousFrequencyMonitor(
-            0.0,
-            right_hall_effect_getter,
-            3,
-            ContinuousFrequencyMonitor.Edge.BOTH,
-            5
-        )
+        # right_hall_effect_frequency_monitor = ContinuousFrequencyMonitor(
+        #     0.0,
+        #     right_hall_effect_getter,
+        #     3,
+        #     ContinuousFrequencyMonitor.Edge.BOTH,
+        #     5
+        # )
 
         while (
                 not self._stoppage.wait(
@@ -319,39 +319,40 @@ class Miscellaneous(Application):
                 )
         ):
             with self.environment.contexts() as contexts:
-                contexts.miscellaneous_left_wheel_velocity = hz2kph(
-                    left_hall_effect_frequency_monitor.frequency
-                )
-                contexts.miscellaneous_left_wheel_magnetic_field = (
-                    left_hall_effect_frequency_monitor.reading
-                )
-                contexts.miscellaneous_right_wheel_velocity = hz2kph(
-                    right_hall_effect_frequency_monitor.frequency
-                )
-                contexts.miscellaneous_right_wheel_magnetic_field = (
-                    right_hall_effect_frequency_monitor.reading
-                )
-                left_accel = (
-                    self
-                    .environment
-                    .peripheries
-                    .miscellaneous_left_wheel_accelerometer
-                    .read_accel()
-                )
-                right_accel = (
-                    self
-                    .environment
-                    .peripheries
-                    .miscellaneous_right_wheel_accelerometer
-                    .read_accel()
-                )
-                contexts.miscellaneous_left_wheel_accelerations = [
-                    left_accel.x,
-                    left_accel.y,
-                    left_accel.z,
-                ]
-                contexts.miscellaneous_right_wheel_accelerations = [
-                    right_accel.x,
-                    right_accel.y,
-                    right_accel.z,
-                ]
+                # contexts.miscellaneous_left_wheel_velocity = hz2kph(
+                #     left_hall_effect_frequency_monitor.frequency
+                # )
+                # contexts.miscellaneous_left_wheel_magnetic_field = (
+                #     left_hall_effect_frequency_monitor.reading
+                # )
+                # contexts.miscellaneous_right_wheel_velocity = hz2kph(
+                #     right_hall_effect_frequency_monitor.frequency
+                # )
+                # contexts.miscellaneous_right_wheel_magnetic_field = (
+                #     right_hall_effect_frequency_monitor.reading
+                # )
+
+                # left_accel = (
+                #     self
+                #     .environment
+                #     .peripheries
+                #     .miscellaneous_left_wheel_accelerometer
+                #     .read_accel()
+                # )
+                # right_accel = (
+                #     self
+                #     .environment
+                #     .peripheries
+                #     .miscellaneous_right_wheel_accelerometer
+                #     .read_accel()
+                # )
+                # contexts.miscellaneous_left_wheel_accelerations = [
+                #     left_accel.x,
+                #     left_accel.y,
+                #     left_accel.z,
+                # ]
+                # contexts.miscellaneous_right_wheel_accelerations = [
+                #     right_accel.x,
+                #     right_accel.y,
+                #     right_accel.z,
+                # ]
