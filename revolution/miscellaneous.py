@@ -1,4 +1,5 @@
 from dataclasses import asdict, dataclass
+from datetime import datetime
 from logging import getLogger
 from math import pi
 from typing import ClassVar
@@ -340,6 +341,15 @@ class Miscellaneous(Application):
             .miscellaneous_right_wheel_accelerometer.config()
         )
 
+        filepath = (
+            self.environment.settings.miscellaneous_acceleration_log_filepath
+        )
+        log_file = open(f'{filepath}{datetime.now().date()}_log.csv', "w")
+        print(
+            'time, left.x, left.y, left.z, right.x, right.y, right.z',
+            file=log_file,
+        )
+
         while (
                 not self._stoppage.wait(
                     (
@@ -388,3 +398,9 @@ class Miscellaneous(Application):
                     right_accel.y,
                     right_accel.z,
                 ]
+
+            print(f'{datetime.now().time()}, '
+                  f'{left_accel.x}, {left_accel.y}, {left_accel.z}, '
+                  f'{right_accel.x}, {right_accel.y}, {right_accel.z}',
+                  file=log_file
+            )

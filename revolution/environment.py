@@ -291,6 +291,7 @@ class Settings:
     miscellaneous_orientation_timeout: float
     miscellaneous_position_timeout: float
     miscellaneous_front_wheels_timeout: float
+    miscellaneous_acceleration_log_filepath: str
 
     # Motor
 
