@@ -402,7 +402,7 @@ class Miscellaneous(Application):
                     right_accel.y,
                     right_accel.z,
                 ]
-                imu.deepcopy(contexts.miscellaneous_orientation)
+                imu = deepcopy(contexts.miscellaneous_orientation)
 
             print(f'{datetime.now().time()}, '
                   f'{left_accel.x}, {left_accel.y}, {left_accel.z}, '
