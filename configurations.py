@@ -12,7 +12,7 @@ from iclib.bno055 import BNO055
 from iclib.ina229 import INA229
 from iclib.mcp23s17 import MCP23S17, Port, PortRegisterBit as PRB, Register
 from iclib.nhd_c12864a1z_fsw_fbw_htt import NHDC12864A1ZFSWFBWHTT
-from iclib.utilities import LockedSPI, ManualCSSPI
+from iclib.utilities import LockedI2C, LockedSPI, ManualCSSPI
 from iclib.wavesculptor22 import WaveSculptor22
 from json import load
 from periphery import GPIO, I2C, PWM, SPI
@@ -28,6 +28,7 @@ from revolution import (
     Direction,
     Display,
     Driver,
+    LIS2HH12,
     Miscellaneous,
     Motor,
     Peripheries,
@@ -70,6 +71,9 @@ CONTEXTS: Contexts = Contexts(
     miscellaneous_orientation={},
     miscellaneous_latitude=0,
     miscellaneous_longitude=0,
+
+    miscellaneous_left_wheel_accelerations=[0, 0, 0],
+    miscellaneous_right_wheel_accelerations=[0, 0, 0],
 
     # Motor
 
@@ -267,7 +271,7 @@ BRAKE_LIGHTS_PWM.duty_cycle = 0.10
 
 BACKUP_CAMERA_CONTROL_SWITCH_GPIO: GPIO = GPIO('/dev/gpiochip6', 21, 'out')
 
-ORIENTATION_IMU_BNO055_I2C: I2C = I2C('/dev/i2c-4')
+ORIENTATION_IMU_BNO055_I2C: I2C = I2C('/dev/apalis-i2c3')
 ORIENTATION_IMU_BNO055_IMU_RESET_GPIO: GPIO = MagicMock(
     direction='out',
     inverted=True,
@@ -276,12 +280,25 @@ ORIENTATION_IMU_BNO055: BNO055 = BNO055(
     ORIENTATION_IMU_BNO055_I2C,
     ORIENTATION_IMU_BNO055_IMU_RESET_GPIO,
 )
+ORIENTATION_IMU_BNO055.ADDRESS = 0x28
 
 POSITION_GPS_SERIAL: Serial = Serial('/dev/ttyLP0', timeout=10)
 POSITION_GPS: GPS = GPS(POSITION_GPS_SERIAL, debug=False)
 
 POSITION_GPS.send_command(b'PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0')
 POSITION_GPS.send_command(b'PMTK220,1000')
+
+FRONT_WHEELS_I2C_LOCK: Lock = Lock()
+FRONT_WHEELS_I2C: I2C = cast(
+    I2C, LockedI2C(I2C('/dev/apalis-i2c1'), FRONT_WHEELS_I2C_LOCK)
+)
+
+LEFT_WHEEL_ACCELEROMETER: LIS2HH12 = LIS2HH12(
+    FRONT_WHEELS_I2C, 0x1E
+)
+RIGHT_WHEEL_ACCELEROMETER: LIS2HH12 = LIS2HH12(
+    FRONT_WHEELS_I2C, 0x1D
+)
 
 ARRAY_RELAY_LOW_SIDE_GPIO: GPIO = GPIO('/dev/gpiochip4', 1, 'out')
 ARRAY_RELAY_HIGH_SIDE_GPIO: GPIO = GPIO('/dev/gpiochip0', 13, 'out')
@@ -449,6 +466,9 @@ PERIPHERIES: Peripheries = Peripheries(
     miscellaneous_orientation_imu_bno055=ORIENTATION_IMU_BNO055,
     miscellaneous_position_gps=POSITION_GPS,
 
+    miscellaneous_left_wheel_accelerometer=LEFT_WHEEL_ACCELEROMETER,
+    miscellaneous_right_wheel_accelerometer=RIGHT_WHEEL_ACCELEROMETER,
+
     # Motor
 
     motor_wavesculptor22=WAVESCULPTOR22,
@@ -507,6 +527,8 @@ SETTINGS: Settings = Settings(
     miscellaneous_light_flash_timeout=0.5,
     miscellaneous_orientation_timeout=0.1,
     miscellaneous_position_timeout=1,
+    miscellaneous_front_wheels_timeout=0.02,
+    miscellaneous_acceleration_log_filepath='/',
 
     # Motor
 

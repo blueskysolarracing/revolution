@@ -26,6 +26,7 @@ from revolution import (
     Direction,
     Display,
     Driver,
+    LIS2HH12,
     Miscellaneous,
     Motor,
     Peripheries,
@@ -68,6 +69,9 @@ CONTEXTS: Contexts = Contexts(
     miscellaneous_orientation={},
     miscellaneous_latitude=0,
     miscellaneous_longitude=0,
+
+    miscellaneous_left_wheel_accelerations=[0, 0, 0],
+    miscellaneous_right_wheel_accelerations=[0, 0, 0],
 
     # Motor
 
@@ -175,6 +179,8 @@ ORIENTATION_IMU_BNO055: BNO055 = MagicMock(
 )
 
 POSITION_GPS: GPS = MagicMock()
+LEFT_WHEEL_ACCELEROMETER: LIS2HH12 = MagicMock()
+RIGHT_WHEEL_ACCELEROMETER: LIS2HH12 = MagicMock()
 
 ARRAY_RELAY_LOW_SIDE_GPIO: GPIO = MagicMock()
 ARRAY_RELAY_HIGH_SIDE_GPIO: GPIO = MagicMock()
@@ -271,6 +277,9 @@ PERIPHERIES: Peripheries = Peripheries(
     miscellaneous_orientation_imu_bno055=ORIENTATION_IMU_BNO055,
     miscellaneous_position_gps=POSITION_GPS,
 
+    miscellaneous_left_wheel_accelerometer=LEFT_WHEEL_ACCELEROMETER,
+    miscellaneous_right_wheel_accelerometer=RIGHT_WHEEL_ACCELEROMETER,
+
     # Motor
 
     motor_wavesculptor22=WAVESCULPTOR22,
@@ -329,6 +338,8 @@ SETTINGS: Settings = Settings(
     miscellaneous_light_flash_timeout=0.5,
     miscellaneous_orientation_timeout=0.1,
     miscellaneous_position_timeout=1,
+    miscellaneous_front_wheels_timeout=0.02,
+    miscellaneous_acceleration_log_filepath='/',
 
     # Motor
 

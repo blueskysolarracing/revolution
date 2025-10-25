@@ -1,4 +1,6 @@
+from copy import deepcopy
 from dataclasses import asdict, dataclass
+from datetime import datetime
 from logging import getLogger
 from typing import ClassVar
 
@@ -22,17 +24,20 @@ class Miscellaneous(Application):
         self._indicator_light_worker = Worker(target=self._indicator_light)
         self._orientation_worker = Worker(target=self._orientation)
         self._position_worker = Worker(target=self._position)
+        self._front_wheels_worker = Worker(target=self._front_wheels)
 
         self._light_worker.start()
         self._indicator_light_worker.start()
         self._orientation_worker.start()
         self._position_worker.start()
+        self._front_wheels_worker.start()
 
     def _teardown(self) -> None:
         self._light_worker.join()
         self._indicator_light_worker.join()
         self._orientation_worker.join()
         self._position_worker.join()
+        self._front_wheels_worker.join()
 
     def update_pwm(self, pwm: PWM, previous_input: bool, input: bool) -> None:
         if not previous_input and input:
@@ -247,3 +252,82 @@ class Miscellaneous(Application):
                 with self.environment.contexts() as contexts:
                     contexts.miscellaneous_latitude = periphery.latitude
                     contexts.miscellaneous_longitude = periphery.longitude
+
+    def _front_wheels(self) -> None:
+        (
+            self
+            .environment
+            .peripheries
+            .miscellaneous_left_wheel_accelerometer.config()
+        )
+
+        (
+            self
+            .environment
+            .peripheries
+            .miscellaneous_right_wheel_accelerometer.config()
+        )
+
+        filepath = (
+            self.environment.settings.miscellaneous_acceleration_log_filepath
+        )
+        now = datetime.now()
+        log_file = open(f'{filepath}{now.date()}_{now.time()}_log.csv', "w")
+        print(
+            'time, left.x, left.y, left.z, right.x, right.y, right.z'
+            'imu.x, imu.y, imu.z',
+            file=log_file,
+        )
+
+        while (
+                not self._stoppage.wait(
+                    (
+                        self
+                        .environment
+                        .settings
+                        .miscellaneous_front_wheels_timeout
+                    ),
+                )
+        ):
+            left_accel = (
+                self
+                .environment
+                .peripheries
+                .miscellaneous_left_wheel_accelerometer
+                .read_accel()
+            )
+            right_accel = (
+                self
+                .environment
+                .peripheries
+                .miscellaneous_right_wheel_accelerometer
+                .read_accel()
+            )
+            imu = {}
+
+            with self.environment.contexts() as contexts:
+                contexts.miscellaneous_left_wheel_accelerations = [
+                    left_accel.x,
+                    left_accel.y,
+                    left_accel.z,
+                ]
+                contexts.miscellaneous_right_wheel_accelerations = [
+                    right_accel.x,
+                    right_accel.y,
+                    right_accel.z,
+                ]
+                imu = deepcopy(contexts.miscellaneous_orientation)
+
+            print(f'{datetime.now().time()}, '
+                  f'{left_accel.x}, {left_accel.y}, {left_accel.z}, '
+                  f'{right_accel.x}, {right_accel.y}, {right_accel.z}, '
+                  f'{imu.get('x', 0.0)}, {imu.get('y', 0.0)}, '
+                  f'{imu.get('z', 0.0)}'
+            )
+            print(f'{datetime.now().time()}, '
+                  f'{left_accel.x}, {left_accel.y}, {left_accel.z}, '
+                  f'{right_accel.x}, {right_accel.y}, {right_accel.z}, '
+                  f'{imu.get('x', -100)}, {imu.get('y', -100)}, '
+                  f'{imu.get('z', -100)}',
+                  file=log_file
+            )

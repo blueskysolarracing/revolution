@@ -24,6 +24,7 @@ from revolution.battery_management_system import (
     BatteryFlag,
     BatteryManagementSystem,
 )
+from revolution.LIS2HH12 import LIS2HH12
 from revolution.utilities import Direction, PRBS
 
 _logger = getLogger(__name__)
@@ -75,6 +76,9 @@ class Contexts:
     miscellaneous_orientation: dict[str, float]
     miscellaneous_latitude: float
     miscellaneous_longitude: float
+
+    miscellaneous_left_wheel_accelerations: list[float]
+    miscellaneous_right_wheel_accelerations: list[float]
 
     # Motor
 
@@ -230,6 +234,9 @@ class Peripheries:
     miscellaneous_orientation_imu_bno055: BNO055
     miscellaneous_position_gps: GPS
 
+    miscellaneous_left_wheel_accelerometer: LIS2HH12
+    miscellaneous_right_wheel_accelerometer: LIS2HH12
+
     # Motor
 
     motor_wavesculptor22: WaveSculptor22
@@ -283,6 +290,9 @@ class Settings:
     miscellaneous_light_flash_timeout: float
     miscellaneous_orientation_timeout: float
     miscellaneous_position_timeout: float
+
+    miscellaneous_front_wheels_timeout: float
+    miscellaneous_acceleration_log_filepath: str
 
     # Motor
 

@@ -16,6 +16,7 @@ __all__ = (
     'Header',
     'HVBusVoltageAndCurrentInformation',
     'Information',
+    'LIS2HH12',
     'LVBusVoltageAndCurrentInformation',
     'main',
     'Message',
@@ -64,6 +65,7 @@ from revolution.environment import (
     Peripheries,
     Settings,
 )
+from revolution.LIS2HH12 import LIS2HH12
 from revolution.main import main, parse_args
 from revolution.miscellaneous import Miscellaneous
 from revolution.motor import Motor

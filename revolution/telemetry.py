@@ -66,6 +66,9 @@ class Telemetry(Application):
         miscellaneous_latitude: float
         miscellaneous_longitude: float
 
+        miscellaneous_left_wheel_accelerations: list[float]
+        miscellaneous_right_wheel_accelerations: list[float]
+
         def serialize(self) -> bytes:
             return dump(self)
 
