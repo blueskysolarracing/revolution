@@ -167,7 +167,7 @@ class SteeringWheel:
         replicate = 19
         raw = []
         for i in range(replicate):
-            raw += self.spi.transfer([0x00] * replicate)
+            raw += self.spi.transfer([0x00, 0x00])
         
         flipped = [((~x) & 0xFF) for x in raw]
         first_bytes = flipped[0::2]
