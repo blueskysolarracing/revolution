@@ -346,7 +346,8 @@ class Miscellaneous(Application):
         )
         log_file = open(f'{filepath}{datetime.now().date()}_log.csv', "w")
         print(
-            'time, left.x, left.y, left.z, right.x, right.y, right.z',
+            'time, left.x, left.y, left.z, right.x, right.y, right.z'
+            'imu.x, imu.y, imu.z',
             file=log_file,
         )
 
@@ -398,9 +399,11 @@ class Miscellaneous(Application):
                     right_accel.y,
                     right_accel.z,
                 ]
+                imu = contexts.miscellaneous_orientation
 
             print(f'{datetime.now().time()}, '
                   f'{left_accel.x}, {left_accel.y}, {left_accel.z}, '
-                  f'{right_accel.x}, {right_accel.y}, {right_accel.z}',
+                  f'{right_accel.x}, {right_accel.y}, {right_accel.z}'
+                  f'{imu['x']}, {imu['y']}, {imu['z']}',
                   file=log_file
             )
