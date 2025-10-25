@@ -85,8 +85,7 @@ class Driver(Application):
         self._driver_worker.join()
 
     def _driver(self) -> None:
-        previous_lookup = defaultdict[PRBS, bool](bool)
-        
+        previous_lookup: defaultdict[PRBS, bool] = defaultdict(bool)
 
         while (
                 not self._stoppage.wait(
@@ -95,11 +94,13 @@ class Driver(Application):
         ):
             steering_wheel = self.environment.peripheries.driver_steering_wheel
             raw_bytes = steering_wheel.get_input()
-            lookup = defaultdict[PRBS, bool]
+            lookup: dict[PRBS, bool] = {}
 
-            for byte in range(2):
+            for _byte in range(2):
                 for bit in range(8):
-                    lookup[(byte, bit)] = raw_bytes[byte] & (1 << bit)
+                    lookup[(_byte, bit)] = bool(
+                        raw_bytes[_byte] & (1 << bit)
+                    )
 
             brake_status_input = (
                 self
@@ -191,4 +192,4 @@ class Driver(Application):
 
                     setattr(contexts, value, input_)
 
-            previous_lookup = lookup
+            previous_lookup.update(lookup)
