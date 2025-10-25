@@ -28,7 +28,7 @@ class Miscellaneous(Application):
 
         self._light_worker.start()
         self._indicator_light_worker.start()
-        self._orientation_worker.start()
+        # self._orientation_worker.start()
         self._position_worker.start()
         self._front_wheels_worker.start()
 
