@@ -10,8 +10,6 @@ from iclib.adc78h89 import ADC78H89, InputChannel
 from iclib.bno055 import BNO055
 from iclib.ina229 import INA229
 from iclib.lis2ds12 import LIS2DS12
-from iclib.mcp23s17 import MCP23S17, PortRegisterBit as PRB
-from iclib.nhd_c12864a1z_fsw_fbw_htt import NHDC12864A1ZFSWFBWHTT
 from iclib.tmag5273 import TMAG5273
 from iclib.wavesculptor22 import WaveSculptor22
 from json import load
@@ -28,12 +26,14 @@ from revolution import (
     Direction,
     Display,
     Driver,
+    LIS2HH12,
     Miscellaneous,
     Motor,
     Peripheries,
     Power,
     PRBS,
     Settings,
+    SteeringWheel,
     Telemetry,
 )
 
@@ -138,39 +138,33 @@ CONTEXTS: Contexts = Contexts(
 
 CAN_BUS: BusABC = MagicMock()
 
-NHD_C12864A1Z_FSW_FBW_HTT: NHDC12864A1ZFSWFBWHTT = MagicMock()
-
-STEERING_WHEEL_MCP23S17: MCP23S17 = MagicMock(
-    read_register=lambda *_: [0xFF],
-)
-
-SHIFT_SWITCH_PRB: PRB = MagicMock()
+STEERING_WHEEL: SteeringWheel = MagicMock()
 
 PEDALS_ADC78H89: ADC78H89 = MagicMock(
     sample_all=lambda *_: defaultdict(float),
 )
 
-UNUSED_SWITCH_PRBS: PRBS = PRB.GPIOA_GP1, False
+UNUSED_SWITCH_PRBS: PRBS = 2, 0
 
-LEFT_INDICATOR_LIGHT_SWITCH_PRBS: PRBS = PRB.GPIOB_GP0
-RIGHT_INDICATOR_LIGHT_SWITCH_PRBS: PRBS = PRB.GPIOA_GP7
-HAZARD_LIGHTS_SWITCH_PRBS: PRBS = PRB.GPIOB_GP7, True
-DAYTIME_RUNNING_LIGHTS_SWITCH_PRBS: PRBS = PRB.GPIOA_GP1, True
-HORN_SWITCH_PRBS: PRBS = PRB.GPIOB_GP7, False
-BACKUP_CAMERA_CONTROL_SWITCH_PRBS: PRBS = PRB.GPIOA_GP0, True
+LEFT_INDICATOR_LIGHT_SWITCH_PRBS: PRBS = 0, 2
+RIGHT_INDICATOR_LIGHT_SWITCH_PRBS: PRBS = 0, 3
+HAZARD_LIGHTS_SWITCH_PRBS: PRBS = 2, 0
+DAYTIME_RUNNING_LIGHTS_SWITCH_PRBS: PRBS = 0, 5
+HORN_SWITCH_PRBS: PRBS = 0, 4
+BACKUP_CAMERA_CONTROL_SWITCH_PRBS: PRBS = 2, 0
 BRAKE_SWITCH_GPIO: GPIO = MagicMock(read=lambda *_: False)
 
-CRUISE_CONTROL_ROTARY_ENCODER_A_PRBS: PRBS = PRB.GPIOA_GP3
-CRUISE_CONTROL_ROTARY_ENCODER_B_PRBS: PRBS = PRB.GPIOA_GP4
-DIRECTION_SWITCH_PRBS: PRBS = PRB.GPIOB_GP4
-REGENERATION_SWITCH_PRBS: PRBS = PRB.GPIOA_GP1, False
-VARIABLE_FIELD_MAGNET_UP_SWITCH_PRBS: PRBS = PRB.GPIOB_GP2
-VARIABLE_FIELD_MAGNET_DOWN_SWITCH_PRBS: PRBS = PRB.GPIOB_GP3
-CRUISE_CONTROL_SWITCH_PRBS: PRBS = PRB.GPIOA_GP5
+CRUISE_CONTROL_ROTARY_ENCODER_A_PRBS: PRBS = 2, 0
+CRUISE_CONTROL_ROTARY_ENCODER_B_PRBS: PRBS = 2, 0
+DIRECTION_SWITCH_PRBS: PRBS = 1, 1
+REGENERATION_SWITCH_PRBS: PRBS = 0, 1
+VARIABLE_FIELD_MAGNET_UP_SWITCH_PRBS: PRBS = 1, 3
+VARIABLE_FIELD_MAGNET_DOWN_SWITCH_PRBS: PRBS = 1, 2
+CRUISE_CONTROL_SWITCH_PRBS: PRBS = 0, 0
 ACCELERATION_INPUT_INPUT_CHANNEL: InputChannel = InputChannel.AIN2
 
-ARRAY_RELAY_SWITCH_PRBS: PRBS = PRB.GPIOA_GP7
-BATTERY_RELAY_SWITCH_PRBS: PRBS = PRB.GPIOA_GP6
+ARRAY_RELAY_SWITCH_PRBS: PRBS = 0, 6
+BATTERY_RELAY_SWITCH_PRBS: PRBS = 0, 7
 
 LEFT_INDICATOR_LIGHT_PWM: PWM = MagicMock()
 RIGHT_INDICATOR_LIGHT_PWM: PWM = MagicMock()
@@ -186,8 +180,8 @@ ORIENTATION_IMU_BNO055: BNO055 = MagicMock(
 POSITION_GPS: GPS = MagicMock()
 LEFT_WHEEL_HALL_EFFECT: TMAG5273 = MagicMock()
 RIGHT_WHEEL_HALL_EFFECT: TMAG5273 = MagicMock()
-LEFT_WHEEL_ACCELEROMETER: LIS2DS12 = MagicMock()
-RIGHT_WHEEL_ACCELEROMETER: LIS2DS12 = MagicMock()
+LEFT_WHEEL_ACCELEROMETER: LIS2HH12 = MagicMock()
+RIGHT_WHEEL_ACCELEROMETER: LIS2HH12 = MagicMock()
 
 ARRAY_RELAY_LOW_SIDE_GPIO: GPIO = MagicMock()
 ARRAY_RELAY_HIGH_SIDE_GPIO: GPIO = MagicMock()
@@ -211,8 +205,6 @@ PSM_MOTOR_INA229: INA229 = MagicMock()
 PSM_BATTERY_INA229: INA229 = MagicMock()
 PSM_ARRAY_INA229: INA229 = MagicMock()
 
-STEERING_WHEEL_LED_GPIO: GPIO = MagicMock()
-
 PERIPHERIES: Peripheries = Peripheries(
     # General
 
@@ -222,13 +214,9 @@ PERIPHERIES: Peripheries = Peripheries(
 
     # Display
 
-    display_nhd_c12864a1z_fsw_fbw_htt=NHD_C12864A1Z_FSW_FBW_HTT,
-
     # Driver
 
-    driver_steering_wheel_mcp23s17=STEERING_WHEEL_MCP23S17,
-
-    driver_shift_switch_prb=SHIFT_SWITCH_PRB,
+    driver_steering_wheel=STEERING_WHEEL,
 
     driver_pedals_adc78h89=PEDALS_ADC78H89,
 
@@ -314,7 +302,6 @@ PERIPHERIES: Peripheries = Peripheries(
     power_psm_motor_ina229=PSM_MOTOR_INA229,
     power_psm_battery_ina229=PSM_BATTERY_INA229,
     power_psm_array_ina229=PSM_ARRAY_INA229,
-    power_steering_wheel_led_gpio=STEERING_WHEEL_LED_GPIO,
 
     # Telemetry
 
@@ -346,7 +333,7 @@ SETTINGS: Settings = Settings(
     miscellaneous_light_flash_timeout=0.5,
     miscellaneous_orientation_timeout=0.1,
     miscellaneous_position_timeout=1,
-    miscellaneous_front_wheels_timeout=1,
+    miscellaneous_front_wheels_timeout=0.02,
 
     # Motor
 

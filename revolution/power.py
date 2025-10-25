@@ -406,7 +406,7 @@ class Power(Application):
             else:
                 status = False
 
-            self.environment.peripheries.power_steering_wheel_led_gpio.write(
+            self.environment.peripheries.driver_steering_wheel.set_fault_light(
                 status,
             )
 

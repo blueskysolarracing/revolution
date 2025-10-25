@@ -15,8 +15,6 @@ from iclib.adc78h89 import ADC78H89, InputChannel
 from iclib.bno055 import BNO055
 from iclib.ina229 import INA229
 from iclib.lis2ds12 import LIS2DS12
-from iclib.mcp23s17 import MCP23S17, PortRegisterBit as PRB
-from iclib.nhd_c12864a1z_fsw_fbw_htt import NHDC12864A1ZFSWFBWHTT
 from iclib.tmag5273 import TMAG5273
 from iclib.wavesculptor22 import WaveSculptor22
 from periphery import GPIO, PWM
@@ -26,6 +24,8 @@ from revolution.battery_management_system import (
     BatteryFlag,
     BatteryManagementSystem,
 )
+from revolution.LIS2HH12 import LIS2HH12
+from revolution.steering_wheel import SteeringWheel
 from revolution.utilities import Direction, PRBS
 
 _logger = getLogger(__name__)
@@ -196,14 +196,9 @@ class Peripheries:
 
     # Display
 
-    display_nhd_c12864a1z_fsw_fbw_htt: NHDC12864A1ZFSWFBWHTT
-    """The NHD display."""
-
     # Driver
 
-    driver_steering_wheel_mcp23s17: MCP23S17
-
-    driver_shift_switch_prb: PRB
+    driver_steering_wheel: SteeringWheel
 
     driver_pedals_adc78h89: ADC78H89
 
@@ -240,8 +235,8 @@ class Peripheries:
     miscellaneous_position_gps: GPS
     miscellaneous_left_wheel_hall_effect: TMAG5273
     miscellaneous_right_wheel_hall_effect: TMAG5273
-    miscellaneous_left_wheel_accelerometer: LIS2DS12
-    miscellaneous_right_wheel_accelerometer: LIS2DS12
+    miscellaneous_left_wheel_accelerometer: LIS2HH12
+    miscellaneous_right_wheel_accelerometer: LIS2HH12
 
     # Motor
 
@@ -264,7 +259,6 @@ class Peripheries:
     power_psm_motor_ina229: INA229
     power_psm_battery_ina229: INA229
     power_psm_array_ina229: INA229
-    power_steering_wheel_led_gpio: GPIO
 
     # Telemetry
 

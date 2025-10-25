@@ -3,8 +3,6 @@ from dataclasses import dataclass
 from logging import getLogger
 from typing import ClassVar
 
-from iclib.mcp23s17 import Port, PortRegister as PR, Register
-
 from revolution.application import Application
 from revolution.environment import Endpoint
 from revolution.utilities import PRBS
@@ -17,14 +15,6 @@ _logger = getLogger(__name__)
 class Driver(Application):
     endpoint: ClassVar[Endpoint] = Endpoint.DRIVER
     MOMENTARY_SWITCHES: ClassVar[dict[str, str]] = {
-        'driver_general_unused_switch_prbs': 'general_unused_status_input',
-
-        'driver_miscellaneous_left_indicator_light_switch_prbs': (
-            'miscellaneous_left_indicator_light_status_input'
-        ),
-        'driver_miscellaneous_right_indicator_light_switch_prbs': (
-            'miscellaneous_right_indicator_light_status_input'
-        ),
         'driver_miscellaneous_horn_switch_prbs': (
             'miscellaneous_horn_status_input'
         ),
@@ -42,15 +32,21 @@ class Driver(Application):
         ),
     }
     TOGGLING_SWITCHES: ClassVar[dict[str, str]] = {
-        'driver_miscellaneous_hazard_lights_switch_prbs': (
-            'miscellaneous_hazard_lights_status_input'
+        'driver_miscellaneous_left_indicator_light_switch_prbs': (
+            'miscellaneous_left_indicator_light_status_input'
         ),
+        'driver_miscellaneous_right_indicator_light_switch_prbs': (
+            'miscellaneous_right_indicator_light_status_input'
+        ),
+        # 'driver_miscellaneous_hazard_lights_switch_prbs': (
+        #     'miscellaneous_hazard_lights_status_input'
+        # ),
         'driver_miscellaneous_daytime_running_lights_switch_prbs': (
             'miscellaneous_daytime_running_lights_status_input'
         ),
-        'driver_miscellaneous_backup_camera_control_switch_prbs': (
-            'miscellaneous_backup_camera_control_status_input'
-        ),
+        # 'driver_miscellaneous_backup_camera_control_switch_prbs': (
+        #     'miscellaneous_backup_camera_control_status_input'
+        # ),
         'driver_motor_cruise_control_switch_prbs': (
             'motor_cruise_control_status_input'
         ),
@@ -90,45 +86,20 @@ class Driver(Application):
 
     def _driver(self) -> None:
         previous_lookup = defaultdict[PRBS, bool](bool)
+        
 
         while (
                 not self._stoppage.wait(
                     self.environment.settings.driver_timeout,
                 )
         ):
-            gpioa_byte = (
-                self
-                .environment
-                .peripheries
-                .driver_steering_wheel_mcp23s17
-                .read_register(*PR.GPIOA)[0]
-            )
-            gpiob_byte = (
-                self
-                .environment
-                .peripheries
-                .driver_steering_wheel_mcp23s17
-                .read_register(*PR.GPIOB)[0]
-            )
-            bytes_ = {}
+            steering_wheel = self.environment.peripheries.driver_steering_wheel
+            raw_bytes = steering_wheel.get_input()
+            lookup = defaultdict[PRBS, bool]
 
-            for i in range(8):
-                bytes_[Port.PORTA, Register.GPIO, i] = (
-                    not bool(gpioa_byte & (1 << i))
-                )
-                bytes_[Port.PORTB, Register.GPIO, i] = (
-                    not bool(gpiob_byte & (1 << i))
-                )
-
-            shift = bytes_.get(
-                self.environment.peripheries.driver_shift_switch_prb,
-                False,
-            )
-            lookup = defaultdict[PRBS, bool](bool)
-
-            for prb, bit in bytes_.items():
-                lookup[prb] = bit
-                lookup[prb, shift] = bit
+            for byte in range(2):
+                for bit in range(8):
+                    lookup[(byte, bit)] = raw_bytes[byte] & (1 << bit)
 
             brake_status_input = (
                 self

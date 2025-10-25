@@ -10,12 +10,14 @@ __all__ = (
     'Debugger',
     'Direction',
     'Display',
+    'DisplayItem',
     'Driver',
     'Endpoint',
     'Environment',
     'Header',
     'HVBusVoltageAndCurrentInformation',
     'Information',
+    'LIS2HH12',
     'LVBusVoltageAndCurrentInformation',
     'main',
     'Message',
@@ -29,6 +31,7 @@ __all__ = (
     'PRBS',
     'Settings',
     'StatusesInformation',
+    'SteeringWheel'
     'Telemetry',
     'ThermistorTemperaturesInformation',
     'UndervoltageAndTemperatureFlagsInformation',
@@ -64,10 +67,12 @@ from revolution.environment import (
     Peripheries,
     Settings,
 )
+from revolution.LIS2HH12 import LIS2HH12
 from revolution.main import main, parse_args
 from revolution.miscellaneous import Miscellaneous
 from revolution.motor import Motor
 from revolution.power import Power
+from revolution.steering_wheel import DisplayItem, SteeringWheel
 from revolution.telemetry import Telemetry
 from revolution.utilities import Direction, PRBS
 from revolution.worker import Worker

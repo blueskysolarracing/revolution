@@ -195,6 +195,24 @@ class Miscellaneous(Application):
                 ),
             )
 
+            steering_wheel = self.environment.peripheries.driver_steering_wheel
+            steering_wheel.set_indicator_light(
+                (
+                    (
+                        left_indicator_light_status_input
+                        or hazard_lights_status_input
+                    )
+                    and flash_status
+                ),
+                (
+                    (
+                        right_indicator_light_status_input
+                        or hazard_lights_status_input
+                    )
+                    and flash_status
+                ),
+            )
+
             previous_left_indicator_light_status_input = (
                 left_indicator_light_status_input
             )
@@ -318,6 +336,20 @@ class Miscellaneous(Application):
                     ),
                 )
         ):
+            left_accel = (
+                self
+                .environment
+                .peripheries
+                .miscellaneous_left_wheel_accelerometer
+                .read_accel()
+            )
+            right_accel = (
+                self
+                .environment
+                .peripheries
+                .miscellaneous_right_wheel_accelerometer
+                .read_accel()
+            )
             with self.environment.contexts() as contexts:
                 # contexts.miscellaneous_left_wheel_velocity = hz2kph(
                 #     left_hall_effect_frequency_monitor.frequency
@@ -332,27 +364,13 @@ class Miscellaneous(Application):
                 #     right_hall_effect_frequency_monitor.reading
                 # )
 
-                # left_accel = (
-                #     self
-                #     .environment
-                #     .peripheries
-                #     .miscellaneous_left_wheel_accelerometer
-                #     .read_accel()
-                # )
-                # right_accel = (
-                #     self
-                #     .environment
-                #     .peripheries
-                #     .miscellaneous_right_wheel_accelerometer
-                #     .read_accel()
-                # )
-                # contexts.miscellaneous_left_wheel_accelerations = [
-                #     left_accel.x,
-                #     left_accel.y,
-                #     left_accel.z,
-                # ]
-                # contexts.miscellaneous_right_wheel_accelerations = [
-                #     right_accel.x,
-                #     right_accel.y,
-                #     right_accel.z,
-                # ]
+                contexts.miscellaneous_left_wheel_accelerations = [
+                    left_accel.x,
+                    left_accel.y,
+                    left_accel.z,
+                ]
+                contexts.miscellaneous_right_wheel_accelerations = [
+                    right_accel.x,
+                    right_accel.y,
+                    right_accel.z,
+                ]

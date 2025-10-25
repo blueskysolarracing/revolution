@@ -11,8 +11,6 @@ from iclib.adc78h89 import ADC78H89, InputChannel
 from iclib.bno055 import BNO055
 from iclib.ina229 import INA229
 from iclib.lis2ds12 import LIS2DS12, OutputDataRate, FullScale
-from iclib.mcp23s17 import MCP23S17, Port, PortRegisterBit as PRB, Register
-from iclib.nhd_c12864a1z_fsw_fbw_htt import NHDC12864A1ZFSWFBWHTT
 from iclib.tmag5273 import (
     TMAG5273,
     Variant as TMAG5273Variant,
@@ -37,12 +35,14 @@ from revolution import (
     Direction,
     Display,
     Driver,
+    LIS2HH12,
     Miscellaneous,
     Motor,
     Peripheries,
     Power,
     PRBS,
     Settings,
+    SteeringWheel,
     Telemetry,
 )
 
@@ -50,7 +50,7 @@ APPLICATION_TYPES: tuple[type[Application], ...] = (
     Debugger,
     Display,
     Driver,
-    # Miscellaneous,
+    Miscellaneous,
     Motor,
     Power,
     Telemetry,
@@ -163,13 +163,10 @@ CAN_BUS: BusABC = ThreadSafeBus(  # type: ignore[no-untyped-call]
     interface='socketcan',
 )
 
-STEERING_WHEEL_SPI: SPI = SPI('/dev/spidev0.0', 0b11, 4e5)
+STEERING_WHEEL_SPI: SPI = SPI('/dev/spidev0.0', 0b00, 4e5)
 STEERING_WHEEL_SPI_LOCK: Lock = Lock()
 
-STEERING_WHEEL_MCP23S17: MCP23S17 = MCP23S17(
-    MagicMock(),
-    MagicMock(),
-    MagicMock(),
+STEERING_WHEEL: SteeringWheel = SteeringWheel(
     cast(
         SPI,
         LockedSPI(
@@ -183,53 +180,9 @@ STEERING_WHEEL_MCP23S17: MCP23S17 = MCP23S17(
             STEERING_WHEEL_SPI_LOCK,
         ),
     ),
+    GPIO('/dev/gpiochip3', 6, 'in'),
+    GPIO('/dev/gpiochip1', 10, 'out'),
 )
-
-STEERING_WHEEL_MCP23S17.write_register(
-    Port.PORTA,
-    Register.IODIR,
-    [0b11111111],
-)
-STEERING_WHEEL_MCP23S17.write_register(
-    Port.PORTB,
-    Register.IODIR,
-    [0b00111111],
-)
-
-NHD_C12864A1Z_FSW_FBW_HTT: NHDC12864A1ZFSWFBWHTT = NHDC12864A1ZFSWFBWHTT(
-    cast(
-        SPI,
-        LockedSPI(
-            cast(
-                SPI,
-                ManualCSSPI(
-                    GPIO('/dev/gpiochip3', 6, 'out', inverted=True),
-                    STEERING_WHEEL_SPI,
-                ),
-            ),
-            STEERING_WHEEL_SPI_LOCK,
-        ),
-    ),
-    cast(
-        GPIO,
-        STEERING_WHEEL_MCP23S17.get_line(
-            Port.PORTB,
-            7,
-            direction='out',
-        ),
-    ),
-    cast(
-        GPIO,
-        STEERING_WHEEL_MCP23S17.get_line(
-            Port.PORTB,
-            6,
-            direction='out',
-            inverted=True,
-        ),
-    ),
-)
-
-SHIFT_SWITCH_PRB: PRB = PRB.GPIOB_GP5
 
 PEDALS_SPI: SPI = cast(SPI, LockedSPI(SPI('/dev/spidev2.0', 0b11, 1e6)))
 PEDALS_ADC78H89: ADC78H89 = ADC78H89(
@@ -243,27 +196,27 @@ PEDALS_ADC78H89: ADC78H89 = ADC78H89(
     3.3,
 )
 
-UNUSED_SWITCH_PRBS: PRBS = PRB.GPIOA_GP2, False
+UNUSED_SWITCH_PRBS: PRBS = 2, 0
 
-LEFT_INDICATOR_LIGHT_SWITCH_PRBS: PRBS = PRB.GPIOB_GP1
-RIGHT_INDICATOR_LIGHT_SWITCH_PRBS: PRBS = PRB.GPIOB_GP0
-HAZARD_LIGHTS_SWITCH_PRBS: PRBS = PRB.GPIOA_GP0, True
-DAYTIME_RUNNING_LIGHTS_SWITCH_PRBS: PRBS = PRB.GPIOA_GP2, True
-HORN_SWITCH_PRBS: PRBS = PRB.GPIOA_GP0, False
-BACKUP_CAMERA_CONTROL_SWITCH_PRBS: PRBS = PRB.GPIOA_GP1, True
+LEFT_INDICATOR_LIGHT_SWITCH_PRBS: PRBS = 0, 2
+RIGHT_INDICATOR_LIGHT_SWITCH_PRBS: PRBS = 0, 3
+HAZARD_LIGHTS_SWITCH_PRBS: PRBS = 2, 0
+DAYTIME_RUNNING_LIGHTS_SWITCH_PRBS: PRBS = 0, 5
+HORN_SWITCH_PRBS: PRBS = 0, 4
+BACKUP_CAMERA_CONTROL_SWITCH_PRBS: PRBS = 2, 0
 BRAKE_SWITCH_GPIO: GPIO = GPIO('/dev/gpiochip6', 20, 'in')
 
-CRUISE_CONTROL_ROTARY_ENCODER_A_PRBS: PRBS = PRB.GPIOA_GP3
-CRUISE_CONTROL_ROTARY_ENCODER_B_PRBS: PRBS = PRB.GPIOA_GP4
-DIRECTION_SWITCH_PRBS: PRBS = PRB.GPIOB_GP4
-REGENERATION_SWITCH_PRBS: PRBS = PRB.GPIOA_GP1, False
-VARIABLE_FIELD_MAGNET_UP_SWITCH_PRBS: PRBS = PRB.GPIOB_GP2
-VARIABLE_FIELD_MAGNET_DOWN_SWITCH_PRBS: PRBS = PRB.GPIOB_GP3
-CRUISE_CONTROL_SWITCH_PRBS: PRBS = PRB.GPIOA_GP5
+CRUISE_CONTROL_ROTARY_ENCODER_A_PRBS: PRBS = 2, 0
+CRUISE_CONTROL_ROTARY_ENCODER_B_PRBS: PRBS = 2, 0
+DIRECTION_SWITCH_PRBS: PRBS = 1, 1
+REGENERATION_SWITCH_PRBS: PRBS = 0, 1
+VARIABLE_FIELD_MAGNET_UP_SWITCH_PRBS: PRBS = 1, 3
+VARIABLE_FIELD_MAGNET_DOWN_SWITCH_PRBS: PRBS = 1, 2
+CRUISE_CONTROL_SWITCH_PRBS: PRBS = 0, 0
 ACCELERATION_INPUT_INPUT_CHANNEL: InputChannel = InputChannel.AIN2
 
-ARRAY_RELAY_SWITCH_PRBS: PRBS = PRB.GPIOA_GP7
-BATTERY_RELAY_SWITCH_PRBS: PRBS = PRB.GPIOA_GP6
+ARRAY_RELAY_SWITCH_PRBS: PRBS = 0, 6
+BATTERY_RELAY_SWITCH_PRBS: PRBS = 0, 7
 
 LEFT_INDICATOR_LIGHT_PWM: PWM = PWM(3, 0)
 LEFT_INDICATOR_LIGHT_PWM.period = 0.001
@@ -283,7 +236,6 @@ BRAKE_LIGHTS_PWM.duty_cycle = 0.10
 
 BACKUP_CAMERA_CONTROL_SWITCH_GPIO: GPIO = GPIO('/dev/gpiochip6', 21, 'out')
 
-"""
 ORIENTATION_IMU_BNO055_I2C: I2C = I2C('/dev/apalis-i2c3')
 ORIENTATION_IMU_BNO055_IMU_RESET_GPIO: GPIO = MagicMock(
     direction='out',
@@ -293,7 +245,6 @@ ORIENTATION_IMU_BNO055: BNO055 = BNO055(
     ORIENTATION_IMU_BNO055_I2C,
     ORIENTATION_IMU_BNO055_IMU_RESET_GPIO,
 )
-"""
 
 POSITION_GPS_SERIAL: Serial = Serial('/dev/ttyLP0', timeout=10)
 POSITION_GPS: GPS = GPS(POSITION_GPS_SERIAL, debug=False)
@@ -301,11 +252,13 @@ POSITION_GPS: GPS = GPS(POSITION_GPS_SERIAL, debug=False)
 POSITION_GPS.send_command(b'PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0')
 POSITION_GPS.send_command(b'PMTK220,1000')
 
-"""
+
 FRONT_WHEELS_I2C_LOCK: Lock = Lock()
 FRONT_WHEELS_I2C: I2C = cast(
     I2C, LockedI2C(I2C('/dev/apalis-i2c1'), FRONT_WHEELS_I2C_LOCK)
 )
+
+"""
 LEFT_WHEEL_HALL_EFFECT: TMAG5273 = TMAG5273(
     FRONT_WHEELS_I2C, TMAG5273Variant.B1
 )
@@ -321,25 +274,18 @@ RIGHT_WHEEL_HALL_EFFECT.crc_enable = TMAG5273Enable.ENABLE
 RIGHT_WHEEL_HALL_EFFECT.operating_mode = TMAG5273OperatingMode.CONTINUOUS
 RIGHT_WHEEL_HALL_EFFECT.magnetic_channel = TMAG5273MagneticChannel.X
 RIGHT_WHEEL_HALL_EFFECT.i2c_read_mode = TMAG5273I2CReadMode.SHORT_8BIT_DATA
+"""
 
-LEFT_WHEEL_ACCELEROMETER: LIS2DS12 = LIS2DS12(
+LEFT_WHEEL_ACCELEROMETER: LIS2HH12 = LIS2HH12(
     FRONT_WHEELS_I2C, 0x1E
 )
-LEFT_WHEEL_ACCELEROMETER.init(
-    odr=OutputDataRate.ODR_100_HZ_HR,  # High-resolution 100 Hz
-    fs=FullScale.FS_4G,  # +-4g range for wheel dynamics
-    discard_samples=4,
-)
+LEFT_WHEEL_ACCELEROMETER.config()
 
-RIGHT_WHEEL_ACCELEROMETER: LIS2DS12 = LIS2DS12(
+RIGHT_WHEEL_ACCELEROMETER: LIS2HH12 = LIS2HH12(
     FRONT_WHEELS_I2C, 0x1D
 )
-RIGHT_WHEEL_ACCELEROMETER.init(
-    odr=OutputDataRate.ODR_100_HZ_HR,  # High-resolution 100 Hz
-    fs=FullScale.FS_4G,  # +-4g range for wheel dynamics
-    discard_samples=4,
-)
-"""
+RIGHT_WHEEL_ACCELEROMETER.config()
+
 
 ARRAY_RELAY_LOW_SIDE_GPIO: GPIO = GPIO('/dev/gpiochip4', 1, 'out')
 ARRAY_RELAY_HIGH_SIDE_GPIO: GPIO = GPIO('/dev/gpiochip0', 13, 'out')
@@ -434,8 +380,6 @@ PSM_INA229: INA229 = INA229(
     0.002,
 )
 
-STEERING_WHEEL_LED_GPIO: GPIO = GPIO('/dev/gpiochip1', 10, 'out')
-
 PERIPHERIES: Peripheries = Peripheries(
     # General
 
@@ -445,13 +389,9 @@ PERIPHERIES: Peripheries = Peripheries(
 
     # Display
 
-    display_nhd_c12864a1z_fsw_fbw_htt=NHD_C12864A1Z_FSW_FBW_HTT,
-
     # Driver
 
-    driver_steering_wheel_mcp23s17=STEERING_WHEEL_MCP23S17,
-
-    driver_shift_switch_prb=SHIFT_SWITCH_PRB,
+    driver_steering_wheel=STEERING_WHEEL,
 
     driver_pedals_adc78h89=PEDALS_ADC78H89,
 
@@ -505,7 +445,7 @@ PERIPHERIES: Peripheries = Peripheries(
         BACKUP_CAMERA_CONTROL_SWITCH_GPIO
     ),
     miscellaneous_orientation_imu_bno055=None,
-    # miscellaneous_orientation_imu_bno055=ORIENTATION_IMU_BNO055,
+    miscellaneous_orientation_imu_bno055=ORIENTATION_IMU_BNO055,
     miscellaneous_position_gps=POSITION_GPS,
     miscellaneous_left_wheel_hall_effect=None,
     miscellaneous_right_wheel_hall_effect=None,
@@ -513,8 +453,8 @@ PERIPHERIES: Peripheries = Peripheries(
     miscellaneous_right_wheel_accelerometer=None,
     # miscellaneous_left_wheel_hall_effect=LEFT_WHEEL_HALL_EFFECT,
     # miscellaneous_right_wheel_hall_effect=RIGHT_WHEEL_HALL_EFFECT,
-    # miscellaneous_left_wheel_accelerometer=LEFT_WHEEL_ACCELEROMETER,
-    # miscellaneous_right_wheel_accelerometer=RIGHT_WHEEL_ACCELEROMETER,
+    miscellaneous_left_wheel_accelerometer=LEFT_WHEEL_ACCELEROMETER,
+    miscellaneous_right_wheel_accelerometer=RIGHT_WHEEL_ACCELEROMETER,
 
     # Motor
 
@@ -542,7 +482,6 @@ PERIPHERIES: Peripheries = Peripheries(
     power_psm_motor_ina229=PSM_MOTOR_INA229,
     power_psm_battery_ina229=PSM_BATTERY_INA229,
     power_psm_array_ina229=PSM_ARRAY_INA229,
-    power_steering_wheel_led_gpio=STEERING_WHEEL_LED_GPIO,
 
     # Telemetry
 
@@ -574,7 +513,7 @@ SETTINGS: Settings = Settings(
     miscellaneous_light_flash_timeout=0.5,
     miscellaneous_orientation_timeout=0.1,
     miscellaneous_position_timeout=1,
-    miscellaneous_front_wheels_timeout=1,
+    miscellaneous_front_wheels_timeout=0.02,
 
     # Motor
 
