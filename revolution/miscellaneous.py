@@ -345,7 +345,8 @@ class Miscellaneous(Application):
         filepath = (
             self.environment.settings.miscellaneous_acceleration_log_filepath
         )
-        log_file = open(f'{filepath}{datetime.now().date()}_log.csv', "w")
+        now = datetime.now()
+        log_file = open(f'{filepath}{now.date()}_{now.time()}_log.csv', "w")
         print(
             'time, left.x, left.y, left.z, right.x, right.y, right.z'
             'imu.x, imu.y, imu.z',
@@ -413,7 +414,7 @@ class Miscellaneous(Application):
             print(f'{datetime.now().time()}, '
                   f'{left_accel.x}, {left_accel.y}, {left_accel.z}, '
                   f'{right_accel.x}, {right_accel.y}, {right_accel.z}'
-                  f'{imu.get('x', 0.0)}, {imu.get('y', 0.0)}, '
-                  f'{imu.get('z', 0.0)}',
+                  f'{imu.get('x', -100)}, {imu.get('y', -100)}, '
+                  f'{imu.get('z', -100)}',
                   file=log_file
             )
