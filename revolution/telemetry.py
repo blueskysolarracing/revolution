@@ -65,8 +65,6 @@ class Telemetry(Application):
         miscellaneous_orientation: dict[str, float]
         miscellaneous_latitude: float
         miscellaneous_longitude: float
-        miscellaneous_left_wheel_velocity: float
-        miscellaneous_right_wheel_velocity: float
         miscellaneous_left_wheel_accelerations: list[float]
         miscellaneous_right_wheel_accelerations: list[float]
 
