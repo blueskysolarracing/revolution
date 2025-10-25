@@ -154,5 +154,19 @@ class SteeringWheel:
         self.spi.transfer(message)
 
     def get_input(self) -> list[int]:
-        raw = self.spi.transfer([0x00, 0x00])
-        return [~x for x in raw]
+
+        def bitwise_majority(values):
+            result = 0
+            for bit in range(8):
+                mask = 1 << bit
+                count = sum((v & mask) != 0 for v in values)
+                if count > (len(values) // 2):
+                    result |= mask
+            return result
+
+        replicate = 5
+        raw = self.spi.transfer([0x00] * replicate)
+        flipped = [((~x) & 0xFF) for x in raw]
+        first_bytes = flipped[0::2]
+        second_bytes = flipped[1::2]
+        return [bitwise_majority(first_bytes), bitwise_majority(second_bytes)]
