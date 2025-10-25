@@ -326,6 +326,20 @@ class Miscellaneous(Application):
         #     5
         # )
 
+        (
+            self
+            .environment
+            .peripheries
+            .miscellaneous_left_wheel_accelerometer.config()
+        )
+
+        (
+            self
+            .environment
+            .peripheries
+            .miscellaneous_right_wheel_accelerometer.config()
+        )
+
         while (
                 not self._stoppage.wait(
                     (
