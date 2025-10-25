@@ -11,6 +11,7 @@ from revolution.worker import Worker
 _logger = getLogger(__name__)
 
 
+
 @dataclass
 class Driver(Application):
     endpoint: ClassVar[Endpoint] = Endpoint.DRIVER
