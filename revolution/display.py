@@ -125,95 +125,95 @@ class Display(Application):
                     contexts.power_battery_flags_hold
                 )
 
-                # Motor
+            # Motor
 
-                if motor_regeneration_status_input:
-                    periphery.draw_word(DisplayItem.REGEN, 'REGEN')
-                else:
-                    periphery.draw_word(DisplayItem.REGEN, '')
-                
-                motor_velocity = clip_value(motor_velocity, -99, 180)
-                periphery.draw_word(DisplayItem.VELOCITY, f'{motor_velocity:3.0f}')
+            if motor_regeneration_status_input:
+                periphery.draw_word(DisplayItem.REGEN, 'REGEN')
+            else:
+                periphery.draw_word(DisplayItem.REGEN, '')
+            
+            motor_velocity = clip_value(motor_velocity, -99, 180)
+            periphery.draw_word(DisplayItem.VELOCITY, f'{motor_velocity:3.0f}')
 
-                motor_cruise_control_label = (
-                    'ON' if motor_cruise_control_status_input else 'OFF'
-                )
+            motor_cruise_control_label = (
+                'ON' if motor_cruise_control_status_input else 'OFF'
+            )
 
-                if motor_cruise_control_status_input:
-                    periphery.draw_word(
-                        DisplayItem.CRUISE_CTRL_VEL,
-                        (f'{motor_cruise_control_velocity:.0f}'),
-                    )
-                else:
-                    periphery.draw_word(DisplayItem.CRUISE_CTRL_VEL, "OFF")
-
-                motor_variable_field_magnet_step = (
-                    motor_variable_field_magnet_position / 32
-                )
-
+            if motor_cruise_control_status_input:
                 periphery.draw_word(
-                    DisplayItem.VFM_GEAR,
-                    (f'{motor_variable_field_magnet_step:1.0f}'),
+                    DisplayItem.CRUISE_CTRL_VEL,
+                    (f'{motor_cruise_control_velocity:.0f}'),
                 )
+            else:
+                periphery.draw_word(DisplayItem.CRUISE_CTRL_VEL, "OFF")
 
-                # Power
+            motor_variable_field_magnet_step = (
+                motor_variable_field_magnet_position / 32
+            )
 
-                power_battery_state_of_charge = clip_value(
-                    power_battery_state_of_charge, -0.01, 1.01
-                )
-                periphery.draw_word(
-                    DisplayItem.BAT_SOC,
-                    f'{power_battery_state_of_charge * 100:3.0f}',
-                )
+            periphery.draw_word(
+                DisplayItem.VFM_GEAR,
+                (f'{motor_variable_field_magnet_step:1.0f}'),
+            )
 
-                power_battery_min_cell_voltage = clip_value(
-                    power_battery_min_cell_voltage, 0.0, 9.9
-                )
-                power_battery_max_cell_voltage = clip_value(
-                    power_battery_max_cell_voltage, 0.0, 9.9
-                )
-                periphery.draw_word(
-                    DisplayItem.BMS_VOLT,
-                    (
-                        f'V {power_battery_min_cell_voltage:3.1f}'
-                        f' {power_battery_max_cell_voltage:3.1f}'
-                    ),
-                )
+            # Power
 
-                power_battery_min_thermistor_temperature = clip_value(
-                    power_battery_min_thermistor_temperature, 0, 99
-                )
-                power_battery_max_thermistor_temperature = clip_value(
-                    power_battery_max_thermistor_temperature, 0, 99
-                )
-                periphery.draw_word(
-                    DisplayItem.BMS_TEMP,
-                    f'T {power_battery_min_thermistor_temperature:2.0f}'
-                    f'  {power_battery_max_thermistor_temperature:2.0f}',
-                )
+            power_battery_state_of_charge = clip_value(
+                power_battery_state_of_charge, -0.01, 1.01
+            )
+            periphery.draw_word(
+                DisplayItem.BAT_SOC,
+                f'{power_battery_state_of_charge * 100:3.0f}',
+            )
 
-                power_battery_HV_current = clip_value(
-                    power_battery_HV_current, -50, 99
-                )
-                periphery.draw_word(
-                    DisplayItem.BMS_CURRENT,
-                    f'I {power_battery_HV_current:6.2f}',
-                )
+            power_battery_min_cell_voltage = clip_value(
+                power_battery_min_cell_voltage, 0.0, 9.9
+            )
+            power_battery_max_cell_voltage = clip_value(
+                power_battery_max_cell_voltage, 0.0, 9.9
+            )
+            periphery.draw_word(
+                DisplayItem.BMS_VOLT,
+                (
+                    f'V {power_battery_min_cell_voltage:3.1f}'
+                    f' {power_battery_max_cell_voltage:3.1f}'
+                ),
+            )
 
-                # if (power_battery_flags_hold & BatteryFlag.OVERVOLTAGE):
-                #     periphery.write_pixel(83, 18)
-                # if (power_battery_flags_hold & BatteryFlag.UNDERVOLTAGE):
-                #     periphery.write_pixel(83, 25)
-                # if (power_battery_flags_hold & BatteryFlag.OVERTEMPERATURE):
-                #     periphery.write_pixel(83, 28)
-                # if (power_battery_flags_hold & BatteryFlag.UNDERTEMPERATURE):
-                #     periphery.write_pixel(83, 35)
-                # if (power_battery_flags_hold & BatteryFlag.OVERCURRENT):
-                #     periphery.write_pixel(83, 38)
-                # if (power_battery_flags_hold & BatteryFlag.UNDERCURRENT):
-                #     periphery.write_pixel(83, 45)
+            power_battery_min_thermistor_temperature = clip_value(
+                power_battery_min_thermistor_temperature, 0, 99
+            )
+            power_battery_max_thermistor_temperature = clip_value(
+                power_battery_max_thermistor_temperature, 0, 99
+            )
+            periphery.draw_word(
+                DisplayItem.BMS_TEMP,
+                f'T {power_battery_min_thermistor_temperature:2.0f}'
+                f'  {power_battery_max_thermistor_temperature:2.0f}',
+            )
 
-                if power_battery_discharge_status:
-                    periphery.draw_word(DisplayItem.SAFE_STATE, 'FAULT')
-                else:
-                    periphery.draw_word(DisplayItem.SAFE_STATE, '')
+            power_battery_HV_current = clip_value(
+                power_battery_HV_current, -50, 99
+            )
+            periphery.draw_word(
+                DisplayItem.BMS_CURRENT,
+                f'I {power_battery_HV_current:6.2f}',
+            )
+
+            # if (power_battery_flags_hold & BatteryFlag.OVERVOLTAGE):
+            #     periphery.write_pixel(83, 18)
+            # if (power_battery_flags_hold & BatteryFlag.UNDERVOLTAGE):
+            #     periphery.write_pixel(83, 25)
+            # if (power_battery_flags_hold & BatteryFlag.OVERTEMPERATURE):
+            #     periphery.write_pixel(83, 28)
+            # if (power_battery_flags_hold & BatteryFlag.UNDERTEMPERATURE):
+            #     periphery.write_pixel(83, 35)
+            # if (power_battery_flags_hold & BatteryFlag.OVERCURRENT):
+            #     periphery.write_pixel(83, 38)
+            # if (power_battery_flags_hold & BatteryFlag.UNDERCURRENT):
+            #     periphery.write_pixel(83, 45)
+
+            if power_battery_discharge_status:
+                periphery.draw_word(DisplayItem.SAFE_STATE, 'FAULT')
+            else:
+                periphery.draw_word(DisplayItem.SAFE_STATE, '')

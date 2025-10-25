@@ -160,12 +160,15 @@ class SteeringWheel:
             for bit in range(8):
                 mask = 1 << bit
                 count = sum((v & mask) != 0 for v in values)
-                if count > (len(values) // 2):
+                if count > 15:
                     result |= mask
             return result
 
-        replicate = 5
-        raw = self.spi.transfer([0x00] * replicate)
+        replicate = 19
+        raw = []
+        for i in range(replicate):
+            raw += self.spi.transfer([0x00] * replicate)
+        
         flipped = [((~x) & 0xFF) for x in raw]
         first_bytes = flipped[0::2]
         second_bytes = flipped[1::2]
