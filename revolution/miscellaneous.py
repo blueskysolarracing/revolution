@@ -1,3 +1,4 @@
+from copy import deepcopy
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from logging import getLogger
@@ -375,6 +376,8 @@ class Miscellaneous(Application):
                 .miscellaneous_right_wheel_accelerometer
                 .read_accel()
             )
+            imu = {}
+
             with self.environment.contexts() as contexts:
                 # contexts.miscellaneous_left_wheel_velocity = hz2kph(
                 #     left_hall_effect_frequency_monitor.frequency
@@ -399,7 +402,7 @@ class Miscellaneous(Application):
                     right_accel.y,
                     right_accel.z,
                 ]
-                imu = contexts.miscellaneous_orientation
+                imu.deepcopy(contexts.miscellaneous_orientation)
 
             print(f'{datetime.now().time()}, '
                   f'{left_accel.x}, {left_accel.y}, {left_accel.z}, '
