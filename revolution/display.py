@@ -36,7 +36,15 @@ class Display(Application):
                 return value
 
         periphery = self.environment.peripheries.driver_steering_wheel
-        periphery.clear_screen()
+        # periphery.clear_screen()
+
+        # periphery.set_text_position(DisplayItem.BAT_HEADER, 15, 1)
+        # periphery.set_text_size(DisplayItem.BAT_HEADER, 4)
+        # periphery.draw_word(DisplayItem.BAT_HEADER, 'BATTERIES')
+
+        # periphery.set_text_position(DisplayItem.VEL_HEADER, 390, 1)
+        # periphery.set_text_size(DisplayItem.VEL_HEADER, 4)
+        # periphery.draw_word(DisplayItem.VEL_HEADER, 'DRIVER')
 
         periphery.set_text_position(DisplayItem.BAT_SOC, 15, 5)
         periphery.set_text_size(DisplayItem.BAT_SOC, 13)
@@ -63,7 +71,7 @@ class Display(Application):
         periphery.set_text_position(DisplayItem.CRUISE_CTRL, 300, 25)
         periphery.set_text_size(DisplayItem.CRUISE_CTRL, 4)
         periphery.draw_word(DisplayItem.CRUISE_CTRL, 'CRUISE')
-
+        
         periphery.set_text_position(DisplayItem.CRUISE_CTRL_VEL, 300, 30)
         periphery.set_text_size(DisplayItem.CRUISE_CTRL_VEL, 8)
 

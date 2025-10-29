@@ -94,6 +94,10 @@ class Driver(Application):
         ):
             steering_wheel = self.environment.peripheries.driver_steering_wheel
             raw_bytes = steering_wheel.get_input()
+            if not raw_bytes:
+                # print("FAILED")
+                continue
+            # print("SUCCEEDED")
             lookup: dict[PRBS, bool] = {}
 
             for _byte in range(2):

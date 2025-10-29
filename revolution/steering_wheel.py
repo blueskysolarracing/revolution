@@ -108,7 +108,7 @@ class SteeringWheel:
         ):
             return
 
-        message = [(1 << 7) | ((slot << 2) & 0x1F) | 0b00]
+        message = [(1 << 7) | ((slot & 0x1F) << 2) | 0b00]
         message += [(x >> 8) & 0xFF, x & 0xFF, (y >> 8) & 0xFF, y & 0xFF]
         self.spi.transfer(message)
 
@@ -116,23 +116,23 @@ class SteeringWheel:
         if (not (0 <= slot <= 31) or not (1 <= size <= 16)):
             return
 
-        message = [(1 << 7) | ((slot << 2) & 0x0F) | 0b01]
-        message.append(size)
+        message = [(1 << 7) | ((slot & 0x1F) << 2) | 0b01]
+        message.append(size - 1)
         self.spi.transfer(message)
 
     def set_text_mode(self, slot: DisplayItem, mode: int) -> None:
         if (not (0 <= slot <= 31) or not (0 <= mode <= 7)):
-            return                                                
-                                                               
-        message = [(1 << 7) | ((slot & 0x1F) << 2) | 0b10]             
-        message.append(mode)                                      
-        self.spi.transfer(message)
+            return
 
+        message = [(1 << 7) | ((slot & 0x1F) << 2) | 0b10]
+        message.append(mode)
+        self.spi.transfer(message)
+    
     def draw_word(self, slot: DisplayItem, text: str) -> None:
         if (not (0 <= slot <= 31)):
             return
 
-        message = [(1 << 7) | ((slot << 2) & 0x1F) | 0b11]
+        message = [(1 << 7) | ((slot & 0x1F) << 2) | 0b11]
         message.append(len(text))
         message += list(text.encode('utf-8'))
         self.spi.transfer(message)
@@ -154,22 +154,26 @@ class SteeringWheel:
         self.spi.transfer(message)
 
     def get_input(self) -> list[int]:
+        # TODO: Move this to the display code, it generates offset bytes that we have to clear like this
+        for i in range(2):
+            self.spi.transfer([0x00, 0x00, 0x00, 0x00])
+        raw = self.spi.transfer([0x00, 0x00, 0x00, 0x00])
 
-        def bitwise_majority(values):
-            result = 0
-            for bit in range(8):
-                mask = 1 << bit
-                count = sum((v & mask) != 0 for v in values)
-                if count > 15:
-                    result |= mask
-            return result
+        # We may have to reorder the bytes, check the start marker
+        if raw.count(0b10101010) != 1:
+            return []
 
-        replicate = 19
-        raw = []
-        for i in range(replicate):
-            raw += self.spi.transfer([0x00, 0x00])
+        # Check the termination marker
+        if raw.count(0b01010101) != 1:
+            return []
         
-        flipped = [((~x) & 0xFF) for x in raw]
-        first_bytes = flipped[0::2]
-        second_bytes = flipped[1::2]
-        return [bitwise_majority(first_bytes), bitwise_majority(second_bytes)]
+        # Reorder the bytes based on marker
+        shift = raw.index(0b10101010)
+        if shift != 0:
+            shift = 4 - shift
+        ordered_raw = raw[-shift:] + raw[:-shift]
+        # print(str(shift) + ", " + str(ordered_raw))
+        inputs = [(~raw[0]) & 0xFF, (~raw[1]) & 0xFF]
+        # print(str(shift) + " {0:8b}".format(inputs[0]) + ", " + "{0:8b}".format(inputs[1]))
+
+        return inputs
