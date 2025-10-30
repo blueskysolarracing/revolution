@@ -92,8 +92,59 @@ class Display(Application):
         periphery.set_text_size(DisplayItem.BMS_CURRENT, 5)
 
         timeout = 1 / self.environment.settings.display_frame_rate
+        
+        fullref_period = 20
+        fullref_counter = fullref_period
 
         while not self._stoppage.wait(timeout):
+            # Refresh the screen fully every so often in case of minor power loss
+            fullref_counter += 1
+            if (fullref_counter >= fullref_period):
+                periphery.set_text_position(DisplayItem.BAT_SOC, 15, 5)
+                periphery.set_text_size(DisplayItem.BAT_SOC, 13)
+
+                periphery.set_text_position(DisplayItem.BAT_SOC_UNIT, 15, 1)
+                periphery.set_text_size(DisplayItem.BAT_SOC_UNIT, 4)
+                periphery.draw_word(DisplayItem.BAT_SOC_UNIT, 'BATT SOC %')
+
+                periphery.set_text_position(DisplayItem.VELOCITY, 330, 5)
+                periphery.set_text_size(DisplayItem.VELOCITY, 13)
+
+                periphery.set_text_position(DisplayItem.VELOCITY_UNIT, 315, 1)
+                periphery.set_text_size(DisplayItem.VELOCITY_UNIT, 4)
+                periphery.draw_word(DisplayItem.VELOCITY_UNIT, 'SPEED KM/H')
+
+                periphery.set_text_position(DisplayItem.REGEN, 322, 17)
+                periphery.set_text_size(DisplayItem.REGEN, 8)
+                periphery.set_text_mode(DisplayItem.REGEN, 2)
+
+                periphery.set_text_position(DisplayItem.SAFE_STATE, 15, 17)
+                periphery.set_text_size(DisplayItem.SAFE_STATE, 8)
+                periphery.set_text_mode(DisplayItem.SAFE_STATE, 2)
+
+                periphery.set_text_position(DisplayItem.CRUISE_CTRL, 300, 25)
+                periphery.set_text_size(DisplayItem.CRUISE_CTRL, 4)
+                periphery.draw_word(DisplayItem.CRUISE_CTRL, 'CRUISE')
+
+                periphery.set_text_position(DisplayItem.CRUISE_CTRL_VEL, 300, 30)
+                periphery.set_text_size(DisplayItem.CRUISE_CTRL_VEL, 8)
+
+                periphery.set_text_position(DisplayItem.VFM, 435, 25)
+                periphery.set_text_size(DisplayItem.VFM, 4)
+                periphery.draw_word(DisplayItem.VFM, 'GEAR')
+
+                periphery.set_text_position(DisplayItem.VFM_GEAR, 456, 30)
+                periphery.set_text_size(DisplayItem.VFM_GEAR, 8)
+
+                periphery.set_text_position(DisplayItem.BMS_VOLT, 15, 25)
+                periphery.set_text_size(DisplayItem.BMS_VOLT, 5)
+
+                periphery.set_text_position(DisplayItem.BMS_TEMP, 15, 30)
+                periphery.set_text_size(DisplayItem.BMS_TEMP, 5)
+
+                periphery.set_text_position(DisplayItem.BMS_CURRENT, 15, 35)
+                periphery.set_text_size(DisplayItem.BMS_CURRENT, 5)
+
             with self.environment.contexts() as contexts:
                 motor_velocity = contexts.motor_velocity
                 motor_cruise_control_status_input = (

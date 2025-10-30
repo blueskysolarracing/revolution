@@ -145,7 +145,7 @@ class SteeringWheel:
         self.spi.transfer(message)
 
     def set_indicator_light(self, left: bool, right: bool) -> None:
-        status = left << 1 | right
+        status = (left*2) + right
         message = [0x02, status]
         self.spi.transfer(message)
 
