@@ -345,10 +345,10 @@ class Miscellaneous(Application):
         filepath = (
             self.environment.settings.miscellaneous_acceleration_log_filepath
         )
-        now = datetime.now()
-        log_file = open(f'{filepath}{now.date()}_{now.time()}_log.csv', "w")
+        now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        log_file = open(f'{filepath}{now}_log.csv', "w")
         print(
-            'time, left.x, left.y, left.z, right.x, right.y, right.z'
+            'time, left.x, left.y, left.z, right.x, right.y, right.z, '
             'imu.x, imu.y, imu.z',
             file=log_file,
         )
