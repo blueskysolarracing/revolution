@@ -510,7 +510,7 @@ SETTINGS: Settings = Settings(
     miscellaneous_orientation_timeout=0.1,
     miscellaneous_position_timeout=1,
     miscellaneous_front_wheels_timeout=0.02,
-    miscellaneous_acceleration_log_filepath='/usr/share/revolution_logs',
+    miscellaneous_acceleration_log_filepath='/usr/share/revolution_logs/',
 
     # Motor
 
