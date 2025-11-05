@@ -419,3 +419,4 @@ class Miscellaneous(Application):
                   f'{imu.get('z', -100)}',
                   file=log_file
             )
+            log_file.flush()
