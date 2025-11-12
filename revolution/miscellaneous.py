@@ -343,10 +343,10 @@ class Miscellaneous(Application):
         )
 
         filepath = (
-            self.environment.settings.miscellaneous_acceleration_log_filepath
+            self.environment.settings.general_log_filepath
         )
         now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        log_file = open(f'{filepath}{now}_log.csv', "w")
+        log_file = open(f'{filepath}{now}_front_wheel_log.csv', "w")
         print(
             'time, left.x, left.y, left.z, right.x, right.y, right.z, '
             'imu.x, imu.y, imu.z',
@@ -406,17 +406,12 @@ class Miscellaneous(Application):
                 ]
                 imu = deepcopy(contexts.miscellaneous_orientation)
 
-            # print(f'{datetime.now().time()}, '
-            #       f'{left_accel.x}, {left_accel.y}, {left_accel.z}, '
-            #       f'{right_accel.x}, {right_accel.y}, {right_accel.z}, '
-            #       f'{imu.get('x', 0.0)}, {imu.get('y', 0.0)}, '
-            #       f'{imu.get('z', 0.0)}'
-            # )
-            print(f'{datetime.now().time()}, '
-                  f'{left_accel.x}, {left_accel.y}, {left_accel.z}, '
-                  f'{right_accel.x}, {right_accel.y}, {right_accel.z}, '
-                  f'{imu.get('x', -100)}, {imu.get('y', -100)}, '
-                  f'{imu.get('z', -100)}',
-                  file=log_file
+            print(
+                f'{datetime.now().time()}, '
+                f'{left_accel.x}, {left_accel.y}, {left_accel.z}, '
+                f'{right_accel.x}, {right_accel.y}, {right_accel.z}, '
+                f'{imu.get('x', -100)}, {imu.get('y', -100)}, '
+                f'{imu.get('z', -100)}',
+                file=log_file
             )
             log_file.flush()

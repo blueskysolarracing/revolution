@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import datetime
 from logging import getLogger
 from time import sleep, time
 from typing import ClassVar
@@ -37,17 +38,20 @@ class Power(Application):
         self._steering_wheel_led_worker = Worker(
             target=self._steering_wheel_led,
         )
+        self._power_log_worker = Worker(target=self._power_log)
 
         self._monitor_worker.start()
         self._soc_worker.start()
         self._psm_worker.start()
         self._steering_wheel_led_worker.start()
+        self._power_log_worker.start()
 
     def _teardown(self) -> None:
         self._monitor_worker.join()
         self._soc_worker.join()
         self._psm_worker.join()
         self._steering_wheel_led_worker.join()
+        self._power_log_worker.join()
 
     def _monitor(self) -> None:
         previous_array_relay_status_input = False
@@ -409,6 +413,161 @@ class Power(Application):
             self.environment.peripheries.driver_steering_wheel.set_fault_light(
                 status,
             )
+
+    def _power_log(self) -> None:
+        filepath = (
+            self.environment.settings.general_log_filepath
+        )
+        now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        log_file = open(f'{filepath}{now}_power_log.csv', "w")
+        print(
+            'time, '
+            'acceleration_input, '
+            'cruise_control, '
+            'regen, '
+            'vfm, '
+            'motor_velocity, '
+            'motor_controller_sent_value_current, '
+            'motor_controller_sent_value_velocity, '
+            'motor_controller_limit_flags, '
+            'motor_controller_error_flags, '
+            'motor_controller_active_motor, '
+            'motor_controller_transmit_error_count, '
+            'motor_controller_receive_error_count, '
+            'motor_controller_bus_voltage, '
+            'motor_controller_bus_current, '
+            'motor_controller_vehicle_velocity, '
+            'motor_controller_phase_B_current, '
+            'motor_controller_phase_C_current, '
+            'motor_controller_Vq, '
+            'motor_controller_Vd, '
+            'motor_controller_Iq, '
+            'motor_controller_Id, '
+            'motor_controller_BEMFq, '
+            'motor_controller_BEMFd, '
+            'motor_controller_supply_15v, '
+            'motor_controller_supply_1_9v, '
+            'motor_controller_supply_3_3v, '
+            'motor_controller_motor_temp, '
+            'motor_controller_heat_sink_temp, '
+            'motor_controller_dsp_board_temp, '
+            'motor_controller_odometer, '
+            'motor_controller_dc_bus_amphours, '
+            'motor_controller_slip_speed, '
+            'psm_battery_current, '
+            'psm_battery_voltage, '
+            'psm_array_current, '
+            'psm_array_voltage, '
+            'psm_motor_current, '
+            'psm_motor_voltage, '
+            'bfm_HV_current, ',
+            file=log_file,
+        )
+        log_file.flush()
+
+        while (
+                not self._stoppage.wait(
+                    (
+                        self
+                        .environment
+                        .settings
+                        .power_log_timeout
+                    ),
+                )
+        ):
+            with self.environment.contexts() as contexts:
+                acceleration_input = contexts.motor_acceleration_input
+                cruise_control = contexts.motor_cruise_control_status_input
+                regen = contexts.motor_regeneration_status_input
+                vfm = contexts.motor_variable_field_magnet_position
+                motor_velocity = contexts.motor_acceleration_input
+                motor_controller_sent_values = (
+                    contexts.motor_controller_sent_values
+                )
+
+                limit_flags = contexts.motor_controller_limit_flags
+                error_flags = contexts.motor_controller_error_flags
+                active_motor = contexts.motor_controller_active_motor
+                transmit_error_count = (
+                    contexts.motor_controller_transmit_error_count
+                )
+                receive_error_count = (
+                    contexts.motor_controller_receive_error_count
+                )
+                mc_bus_voltage = contexts.motor_controller_bus_voltage
+                mc_bus_current = contexts.motor_controller_bus_current
+                vehicle_velocity = contexts.motor_controller_vehicle_velocity
+                phase_B_current = contexts.motor_controller_phase_B_current
+                phase_C_current = contexts.motor_controller_phase_C_current
+                Vq = contexts.motor_controller_Vq
+                Vd = contexts.motor_controller_Vd
+                Iq = contexts.motor_controller_Iq
+                Id = contexts.motor_controller_Id
+                BEMFq = contexts.motor_controller_BEMFq
+                BEMFd = contexts.motor_controller_BEMFd
+                supply_15v = contexts.motor_controller_supply_15v
+                supply_1_9v = contexts.motor_controller_supply_1_9v
+                supply_3_3v = contexts.motor_controller_supply_3_3v
+                motor_temp = contexts.motor_controller_motor_temp
+                heat_sink_temp = contexts.motor_controller_heat_sink_temp
+                dsp_board_temp = contexts.motor_controller_dsp_board_temp
+                odometer = contexts.motor_controller_odometer
+                dc_bus_amphours = contexts.motor_controller_dc_bus_amphours
+                slip_speed = contexts.motor_controller_slip_speed
+
+                psm_battery_current = contexts.power_psm_battery_current
+                psm_battery_voltage = contexts.power_psm_battery_voltage
+                psm_array_current = contexts.power_psm_array_current
+                psm_array_voltage = contexts.power_psm_array_voltage
+                psm_motor_current = contexts.power_psm_motor_current
+                psm_motor_voltage = contexts.power_psm_motor_voltage
+
+                bms_HV_current = contexts.power_battery_HV_current
+            
+            print(
+                f'{datetime.now().time()}, '
+                f'{acceleration_input}, '
+                f'{cruise_control}, '
+                f'{regen}, '
+                f'{vfm}, '
+                f'{motor_velocity}, '
+                f'{motor_controller_sent_values[0]}, '
+                f'{motor_controller_sent_values[1]}, '
+                f'{limit_flags}, '
+                f'{error_flags}, '
+                f'{active_motor}, '
+                f'{transmit_error_count}, '
+                f'{receive_error_count}, '
+                f'{mc_bus_voltage}, '
+                f'{mc_bus_current}, '
+                f'{vehicle_velocity}, '
+                f'{phase_B_current}, '
+                f'{phase_C_current}, '
+                f'{Vq}, '
+                f'{Vd}, '
+                f'{Iq}, '
+                f'{Id}, '
+                f'{BEMFq}, '
+                f'{BEMFd}, '
+                f'{supply_15v}, '
+                f'{supply_1_9v}, '
+                f'{supply_3_3v}, '
+                f'{motor_temp}, '
+                f'{heat_sink_temp}, '
+                f'{dsp_board_temp}, '
+                f'{odometer}, '
+                f'{dc_bus_amphours}, '
+                f'{slip_speed}, '
+                f'{psm_battery_current}, '
+                f'{psm_battery_voltage}, '
+                f'{psm_array_current}, '
+                f'{psm_array_voltage}, '
+                f'{psm_motor_current}, '
+                f'{psm_motor_voltage}, '
+                f'{bms_HV_current}, ',
+                file=log_file
+            )
+            log_file.flush()
 
     def _handle_can(self, message: Message) -> None:
         super()._handle_can(message)

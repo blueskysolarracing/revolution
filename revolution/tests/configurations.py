@@ -92,13 +92,32 @@ CONTEXTS: Contexts = Contexts(
     motor_velocity=0,
     motor_heartbeat_timestamp=inf,
 
+    motor_controller_sent_values=[0, 0],
     motor_controller_limit_flags=0,
     motor_controller_error_flags=0,
     motor_controller_active_motor=0,
     motor_controller_transmit_error_count=0,
     motor_controller_receive_error_count=0,
-
-    motor_controller_15V_rail_voltage=0,
+    motor_controller_bus_voltage=0,
+    motor_controller_bus_current=0,
+    motor_controller_vehicle_velocity=0,
+    motor_controller_phase_B_current=0,
+    motor_controller_phase_C_current=0,
+    motor_controller_Vq=0,
+    motor_controller_Vd=0,
+    motor_controller_Iq=0,
+    motor_controller_Id=0,
+    motor_controller_BEMFq=0,
+    motor_controller_BEMFd=0,
+    motor_controller_supply_15v=0,
+    motor_controller_supply_1_9v=0,
+    motor_controller_supply_3_3v=0,
+    motor_controller_motor_temp=0,
+    motor_controller_heat_sink_temp=0,
+    motor_controller_dsp_board_temp=0,
+    motor_controller_odometer=0,
+    motor_controller_dc_bus_amphours=0,
+    motor_controller_slip_speed=0,
 
     # Power
 
@@ -315,6 +334,7 @@ SETTINGS: Settings = Settings(
     # General
 
     general_wheel_diameter=0.557,
+    general_log_filepath='/usr/share/revolution_logs/',
 
     # Debugger
 
@@ -334,7 +354,6 @@ SETTINGS: Settings = Settings(
     miscellaneous_orientation_timeout=0.1,
     miscellaneous_position_timeout=1,
     miscellaneous_front_wheels_timeout=0.02,
-    miscellaneous_acceleration_log_filepath='/',
 
     # Motor
 
@@ -368,6 +387,7 @@ SETTINGS: Settings = Settings(
     power_psm_array_ina229_voltage_correction_factor=12.9,
     power_battery_overcurrent_limit=60.0,
     power_battery_undercurrent_limit=-50.0,
+    power_log_timeout=0.1,
 
     # Telemetry
 

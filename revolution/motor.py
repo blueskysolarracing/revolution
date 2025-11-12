@@ -6,7 +6,12 @@ from typing import ClassVar
 
 from can import Message
 from iclib.wavesculptor22 import (
-    StatusInformation, VelocityMeasurement, VoltageRailMeasurement15V
+    StatusInformation, BusMeasurement, VelocityMeasurement,
+    PhaseCurrentMeasurement, MotorVoltageVectorMeasurement,
+    MotorCurrentVectorMeasurement, MotorBackEMFMeasurementPrediction,
+    VoltageRailMeasurement15V, VoltageRailMeasurement3_3VAnd1_9V,
+    HeatSinkAndMotorTemperatureMeasurement, DSPBoardTemperatureMeasurement,
+    OdometerAndBusAmpHoursMeasurement, SlipSpeedMeasurement,
 )
 
 from revolution.application import Application
@@ -76,6 +81,7 @@ class Motor(Application):
                 if not previous_status_input:
                     self.environment.peripheries.motor_wavesculptor22.reset()
                 else:
+                    motor_controller_sent_value = 0
                     (
                         self
                         .environment
@@ -117,6 +123,10 @@ class Motor(Application):
                                 kph2rpm(cruise_control_velocity),
                             )
                         )
+                        motor_controller_sent_values = [
+                            1,
+                            kph2rpm(cruise_control_velocity), 
+                        ]
                     elif regeneration_status_input:
                         regeneration_strength = (
                             self
@@ -131,6 +141,10 @@ class Motor(Application):
                             .motor_wavesculptor22
                             .motor_drive(regeneration_strength, 0)
                         )
+                        motor_controller_sent_values = [
+                            regeneration_strength,
+                            0, 
+                        ]
                     else:
                         if acceleration_input > filtered_acceleration_input:
                             filtered_acceleration_input = min(
@@ -157,6 +171,14 @@ class Motor(Application):
                             .motor_drive_torque_control_mode(
                                 filtered_acceleration_input,
                             )
+                        )
+                        motor_controller_sent_values = [
+                            filtered_acceleration_input,
+                            20000, 
+                        ]
+                    with self.environment.contexts() as contexts:
+                        contexts.motor_controller_sent_values = (
+                            motor_controller_sent_values
                         )
             else:
                 with self.environment.contexts() as contexts:
@@ -404,10 +426,6 @@ class Motor(Application):
             return
 
         with self.environment.contexts() as contexts:
-            if isinstance(broadcast_message, VelocityMeasurement):
-                contexts.motor_velocity = rpm2kph(
-                    broadcast_message.motor_velocity,
-                )
             if isinstance(broadcast_message, StatusInformation):
                 contexts.motor_controller_limit_flags = (
                     broadcast_message.limit_flags
@@ -424,9 +442,80 @@ class Motor(Application):
                 contexts.motor_controller_receive_error_count = (
                     broadcast_message.receive_error_count
                 )
+            if isinstance(broadcast_message, BusMeasurement):
+                contexts.motor_controller_bus_voltage = (
+                    broadcast_message.bus_voltage
+                )
+                contexts.motor_controller_bus_current = (
+                    broadcast_message.bus_current
+                )
+            if isinstance(broadcast_message, VelocityMeasurement):
+                contexts.motor_velocity = rpm2kph(
+                    broadcast_message.motor_velocity,
+                )
+                contexts.motor_controller_vehicle_velocity = (
+                    broadcast_message.vehicle_velocity
+                )
+            if isinstance(broadcast_message, PhaseCurrentMeasurement):
+                contexts.motor_controller_phase_B_current = (
+                    broadcast_message.motor_velocity
+                )
+                contexts.motor_controller_phase_C_current = (
+                    broadcast_message.phase_c_current
+                )
+            if isinstance(broadcast_message, MotorVoltageVectorMeasurement):
+                contexts.motor_controller_Vq = broadcast_message.Vq
+                contexts.motor_controller_Vd = broadcast_message.Vd
+            if isinstance(broadcast_message, MotorCurrentVectorMeasurement):
+                contexts.motor_controller_Iq = broadcast_message.Iq
+                contexts.motor_controller_Id = broadcast_message.Id
+            if isinstance(
+                broadcast_message, MotorBackEMFMeasurementPrediction
+            ):
+                contexts.motor_controller_BEMFq = broadcast_message.BEMFq
+                contexts.motor_controller_BEMFd = broadcast_message.BEMFd
             if isinstance(broadcast_message, VoltageRailMeasurement15V):
-                contexts.motor_controller_15V_rail_voltage = (
+                contexts.motor_controller_supply_15v = (
                     broadcast_message.supply_15v
+                )
+            if isinstance(
+                broadcast_message, VoltageRailMeasurement3_3VAnd1_9V
+            ):
+                contexts.motor_controller_supply_1_9v = (
+                    broadcast_message.supply_1_9v
+                )
+                contexts.motor_controller_supply_3_3v = (
+                    broadcast_message.supply_3_3v
+                )
+            if isinstance(
+                broadcast_message, HeatSinkAndMotorTemperatureMeasurement
+            ):
+                contexts.motor_controller_motor_temp = (
+                    broadcast_message.motor_temp
+                )
+                contexts.motor_controller_heat_sink_temp = (
+                    broadcast_message.heat_sink_temp
+                )
+            if isinstance(
+                broadcast_message, DSPBoardTemperatureMeasurement
+            ):
+                contexts.motor_controller_dsp_board_temp = (
+                    broadcast_message.dsp_board_temp
+                )
+            if isinstance(
+                broadcast_message, OdometerAndBusAmpHoursMeasurement
+            ):
+                contexts.motor_controller_odometer = (
+                    broadcast_message.odometer
+                )
+                contexts.motor_controller_dc_bus_amphours = (
+                    broadcast_message.dc_bus_amphours
+                )
+            if isinstance(
+                broadcast_message, SlipSpeedMeasurement
+            ):
+                contexts.motor_controller_slip_speed = (
+                    broadcast_message.slip_speed
                 )
 
             contexts.motor_heartbeat_timestamp = time()

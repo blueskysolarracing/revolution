@@ -7,16 +7,27 @@ while True:
         #     f"R:{ctx.miscellaneous_right_wheel_accelerations}"
         # )
 
-        print(f'horn={ctx.miscellaneous_horn_status_input} '
-              f'reverse={ctx.motor_direction_input} '
-              f'regen={ctx.motor_regeneration_status_input} '
-              f'array={ctx.power_array_relay_status_input} '
-              f'batt={ctx.power_battery_relay_status_input} '
-              f'left={ctx.miscellaneous_left_indicator_light_status_input} '
-              f'right={ctx.miscellaneous_right_indicator_light_status_input} '
-              f'drl={ctx.miscellaneous_daytime_running_lights_status_input} '
-              f'cc={ctx.motor_cruise_control_status_input} '
-              f'vfm_up={ctx.motor_variable_field_magnet_up_input} '
-              f'vfm_down={ctx.motor_variable_field_magnet_down_input}'
+        print(
+            f'horn={ctx.miscellaneous_horn_status_input} '
+            f'reverse={ctx.motor_direction_input} '
+            f'regen={ctx.motor_regeneration_status_input} '
+            f'array={ctx.power_array_relay_status_input} '
+            f'batt={ctx.power_battery_relay_status_input} '
+            f'left={ctx.miscellaneous_left_indicator_light_status_input} '
+            f'right={ctx.miscellaneous_right_indicator_light_status_input} '
+            f'drl={ctx.miscellaneous_daytime_running_lights_status_input} '
+            f'cc={ctx.motor_cruise_control_status_input} '
+            f'vfm_up={ctx.motor_variable_field_magnet_up_input} '
+            f'vfm_down={ctx.motor_variable_field_magnet_down_input}'
+        )
+
+        print(
+            f'motor_v={ctx.power_psm_motor_voltage:6.2f}  '
+            f'motor_i={ctx.power_psm_motor_current:6.2f}  '
+            f'battery_v={ctx.power_psm_battery_voltage:6.2f}  '
+            f'battery_i={ctx.power_psm_battery_current:6.2f}  '
+            f'bms_HV_i={ctx.power_battery_HV_current:6.2f}  '
+            f'bms_LV_v={ctx.power_battery_LV_bus_voltage:6.2f}  '
+            f'supp={ctx.power_battery_supp_voltage:6.2f}'
         )
     sleep(0.5)
