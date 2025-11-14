@@ -480,7 +480,7 @@ class Power(Application):
                 cruise_control = contexts.motor_cruise_control_status_input
                 regen = contexts.motor_regeneration_status_input
                 vfm = contexts.motor_variable_field_magnet_position
-                motor_velocity = contexts.motor_acceleration_input
+                motor_velocity = contexts.motor_velocity
                 motor_controller_sent_values = (
                     contexts.motor_controller_sent_values
                 )
