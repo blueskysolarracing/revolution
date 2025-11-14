@@ -94,13 +94,32 @@ class Contexts:
     motor_velocity: float
     motor_heartbeat_timestamp: float
 
+    motor_controller_sent_values: list[float]
     motor_controller_limit_flags: int
     motor_controller_error_flags: int
     motor_controller_active_motor: int
     motor_controller_transmit_error_count: int
     motor_controller_receive_error_count: int
-
-    motor_controller_15V_rail_voltage: float
+    motor_controller_bus_voltage: float
+    motor_controller_bus_current: float
+    motor_controller_vehicle_velocity: float
+    motor_controller_phase_B_current: float
+    motor_controller_phase_C_current: float
+    motor_controller_Vq: float
+    motor_controller_Vd: float
+    motor_controller_Iq: float
+    motor_controller_Id: float
+    motor_controller_BEMFq: float
+    motor_controller_BEMFd: float
+    motor_controller_supply_15v: float
+    motor_controller_supply_1_9v: float
+    motor_controller_supply_3_3v: float
+    motor_controller_motor_temp: float
+    motor_controller_heat_sink_temp: float
+    motor_controller_dsp_board_temp: float
+    motor_controller_odometer: float
+    motor_controller_dc_bus_amphours: float
+    motor_controller_slip_speed: float
 
     # Power
 
@@ -270,6 +289,7 @@ class Settings:
     # General
 
     general_wheel_diameter: float
+    general_log_filepath: str
 
     # Debugger
 
@@ -290,9 +310,7 @@ class Settings:
     miscellaneous_light_flash_timeout: float
     miscellaneous_orientation_timeout: float
     miscellaneous_position_timeout: float
-
     miscellaneous_front_wheels_timeout: float
-    miscellaneous_acceleration_log_filepath: str
 
     # Motor
 
@@ -326,6 +344,7 @@ class Settings:
     power_psm_array_ina229_voltage_correction_factor: float
     power_battery_overcurrent_limit: float
     power_battery_undercurrent_limit: float
+    power_log_timeout: float
 
     # Telemetry
 
