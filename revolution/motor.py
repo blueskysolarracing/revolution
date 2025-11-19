@@ -162,13 +162,13 @@ class Motor(Application):
                                 ),
                                 acceleration_input
                             )
-                            filtered_acceleration_input *= (
-                                self
-                                .environment
-                                .settings
-                                .motor_filtered_acceleration_input_factor
-                            )
 
+                        filtered_acceleration_input *= (
+                            self
+                            .environment
+                            .settings
+                            .motor_filtered_acceleration_input_factor
+                        )
                         (
                             self
                             .environment
