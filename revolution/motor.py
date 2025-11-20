@@ -163,11 +163,13 @@ class Motor(Application):
                                 acceleration_input
                             )
 
-                        filtered_acceleration_input *= (
-                            self
-                            .environment
-                            .settings
-                            .motor_filtered_acceleration_input_factor
+                        final_acceleration_input = (
+                            filtered_acceleration_input * (
+                                self
+                                .environment
+                                .settings
+                                .motor_filtered_acceleration_input_factor
+                            )
                         )
                         (
                             self
@@ -175,12 +177,12 @@ class Motor(Application):
                             .peripheries
                             .motor_wavesculptor22
                             .motor_drive_torque_control_mode(
-                                filtered_acceleration_input,
+                                final_acceleration_input,
                             )
                         )
                         motor_controller_sent_values = [
-                            filtered_acceleration_input,
-                            20000, 
+                            final_acceleration_input,
+                            20000,
                         ]
                     with self.environment.contexts() as contexts:
                         contexts.motor_controller_sent_values = (
