@@ -538,7 +538,7 @@ SETTINGS: Settings = Settings(
 
     motor_acceleration_input_max_increase=0.7,
     motor_acceleration_input_max_decrease=0.7,
-    motor_filtered_acceleration_input_factor=0.7,
+    motor_filtered_acceleration_input_factor=1,
     motor_bus_current_limit=0.5,
     motor_regeneration_strength=0.3,
     motor_variable_field_magnet_step_size=40,
