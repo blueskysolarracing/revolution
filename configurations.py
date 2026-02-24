@@ -10,7 +10,7 @@ from can import BusABC, ThreadSafeBus
 from iclib.adc78h89 import ADC78H89, InputChannel
 from iclib.bno055 import BNO055
 from iclib.ina229 import INA229
-from iclib.lis2ds12 import LIS2DS12, OutputDataRate, FullScale
+# from iclib.lis2ds12 import LIS2DS12, OutputDataRate, FullScale
 from iclib.tmag5273 import (
     TMAG5273,
     Variant as TMAG5273Variant,

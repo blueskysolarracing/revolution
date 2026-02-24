@@ -14,7 +14,7 @@ from door.threading2 import AcquirableDoor
 from iclib.adc78h89 import ADC78H89, InputChannel
 from iclib.bno055 import BNO055
 from iclib.ina229 import INA229
-from iclib.lis2ds12 import LIS2DS12
+# from iclib.lis2ds12 import LIS2DS12
 from iclib.tmag5273 import TMAG5273
 from iclib.wavesculptor22 import WaveSculptor22
 from periphery import GPIO, PWM
