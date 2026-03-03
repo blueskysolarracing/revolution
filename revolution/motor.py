@@ -67,7 +67,8 @@ class Motor(Application):
                 )
         ):
             with self.environment.contexts() as contexts:
-                status_input = contexts.motor_status_input
+                status_input = contexts.battery_relay_status
+                # CHANGE: Renamed motor_status_input to battery_relay_status
                 acceleration_input = contexts.motor_acceleration_input
                 direction_input = contexts.motor_direction_input
                 cruise_control_status_input = (
@@ -81,6 +82,14 @@ class Motor(Application):
                 if not previous_status_input:
                     self.environment.peripheries.motor_wavesculptor22.reset()
                 else:
+                    # Collects information, environment.py
+                    reset_limit = settings.motor_reset_limit
+                    reset_counter = contexts.motor_reset_counter
+
+                    # Handles reset tracking, checks if counter within limit
+                    if reset_counter>reset_limit:
+                        self.environment.peripheries.motor_wavesculptor22.reset()
+
                     motor_controller_sent_value = 0
                     (
                         self
@@ -245,7 +254,8 @@ class Motor(Application):
                 )
         ):
             with self.environment.contexts() as contexts:
-                status_input = contexts.motor_status_input
+                status_input = contexts.battery_relay_status
+                # CHANGE: Renamed motor_status_input to battery_relay_status
                 min_value = min(
                     contexts.motor_variable_field_magnet_up_input,
                     contexts.motor_variable_field_magnet_down_input,

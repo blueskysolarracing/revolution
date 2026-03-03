@@ -87,7 +87,8 @@ class Contexts:
 
     # Motor
 
-    motor_status_input: bool
+    battery_relay_status: bool
+    # CHANGE: Renamed motor_status_input to battery_relay_status
     motor_acceleration_input: float
     motor_direction_input: Direction
     motor_cruise_control_status_input: bool
@@ -125,6 +126,10 @@ class Contexts:
     motor_controller_odometer: float
     motor_controller_dc_bus_amphours: float
     motor_controller_slip_speed: float
+
+    # Reset Related
+    motor_last_reset_timestamp: float # Float to store the last timestamp for the motor reset
+    motor_reset_counter: int # Tracks number of resets within time window
 
     # Power
 
@@ -329,6 +334,10 @@ class Settings:
     motor_variable_field_magnet_stall_threshold: int
     motor_variable_field_magnet_max_enable_time_reset: float
     motor_variable_field_magnet_max_enable_time_move: float
+
+    # Reset
+    motor_reset_limit: int # This counts the number of resets
+    motor_reset_timeout: float # This maintains the timeout
 
     # Power
 
