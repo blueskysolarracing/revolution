@@ -337,7 +337,7 @@ class Settings:
 
     # Reset
     motor_reset_limit: int # This counts the number of resets
-    motor_reset_timeout: float # This maintains the timeout
+    motor_reset_timeout: float # This maintains the timeout window
 
     # Power
 
