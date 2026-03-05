@@ -88,7 +88,7 @@ class Contexts:
     # Motor
 
     battery_relay_status: bool
-    # CHANGE: Renamed motor_status_input to battery_relay_status
+    # CHANGE: Renamed motor_status_input to battery_relay_status for naming convention
     motor_acceleration_input: float
     motor_direction_input: Direction
     motor_cruise_control_status_input: bool
