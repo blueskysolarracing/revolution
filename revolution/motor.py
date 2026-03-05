@@ -98,7 +98,7 @@ class Motor(Application):
                             contexts.motor_reset_counter+=1
 
                     if size!=0 and time()-resets[0]>=reset_window:
-                        resets.popleft()
+                        resets.popleft() # Left
 
                     motor_controller_sent_value = 0
                     (
