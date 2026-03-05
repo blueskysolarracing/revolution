@@ -5,7 +5,8 @@ from logging import getLogger
 from math import pi
 from typing import ClassVar
 
-from periphery import PWM
+from periphery import PWM, I2CError
+from environment import Contexts
 
 from iclib.utilities import ContinuousFrequencyMonitor
 from revolution.application import Application
@@ -364,20 +365,28 @@ class Miscellaneous(Application):
                     ),
                 )
         ):
-            left_accel = (
-                self
-                .environment
-                .peripheries
-                .miscellaneous_left_wheel_accelerometer
-                .read_accel()
-            )
-            right_accel = (
-                self
-                .environment
-                .peripheries
-                .miscellaneous_right_wheel_accelerometer
-                .read_accel()
-            )
+            try:
+                left_accel = (
+                    self
+                    .environment
+                    .peripheries
+                    .miscellaneous_left_wheel_accelerometer
+                    .read_accel()
+                )
+            # if there is an I2CError, suppress and raise error flag
+            except I2CError: 
+                Contexts.miscellaneous_left_wheel_accelerometer_i2c_error_status = True
+
+            try:
+                right_accel = (
+                    self
+                    .environment
+                    .peripheries
+                    .miscellaneous_right_wheel_accelerometer
+                    .read_accel()
+                )
+            except I2CError: 
+                Contexts.miscellaneous_right_wheel_accelerometer_i2c_error_status = True
             imu = {}
 
             with self.environment.contexts() as contexts:
