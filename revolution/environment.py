@@ -88,7 +88,6 @@ class Contexts:
     # Motor
 
     battery_relay_status: bool
-    # CHANGE: Renamed motor_status_input to battery_relay_status for naming conventions
     motor_acceleration_input: float
     motor_direction_input: Direction
     motor_cruise_control_status_input: bool
@@ -127,10 +126,6 @@ class Contexts:
     motor_controller_dc_bus_amphours: float
     motor_controller_slip_speed: float
 
-    # Reset Related
-    motor_last_reset_timestamp: float # Float to store the last timestamp for the motor reset
-    motor_reset_counter: int # Tracks number of resets within time window
-
     # Power
 
     power_array_relay_status_input: bool
@@ -159,6 +154,10 @@ class Contexts:
     power_psm_array_voltage: float
     power_psm_motor_current: float
     power_psm_motor_voltage: float
+
+    # Reset Related
+    motor_last_reset_timestamp: float # Float to store the last timestamp for the motor reset
+    motor_reset_counter: int # Tracks number of resets within time window
 
     @property
     def power_battery_min_cell_voltage(self) -> float:
@@ -335,10 +334,6 @@ class Settings:
     motor_variable_field_magnet_max_enable_time_reset: float
     motor_variable_field_magnet_max_enable_time_move: float
 
-    # Reset
-    motor_reset_limit: int # This counts the number of resets
-    motor_reset_timeout: float # This maintains the timeout window
-
     # Power
 
     power_monitor_timeout: float
@@ -362,6 +357,11 @@ class Settings:
     telemetry_begin_token: bytes
     telemetry_separator_token: bytes
     telemetry_end_token: bytes
+
+    # Reset
+    motor_reset_limit: int # This counts the number of resets within window, int
+    motor_reset_timeout: float # This maintains the timeout window, float
+    motor_reset_window: float # Reset Window Moving, Limit is within Window
 
 
 @dataclass(frozen=True)
