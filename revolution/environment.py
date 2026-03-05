@@ -156,8 +156,8 @@ class Contexts:
     power_psm_motor_voltage: float
 
     # Reset Related
-    motor_last_reset_timestamp: float # Float to store the last timestamp for the motor reset
-    motor_reset_counter: int # Tracks number of resets within time window
+    motor_last_reset_timestamp: float
+    motor_reset_counter: int
 
     @property
     def power_battery_min_cell_voltage(self) -> float:
@@ -359,9 +359,9 @@ class Settings:
     telemetry_end_token: bytes
 
     # Reset
-    motor_reset_limit: int # This counts the number of resets within window, int
-    motor_reset_timeout: float # This maintains the timeout window, float
-    motor_reset_window: float # Reset Window Moving, Limit is within Window
+    motor_reset_limit: int
+    motor_reset_timeout: float
+    motor_reset_window: float
 
 
 @dataclass(frozen=True)

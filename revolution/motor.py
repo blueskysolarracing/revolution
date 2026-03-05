@@ -89,15 +89,15 @@ class Motor(Application):
                     reset_window = self.environment.settings.motor_reset_window # Reset Window
 
                     size = len(resets)
-                    if size <= reset_limit and time() - resets[size-1] > reset_timeout:
+                    if size == 0 or (size <= reset_limit and time() - resets[size-1] > reset_timeout):
                         self.environment.peripheries.motor_wavesculptor22.reset()
                         reset_time=time()
                         resets.append(reset_time)
-                        with self.environment.contexts as contexts:
+                        with self.environment.contexts() as contexts:
                             contexts.motor_last_reset_timestamp = reset_time
                             contexts.motor_reset_counter+=1
 
-                    if time()-resets[0]>=reset_window:
+                    if size!=0 and time()-resets[0]>=reset_window:
                         resets.popleft()
 
                     motor_controller_sent_value = 0
