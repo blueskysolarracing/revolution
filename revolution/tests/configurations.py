@@ -77,6 +77,8 @@ CONTEXTS: Contexts = Contexts(
     miscellaneous_right_wheel_magnetic_field=0,
     miscellaneous_left_wheel_accelerations=[0, 0, 0],
     miscellaneous_right_wheel_accelerations=[0, 0, 0],
+     miscellaneous_left_wheel_accelerometer_i2c_error_status=False,
+    miscellaneous_right_wheel_accelerometer_i2c_error_status=False,
 
     # Motor
 
