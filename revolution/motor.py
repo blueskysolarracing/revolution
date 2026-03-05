@@ -4,6 +4,8 @@ from math import pi
 from time import sleep, time
 from typing import ClassVar
 
+from collections import deque # Importing Deque
+
 from can import Message
 from iclib.wavesculptor22 import (
     StatusInformation, BusMeasurement, VelocityMeasurement,
@@ -52,7 +54,7 @@ class Motor(Application):
                 * 1000
             )
 
-        previous_status_input = False
+        previous_battery_relay_status = False
         previous_cruise_control_status_input = False
         filtered_acceleration_input = 0.0
         acceleration_input_max_increase = (
@@ -61,14 +63,14 @@ class Motor(Application):
         acceleration_input_max_decrease = (
             self.environment.settings.motor_acceleration_input_max_decrease
         )
+        resets = deque([])
         while (
                 not self._stoppage.wait(
                     self.environment.settings.motor_control_timeout,
                 )
         ):
             with self.environment.contexts() as contexts:
-                status_input = contexts.battery_relay_status
-                # CHANGE: Renamed motor_status_input to battery_relay_status
+                battery_relay_status = contexts.battery_relay_status
                 acceleration_input = contexts.motor_acceleration_input
                 direction_input = contexts.motor_direction_input
                 cruise_control_status_input = (
@@ -78,17 +80,25 @@ class Motor(Application):
                     contexts.motor_regeneration_status_input
                 )
 
-            if status_input:
-                if not previous_status_input:
+            if battery_relay_status:
+                if not previous_battery_relay_status:
                     self.environment.peripheries.motor_wavesculptor22.reset()
                 else:
-                    # Collects information, environment.py
-                    reset_limit = settings.motor_reset_limit
-                    reset_counter = contexts.motor_reset_counter
+                    reset_limit = self.environment.settings.motor_reset_limit # Reset Limit Within a Window
+                    reset_timeout = self.environment.settings.motor_reset_timeout # Reset TimeOut
+                    reset_window = self.environment.settings.motor_reset_window # Reset Window
 
-                    # Handles reset tracking, checks if counter within limit
-                    if reset_counter>reset_limit:
+                    size = len(resets)
+                    if size <= reset_limit and time() - resets[size-1] > reset_timeout:
                         self.environment.peripheries.motor_wavesculptor22.reset()
+                        reset_time=time()
+                        resets.append(reset_time)
+                        with self.environment.contexts as contexts:
+                            contexts.motor_last_reset_timestamp = reset_time
+                            contexts.motor_reset_counter+=1
+
+                    if time()-resets[0]>=reset_window:
+                        resets.popleft()
 
                     motor_controller_sent_value = 0
                     (
@@ -201,11 +211,11 @@ class Motor(Application):
                 with self.environment.contexts() as contexts:
                     contexts.motor_cruise_control_status_input = False
 
-            previous_status_input = status_input
+            previous_battery_relay_status = battery_relay_status
             previous_cruise_control_status_input = cruise_control_status_input
 
     def _variable_field_magnet(self) -> None:
-        previous_status_input = False
+        previous_battery_relay_status = False
         previous_direction = Direction.FORWARD
 
         step_size = (
@@ -254,7 +264,7 @@ class Motor(Application):
                 )
         ):
             with self.environment.contexts() as contexts:
-                status_input = contexts.battery_relay_status
+                battery_relay_status = contexts.battery_relay_status
                 # CHANGE: Renamed motor_status_input to battery_relay_status
                 min_value = min(
                     contexts.motor_variable_field_magnet_up_input,
@@ -274,8 +284,8 @@ class Motor(Application):
 
                 position = contexts.motor_variable_field_magnet_position
 
-            if status_input:
-                if not previous_status_input:
+            if battery_relay_status:
+                if not previous_battery_relay_status:
                     position = 0
                     stall_count = 0
                     start_time = time()
@@ -421,7 +431,7 @@ class Motor(Application):
                         position
                     )
 
-            previous_status_input = status_input
+            previous_battery_relay_status = battery_relay_status
 
     def _handle_can(self, message: Message) -> None:
 
