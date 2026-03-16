@@ -463,12 +463,3 @@ class Miscellaneous(Application):
                 file=log_file
             )
             log_file.flush()
-
-
-#def main():
- #   misc = Miscellaneous(Application)
-  #  print("left wheel", Contexts.miscellaneous_left_wheel_accelerometer_i2c_error_status)
-   # print("right wheel", Contexts.miscellaneous_right_wheel_accelerometer_i2c_error_status)
-   # misc._front_wheels()
-   # print("left wheel after", Contexts.miscellaneous_left_wheel_accelerometer_i2c_error_status)
-   # print("right wheel after", Contexts.miscellaneous_right_wheel_accelerometer_i2c_error_status)
