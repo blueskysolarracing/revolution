@@ -5,12 +5,13 @@ from logging import getLogger
 from math import pi
 from typing import ClassVar
 
-from periphery import PWM
+from periphery import PWM, I2CError
 
 from iclib.utilities import ContinuousFrequencyMonitor
 from revolution.application import Application
 from revolution.environment import Endpoint
 from revolution.worker import Worker
+from revolution.LIS2HH12 import LIS2HH12
 
 _logger = getLogger(__name__)
 
@@ -235,15 +236,21 @@ class Miscellaneous(Application):
                     ),
                 )
         ):
-            orientation = asdict(
-                (
-                    self
-                    .environment
-                    .peripheries
-                    .miscellaneous_orientation_imu_bno055
-                    .orientation
-                ),
-            )
+            try:
+                orientation = asdict(
+                    (
+                        self
+                        .environment
+                        .peripheries
+                        .miscellaneous_orientation_imu_bno055
+                        .orientation
+                    ),
+                )
+            except I2CError: 
+                with self.environment.contexts() as contexts:
+                    print("orientation initial", contexts.miscellaneous_orientation_i2c_error_status)
+                    contexts.miscellaneous_right_wheel_accelerometer_i2c_error_status = True
+                    print("orientation final", contexts.miscellaneous_orientation_i2c_error_status)
 
             with self.environment.contexts() as contexts:
                 contexts.miscellaneous_orientation.update(orientation)
@@ -328,19 +335,28 @@ class Miscellaneous(Application):
         #     5
         # )
 
-        (
-            self
-            .environment
-            .peripheries
-            .miscellaneous_left_wheel_accelerometer.config()
-        )
+        try: #supressing errors here too as many I2CErrors appeared to be raised here; if this causes issues later then this sould be removed
+            (
+                self
+                .environment
+                .peripheries
+                .miscellaneous_left_wheel_accelerometer.config()
+            )
+        # if there is an I2CError, suppress and raise error flag
+        except I2CError: 
+            with self.environment.contexts() as contexts:
+                contexts.miscellaneous_left_wheel_accelerometer_i2c_error_status = True
 
-        (
-            self
-            .environment
-            .peripheries
-            .miscellaneous_right_wheel_accelerometer.config()
-        )
+        try:
+            (
+                self
+                .environment
+                .peripheries
+                .miscellaneous_right_wheel_accelerometer.config()
+            )
+        except I2CError:
+            with self.environment.contexts() as contexts:
+                contexts.miscellaneous_right_wheel_accelerometer_i2c_error_status = True
 
         filepath = (
             self.environment.settings.general_log_filepath
@@ -364,20 +380,51 @@ class Miscellaneous(Application):
                     ),
                 )
         ):
-            left_accel = (
-                self
-                .environment
-                .peripheries
-                .miscellaneous_left_wheel_accelerometer
-                .read_accel()
-            )
-            right_accel = (
-                self
-                .environment
-                .peripheries
-                .miscellaneous_right_wheel_accelerometer
-                .read_accel()
-            )
+            try:
+                # attempt to reuse previous value, will give an error if left_accel has not been defined 
+                prev_left_accel = left_accel
+            except NameError:
+                # if left_accel is not defined, give default of -1 (this is a little sketchy)
+                prev_left_accel = LIS2HH12.Vector(-1, -1, -1)
+            
+            try:
+                left_accel = (
+                    self
+                    .environment
+                    .peripheries
+                    .miscellaneous_left_wheel_accelerometer
+                    .read_accel()
+                )
+            # if there is an I2CError, suppress and raise error flag
+            except I2CError:
+                left_accel = prev_left_accel
+                with self.environment.contexts() as contexts:
+                    print("left initial", contexts.miscellaneous_left_wheel_accelerometer_i2c_error_status)
+                    contexts.miscellaneous_left_wheel_accelerometer_i2c_error_status = True
+                    print("left final", contexts.miscellaneous_left_wheel_accelerometer_i2c_error_status)
+
+            try:
+                # attempt to reuse previous value, will give an error if right_accel has not been defined 
+                prev_right_accel = right_accel
+            except NameError:
+                # if right_accel is not defined, give default of -1 (this is a little sketchy)
+                prev_right_accel = LIS2HH12.Vector(-1, -1, -1)
+
+            try:
+                right_accel = (
+                    self
+                    .environment
+                    .peripheries
+                    .miscellaneous_right_wheel_accelerometer
+                    .read_accel()
+                )
+            except I2CError: 
+                right_accel = prev_right_accel
+                with self.environment.contexts() as contexts:
+                    print("right initial", contexts.miscellaneous_right_wheel_accelerometer_i2c_error_status)
+                    contexts.miscellaneous_right_wheel_accelerometer_i2c_error_status = True
+                    print("right final", contexts.miscellaneous_right_wheel_accelerometer_i2c_error_status)
+
             imu = {}
 
             with self.environment.contexts() as contexts:
@@ -405,6 +452,7 @@ class Miscellaneous(Application):
                     right_accel.z,
                 ]
                 imu = deepcopy(contexts.miscellaneous_orientation)
+
 
             print(
                 f'{datetime.now().time()}, '
