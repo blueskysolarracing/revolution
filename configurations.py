@@ -77,6 +77,7 @@ CONTEXTS: Contexts = Contexts(
     miscellaneous_backup_camera_control_status_input=False,
     miscellaneous_brake_status_input=False,
     miscellaneous_orientation={},
+    miscellaneous_orientation_i2c_error_status=False,
     miscellaneous_latitude=0,
     miscellaneous_longitude=0,
 

@@ -75,6 +75,7 @@ class Contexts:
     miscellaneous_backup_camera_control_status_input: bool
     miscellaneous_brake_status_input: bool
     miscellaneous_orientation: dict[str, float]
+    miscellaneous_orientation_i2c_error_status: bool
     miscellaneous_latitude: float
     miscellaneous_longitude: float
 
