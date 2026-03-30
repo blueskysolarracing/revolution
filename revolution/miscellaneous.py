@@ -246,12 +246,14 @@ class Miscellaneous(Application):
                         .orientation
                     ),
                 )
+                with self.environment.contexts() as contexts:
+                    contexts.miscellaneous_orientation_i2c_error_status = True
             except I2CError: 
                 with self.environment.contexts() as contexts:
-                    print("orientation initial", contexts.miscellaneous_orientation_i2c_error_status)
-                    contexts.miscellaneous_right_wheel_accelerometer_i2c_error_status = True
-                    print("orientation final", contexts.miscellaneous_orientation_i2c_error_status)
+                    contexts.miscellaneous_orientation_i2c_error_status = False
 
+            # When orientation has not been initalized because of an I2CError, this code runs but produces an error
+            # HERE - What to do about this?
             with self.environment.contexts() as contexts:
                 contexts.miscellaneous_orientation.update(orientation)
 
@@ -342,10 +344,14 @@ class Miscellaneous(Application):
                 .peripheries
                 .miscellaneous_left_wheel_accelerometer.config()
             )
+            with self.environment.contexts() as contexts:
+                contexts.miscellaneous_left_wheel_accelerometer_i2c_error_status = False
         # if there is an I2CError, suppress and raise error flag
         except I2CError: 
             with self.environment.contexts() as contexts:
                 contexts.miscellaneous_left_wheel_accelerometer_i2c_error_status = True
+        prev_left_accel_i2c_status = False
+
 
         try:
             (
@@ -354,9 +360,12 @@ class Miscellaneous(Application):
                 .peripheries
                 .miscellaneous_right_wheel_accelerometer.config()
             )
+            with self.environment.contexts() as contexts:
+                contexts.miscellaneous_right_wheel_accelerometer_i2c_error_status = False
         except I2CError:
             with self.environment.contexts() as contexts:
                 contexts.miscellaneous_right_wheel_accelerometer_i2c_error_status = True
+        prev_right_accel_i2c_status = False
 
         filepath = (
             self.environment.settings.general_log_filepath
@@ -380,6 +389,7 @@ class Miscellaneous(Application):
                     ),
                 )
         ):
+
             try:
                 # attempt to reuse previous value, will give an error if left_accel has not been defined 
                 prev_left_accel = left_accel
@@ -387,6 +397,16 @@ class Miscellaneous(Application):
                 # if left_accel is not defined, give default of -1 (this is a little sketchy)
                 prev_left_accel = LIS2HH12.Vector(-1, -1, -1)
             
+                        # add logicto recall configurations when error state changes from true to false
+            with self.environment.contexts() as contexts:
+                if contexts.miscellaneous_left_wheel_accelerometer_i2c_error_status != prev_left_accel_i2c_status
+                    self.environment.peripheries.miscellaneous_left_wheel_accelerometer.config()                    
+                prev_left_accel_i2c_status = contexts.miscellaneous_left_wheel_accelerometer_i2c_error_status
+
+                if contexts.miscellaneous_right_wheel_accelerometer_i2c_error_status != prev_right_accel_i2c_status
+                    self.environment.peripheries.miscellaneous_right_wheel_accelerometer.config()                    
+                prev_right_accel_i2c_status = contexts.miscellaneous_right_wheel_accelerometer_i2c_error_status
+
             try:
                 left_accel = (
                     self
@@ -395,13 +415,14 @@ class Miscellaneous(Application):
                     .miscellaneous_left_wheel_accelerometer
                     .read_accel()
                 )
+                with self.environment.contexts() as contexts:
+                    contexts.miscellaneous_left_wheel_accelerometer_i2c_error_status = True
+
             # if there is an I2CError, suppress and raise error flag
             except I2CError:
                 left_accel = prev_left_accel
                 with self.environment.contexts() as contexts:
-                    print("left initial", contexts.miscellaneous_left_wheel_accelerometer_i2c_error_status)
-                    contexts.miscellaneous_left_wheel_accelerometer_i2c_error_status = True
-                    print("left final", contexts.miscellaneous_left_wheel_accelerometer_i2c_error_status)
+                    contexts.miscellaneous_left_wheel_accelerometer_i2c_error_status = False
 
             try:
                 # attempt to reuse previous value, will give an error if right_accel has not been defined 
@@ -418,12 +439,13 @@ class Miscellaneous(Application):
                     .miscellaneous_right_wheel_accelerometer
                     .read_accel()
                 )
+                with self.environment.contexts() as contexts:
+                    contexts.miscellaneous_right_wheel_accelerometer_i2c_error_status = True
+
             except I2CError: 
                 right_accel = prev_right_accel
                 with self.environment.contexts() as contexts:
-                    print("right initial", contexts.miscellaneous_right_wheel_accelerometer_i2c_error_status)
-                    contexts.miscellaneous_right_wheel_accelerometer_i2c_error_status = True
-                    print("right final", contexts.miscellaneous_right_wheel_accelerometer_i2c_error_status)
+                    contexts.miscellaneous_right_wheel_accelerometer_i2c_error_status = False
 
             imu = {}
 
