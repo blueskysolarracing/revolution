@@ -86,7 +86,7 @@ class Contexts:
     miscellaneous_left_wheel_accelerations: list[float]
     miscellaneous_right_wheel_accelerations: list[float]
     miscellaneous_left_wheel_accelerometer_i2c_error_status: bool # bool to describe i2c error state of left wheel accelerometer
-    miscellaneous_right_wheel_accelerometer_i2c_error_status: bool # goes high when an error occurs
+    miscellaneous_right_wheel_accelerometer_i2c_error_status: bool # False is error, True is normal operation
 
     # Motor
 
