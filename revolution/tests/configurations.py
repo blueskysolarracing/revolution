@@ -80,7 +80,7 @@ CONTEXTS: Contexts = Contexts(
 
     # Motor
 
-    motor_status_input=False,
+    battery_relay_status=False,
     motor_acceleration_input=0,
     motor_direction_input=Direction.FORWARD,
     motor_cruise_control_status_input=False,
@@ -153,6 +153,10 @@ CONTEXTS: Contexts = Contexts(
     power_psm_array_voltage=0,
 
     # Telemetry
+
+    # Initialize for Reset
+    motor_reset_counter = 0,
+    motor_last_reset_timestamp = 0,
 )
 
 CAN_BUS: BusABC = MagicMock()
@@ -396,4 +400,9 @@ SETTINGS: Settings = Settings(
     telemetry_begin_token=b'',
     telemetry_separator_token=b'_',
     telemetry_end_token=b'\r\n',
+
+    # Reset Settings
+    motor_reset_limit = 4,
+    motor_reset_timeout = 0,
+    motor_reset_window = 5,
 )
