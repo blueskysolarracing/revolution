@@ -265,7 +265,7 @@ class Motor(Application):
         ):
             with self.environment.contexts() as contexts:
                 battery_relay_status = contexts.battery_relay_status
-                # CHANGE: Renamed motor_status_input to battery_relay_status
+                # CHANGE: Renamed battery_relay_status to battery_relay_status
                 min_value = min(
                     contexts.motor_variable_field_magnet_up_input,
                     contexts.motor_variable_field_magnet_down_input,

@@ -256,7 +256,7 @@ class Power(Application):
 
             if previous_battery_relay_status != battery_relay_status:
                 with self.environment.contexts() as contexts:
-                    contexts.motor_status_input = battery_relay_status
+                    contexts.battery_relay_status = battery_relay_status
 
             if (
                     not battery_relay_status
