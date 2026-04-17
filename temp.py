@@ -6,6 +6,7 @@ while True:
         #     f"L:{ctx.miscellaneous_left_wheel_accelerations} | "
         #     f"R:{ctx.miscellaneous_right_wheel_accelerations}"
         # )
+        print(f'imu orientation={ctx.miscellaneous_orientation}')
 
         print(
             f'horn={ctx.miscellaneous_horn_status_input} '

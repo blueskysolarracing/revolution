@@ -2,12 +2,11 @@ from copy import deepcopy
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from logging import getLogger
-from math import pi
 from typing import ClassVar
 
 from periphery import PWM
 
-from iclib.utilities import ContinuousFrequencyMonitor
+from iclib.bno055 import OperationMode, Register, Unit
 from revolution.application import Application
 from revolution.environment import Endpoint
 from revolution.worker import Worker
@@ -225,6 +224,28 @@ class Miscellaneous(Application):
             previous_flash_status = flash_status
 
     def _orientation(self) -> None:
+        (
+            self
+            .environment
+            .peripheries
+            .miscellaneous_orientation_imu_bno055
+            .write(Register.OPR_MODE, 0x00)
+        )
+        (
+            self
+            .environment
+            .peripheries
+            .miscellaneous_orientation_imu_bno055
+            .select_units(Unit.MS2, Unit.DPS, Unit.DEGREES, Unit.CELSIUS)
+        )
+        (
+            self
+            .environment
+            .peripheries
+            .miscellaneous_orientation_imu_bno055
+            .write(Register.OPR_MODE, OperationMode.IMU)
+        )
+
         while (
                 not self._stoppage.wait(
                     (
