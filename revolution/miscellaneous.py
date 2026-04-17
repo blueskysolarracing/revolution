@@ -295,72 +295,33 @@ class Miscellaneous(Application):
                     contexts.miscellaneous_longitude = periphery.longitude
 
     def _front_wheels(self) -> None:
-
-        # def hz2kph(hz: float) -> float:
-        #     return (
-        #         pi
-        #         * self.environment.settings.general_wheel_diameter
-        #         * hz
-        #         * 3600
-        #         / 1000
-        #     )
-
-        # def left_hall_effect_getter() -> float:
-        #     left_hall_effect = (
-        #         self
-        #         .environment
-        #         .peripheries
-        #         .miscellaneous_left_wheel_hall_effect
-        #     )
-        #     valid = False
-        #     reading = 0.0
-        #     while (not valid):
-        #         values, valid = left_hall_effect.channels
-        #         reading = values[0]
-        #     return reading
-
-        # def right_hall_effect_getter() -> float:
-        #     right_hall_effect = (
-        #         self
-        #         .environment
-        #         .peripheries
-        #         .miscellaneous_right_wheel_hall_effect
-        #     )
-        #     valid = False
-        #     reading = 0.0
-        #     while (not valid):
-        #         values, valid = right_hall_effect.channels
-        #         reading = values[0]
-        #     return reading
-
-        # left_hall_effect_frequency_monitor = ContinuousFrequencyMonitor(
-        #     0.0,
-        #     left_hall_effect_getter,
-        #     3,
-        #     ContinuousFrequencyMonitor.Edge.BOTH,
-        #     5
-        # )
-
-        # right_hall_effect_frequency_monitor = ContinuousFrequencyMonitor(
-        #     0.0,
-        #     right_hall_effect_getter,
-        #     3,
-        #     ContinuousFrequencyMonitor.Edge.BOTH,
-        #     5
-        # )
-
         (
             self
             .environment
             .peripheries
-            .miscellaneous_left_wheel_accelerometer.config()
+            .miscellaneous_front_wheels_i2c_mux.channel_select([0, 1])
         )
-
         (
             self
             .environment
             .peripheries
-            .miscellaneous_right_wheel_accelerometer.config()
+            .miscellaneous_left_wheel_accelerometer.config(
+                odr=100,
+                measurement_range=8,
+                enable_axes=True,
+                enable_auto_inc=True
+            )
+        )
+        (
+            self
+            .environment
+            .peripheries
+            .miscellaneous_right_wheel_accelerometer.config(
+                odr=100,
+                measurement_range=8,
+                enable_axes=True,
+                enable_auto_inc=True
+            )
         )
 
         filepath = (
@@ -390,31 +351,18 @@ class Miscellaneous(Application):
                 .environment
                 .peripheries
                 .miscellaneous_left_wheel_accelerometer
-                .read_accel()
+                .read_acceleration()
             )
             right_accel = (
                 self
                 .environment
                 .peripheries
                 .miscellaneous_right_wheel_accelerometer
-                .read_accel()
+                .read_acceleration()
             )
             imu = {}
 
             with self.environment.contexts() as contexts:
-                # contexts.miscellaneous_left_wheel_velocity = hz2kph(
-                #     left_hall_effect_frequency_monitor.frequency
-                # )
-                # contexts.miscellaneous_left_wheel_magnetic_field = (
-                #     left_hall_effect_frequency_monitor.reading
-                # )
-                # contexts.miscellaneous_right_wheel_velocity = hz2kph(
-                #     right_hall_effect_frequency_monitor.frequency
-                # )
-                # contexts.miscellaneous_right_wheel_magnetic_field = (
-                #     right_hall_effect_frequency_monitor.reading
-                # )
-
                 contexts.miscellaneous_left_wheel_accelerations = [
                     left_accel.x,
                     left_accel.y,
