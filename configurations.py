@@ -501,6 +501,7 @@ SETTINGS: Settings = Settings(
     miscellaneous_light_timeout=0.1,
     miscellaneous_light_flash_timeout=0.5,
     miscellaneous_orientation_timeout=0.1,
+    miscellaneous_orientation_imu_mode_timeout=0.05,
     miscellaneous_position_timeout=1,
     miscellaneous_front_wheels_timeout=0.02,
 

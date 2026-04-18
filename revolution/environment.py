@@ -306,6 +306,7 @@ class Settings:
     miscellaneous_light_timeout: float
     miscellaneous_light_flash_timeout: float
     miscellaneous_orientation_timeout: float
+    miscellaneous_orientation_imu_mode_timeout: float
     miscellaneous_position_timeout: float
     miscellaneous_front_wheels_timeout: float
 

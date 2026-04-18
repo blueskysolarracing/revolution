@@ -3,6 +3,7 @@ from dataclasses import asdict, dataclass
 from datetime import datetime
 from logging import getLogger
 from os import makedirs
+from time import sleep
 from typing import ClassVar
 
 from periphery import PWM, I2CError
@@ -232,7 +233,20 @@ class Miscellaneous(Application):
                 .environment
                 .peripheries
                 .miscellaneous_orientation_imu_bno055
+                .reset2()
+            )
+            (
+                self
+                .environment
+                .peripheries
+                .miscellaneous_orientation_imu_bno055
                 .write(Register.OPR_MODE, 0x00)
+            )
+            sleep(
+                self
+                .environment
+                .settings
+                .miscellaneous_orientation_imu_mode_timeout
             )
             (
                 self
@@ -241,12 +255,24 @@ class Miscellaneous(Application):
                 .miscellaneous_orientation_imu_bno055
                 .select_units(Unit.MS2, Unit.DPS, Unit.DEGREES, Unit.CELSIUS)
             )
+            sleep(
+                self
+                .environment
+                .settings
+                .miscellaneous_orientation_imu_mode_timeout
+            )
             (
                 self
                 .environment
                 .peripheries
                 .miscellaneous_orientation_imu_bno055
                 .write(Register.OPR_MODE, OperationMode.IMU)
+            )
+            sleep(
+                self
+                .environment
+                .settings
+                .miscellaneous_orientation_imu_mode_timeout
             )
 
         imu_working = False
