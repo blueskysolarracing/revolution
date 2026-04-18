@@ -13,7 +13,14 @@ while True:
         #     f'{ctx.miscellaneous_orientation_imu_working}'
         # )
 
-        print(f'GPS latitude={ctx.miscellaneous_latitude} longitude={ctx.miscellaneous_longitude} altitude={ctx.miscellaneous_altitude}')
+        print(
+            f'GPS latitude={ctx.miscellaneous_latitude} '
+            f'longitude={ctx.miscellaneous_longitude} '
+            f'altitude={ctx.miscellaneous_altitude} '
+            f'fix_quality={ctx.miscellaneous_gps_fix_quality} '
+            f'fix_quality_3d={ctx.miscellaneous_gps_fix_quality_3d} '
+            f'satellites={ctx.miscellaneous_gps_satellites} '
+        )
 
         # print(
         #     f'horn={ctx.miscellaneous_horn_status_input} '

@@ -78,6 +78,9 @@ class Contexts:
     miscellaneous_latitude: float
     miscellaneous_longitude: float
     miscellaneous_altitude: float
+    miscellaneous_gps_fix_quality: int
+    miscellaneous_gps_fix_quality_3d: int
+    miscellaneous_gps_satellites: int
 
     miscellaneous_left_wheel_accelerations: list[float]
     miscellaneous_right_wheel_accelerations: list[float]
