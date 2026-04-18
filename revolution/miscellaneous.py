@@ -2,12 +2,12 @@ from copy import deepcopy
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from logging import getLogger
-from math import pi
+from os import makedirs
 from typing import ClassVar
 
 from periphery import PWM, I2CError
 
-from iclib.utilities import ContinuousFrequencyMonitor
+from iclib.bno055 import OperationMode, Register, Unit
 from revolution.application import Application
 from revolution.environment import Endpoint
 from revolution.worker import Worker
@@ -226,6 +226,28 @@ class Miscellaneous(Application):
             previous_flash_status = flash_status
 
     def _orientation(self) -> None:
+        (
+            self
+            .environment
+            .peripheries
+            .miscellaneous_orientation_imu_bno055
+            .write(Register.OPR_MODE, 0x00)
+        )
+        (
+            self
+            .environment
+            .peripheries
+            .miscellaneous_orientation_imu_bno055
+            .select_units(Unit.MS2, Unit.DPS, Unit.DEGREES, Unit.CELSIUS)
+        )
+        (
+            self
+            .environment
+            .peripheries
+            .miscellaneous_orientation_imu_bno055
+            .write(Register.OPR_MODE, OperationMode.IMU)
+        )
+
         while (
                 not self._stoppage.wait(
                     (
@@ -283,101 +305,71 @@ class Miscellaneous(Application):
                     contexts.miscellaneous_longitude = periphery.longitude
 
     def _front_wheels(self) -> None:
+        (
+            self
+            .environment
+            .peripheries
+            .miscellaneous_front_wheels_i2c_mux.channel_select([0, 1])
+        )
 
-        # def hz2kph(hz: float) -> float:
-        #     return (
-        #         pi
-        #         * self.environment.settings.general_wheel_diameter
-        #         * hz
-        #         * 3600
-        #         / 1000
-        #     )
-
-        # def left_hall_effect_getter() -> float:
-        #     left_hall_effect = (
-        #         self
-        #         .environment
-        #         .peripheries
-        #         .miscellaneous_left_wheel_hall_effect
-        #     )
-        #     valid = False
-        #     reading = 0.0
-        #     while (not valid):
-        #         values, valid = left_hall_effect.channels
-        #         reading = values[0]
-        #     return reading
-
-        # def right_hall_effect_getter() -> float:
-        #     right_hall_effect = (
-        #         self
-        #         .environment
-        #         .peripheries
-        #         .miscellaneous_right_wheel_hall_effect
-        #     )
-        #     valid = False
-        #     reading = 0.0
-        #     while (not valid):
-        #         values, valid = right_hall_effect.channels
-        #         reading = values[0]
-        #     return reading
-
-        # left_hall_effect_frequency_monitor = ContinuousFrequencyMonitor(
-        #     0.0,
-        #     left_hall_effect_getter,
-        #     3,
-        #     ContinuousFrequencyMonitor.Edge.BOTH,
-        #     5
-        # )
-
-        # right_hall_effect_frequency_monitor = ContinuousFrequencyMonitor(
-        #     0.0,
-        #     right_hall_effect_getter,
-        #     3,
-        #     ContinuousFrequencyMonitor.Edge.BOTH,
-        #     5
-        # )
-
-        try: #supressing errors here too as many I2CErrors appeared to be raised here; if this causes issues later then this sould be removed
+        left_accel_working = False
+        right_accel_working = False
+        previous_left_accel_working = False
+        previous_right_accel_working = False
+        try:
             (
                 self
                 .environment
                 .peripheries
-                .miscellaneous_left_wheel_accelerometer.config()
+                .miscellaneous_left_wheel_accelerometer.config(
+                    odr=100,
+                    measurement_range=8,
+                    enable_axes=True,
+                    enable_auto_inc=True
+                )
             )
-            with self.environment.contexts() as contexts:
-                contexts.miscellaneous_left_wheel_accelerometer_i2c_error_status = False
-        # if there is an I2CError, suppress and raise error flag
+            left_accel_working = True
         except I2CError: 
-            with self.environment.contexts() as contexts:
-                contexts.miscellaneous_left_wheel_accelerometer_i2c_error_status = True
-        prev_left_accel_i2c_status = False
-
+            left_accel_working = False
 
         try:
             (
                 self
                 .environment
                 .peripheries
-                .miscellaneous_right_wheel_accelerometer.config()
+                .miscellaneous_right_wheel_accelerometer.config(
+                    odr=100,
+                    measurement_range=8,
+                    enable_axes=True,
+                    enable_auto_inc=True
+                )
             )
-            with self.environment.contexts() as contexts:
-                contexts.miscellaneous_right_wheel_accelerometer_i2c_error_status = False
+            right_accel_working = True
         except I2CError:
-            with self.environment.contexts() as contexts:
-                contexts.miscellaneous_right_wheel_accelerometer_i2c_error_status = True
-        prev_right_accel_i2c_status = False
+            right_accel_working = False
+
+        previous_left_accel_working = left_accel_working
+        previous_right_accel_working = right_accel_working
+        with self.environment.contexts() as contexts:
+            contexts.miscellaneous_left_wheel_accelerometer_i2c_error_status = left_accel_working
+            contexts.miscellaneous_right_wheel_accelerometer_i2c_error_status = right_accel_working
 
         filepath = (
             self.environment.settings.general_log_filepath
         )
-        now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        log_file = open(f'{filepath}{now}_front_wheel_log.csv', "w")
-        print(
-            'time, left.x, left.y, left.z, right.x, right.y, right.z, '
-            'imu.x, imu.y, imu.z',
-            file=log_file,
-        )
-        log_file.flush()
+
+        print_log = filepath != ''
+
+        if print_log:
+            makedirs(filepath, exist_ok=True)
+            now = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+            log_file = open(f'{filepath}{now}_front_wheel_log.csv', 'w')
+            print(
+                'time, left.x, left.y, left.z, right.x, right.y, right.z, '
+                'imu.x, imu.y, imu.z',
+                file=log_file,
+            )
+            log_file.flush()
 
         while (
                 not self._stoppage.wait(
@@ -389,99 +381,94 @@ class Miscellaneous(Application):
                     ),
                 )
         ):
+            previous_left_accel_working = left_accel_working
+            previous_right_accel_working = right_accel_working
 
-            try:
-                # attempt to reuse previous value, will give an error if left_accel has not been defined 
-                prev_left_accel = left_accel
-            except NameError:
-                # if left_accel is not defined, give default of -1 (this is a little sketchy)
-                prev_left_accel = LIS2HH12.Vector(-1, -1, -1)
-            
-                        # add logicto recall configurations when error state changes from true to false
+            if previous_left_accel_working:
+                try:
+                    left_accel = (
+                        self
+                        .environment
+                        .peripheries
+                        .miscellaneous_left_wheel_accelerometer
+                        .read_acceleration()
+                    )
+                    with self.environment.contexts() as contexts:
+                        contexts.miscellaneous_left_wheel_accelerations = [
+                            left_accel.x,
+                            left_accel.y,
+                            left_accel.z,
+                        ]
+                        left_accel_working = True
+                except I2CError:
+                    left_accel_working = False
+            else:
+                try:
+                    (
+                        self
+                        .environment
+                        .peripheries
+                        .miscellaneous_left_wheel_accelerometer.config(
+                            odr=100,
+                            measurement_range=8,
+                            enable_axes=True,
+                            enable_auto_inc=True
+                        )
+                    )
+                    left_accel_working = True
+                except I2CError: 
+                    left_accel_working = False
+
+            if previous_right_accel_working:
+                try:
+                    right_accel = (
+                        self
+                        .environment
+                        .peripheries
+                        .miscellaneous_right_wheel_accelerometer
+                        .read_acceleration()
+                    )
+                    with self.environment.contexts() as contexts:
+                        contexts.miscellaneous_right_wheel_accelerations = [
+                            right_accel.x,
+                            right_accel.y,
+                            right_accel.z,
+                        ]
+                        right_accel_working = True
+                except I2CError: 
+                    right_accel_working = False
+            else:
+                try:
+                    (
+                        self
+                        .environment
+                        .peripheries
+                        .miscellaneous_right_wheel_accelerometer.config(
+                            odr=100,
+                            measurement_range=8,
+                            enable_axes=True,
+                            enable_auto_inc=True
+                        )
+                    )
+                    right_accel_working = True
+                except I2CError:
+                    right_accel_working = False
+
             with self.environment.contexts() as contexts:
-                if contexts.miscellaneous_left_wheel_accelerometer_i2c_error_status != prev_left_accel_i2c_status
-                    self.environment.peripheries.miscellaneous_left_wheel_accelerometer.config()                    
-                prev_left_accel_i2c_status = contexts.miscellaneous_left_wheel_accelerometer_i2c_error_status
+                contexts.miscellaneous_left_wheel_accelerometer_i2c_error_status = left_accel_working
+                contexts.miscellaneous_right_wheel_accelerometer_i2c_error_status = right_accel_working
 
-                if contexts.miscellaneous_right_wheel_accelerometer_i2c_error_status != prev_right_accel_i2c_status
-                    self.environment.peripheries.miscellaneous_right_wheel_accelerometer.config()                    
-                prev_right_accel_i2c_status = contexts.miscellaneous_right_wheel_accelerometer_i2c_error_status
+            if print_log:
+                imu = {}
+                with self.environment.contexts() as contexts:
+                    imu = deepcopy(contexts.miscellaneous_orientation)
 
-            try:
-                left_accel = (
-                    self
-                    .environment
-                    .peripheries
-                    .miscellaneous_left_wheel_accelerometer
-                    .read_accel()
+                print(
+                    f'{datetime.now().time()}, '
+                    f'{left_accel.x}, {left_accel.y}, {left_accel.z}, '
+                    f'{right_accel.x}, {right_accel.y}, {right_accel.z}, '
+                    f'{imu.get('x', -100)}, {imu.get('y', -100)}, '
+                    f'{imu.get('z', -100)}',
+                    file=log_file
                 )
-                with self.environment.contexts() as contexts:
-                    contexts.miscellaneous_left_wheel_accelerometer_i2c_error_status = True
-
-            # if there is an I2CError, suppress and raise error flag
-            except I2CError:
-                left_accel = prev_left_accel
-                with self.environment.contexts() as contexts:
-                    contexts.miscellaneous_left_wheel_accelerometer_i2c_error_status = False
-
-            try:
-                # attempt to reuse previous value, will give an error if right_accel has not been defined 
-                prev_right_accel = right_accel
-            except NameError:
-                # if right_accel is not defined, give default of -1 (this is a little sketchy)
-                prev_right_accel = LIS2HH12.Vector(-1, -1, -1)
-
-            try:
-                right_accel = (
-                    self
-                    .environment
-                    .peripheries
-                    .miscellaneous_right_wheel_accelerometer
-                    .read_accel()
-                )
-                with self.environment.contexts() as contexts:
-                    contexts.miscellaneous_right_wheel_accelerometer_i2c_error_status = True
-
-            except I2CError: 
-                right_accel = prev_right_accel
-                with self.environment.contexts() as contexts:
-                    contexts.miscellaneous_right_wheel_accelerometer_i2c_error_status = False
-
-            imu = {}
-
-            with self.environment.contexts() as contexts:
-                # contexts.miscellaneous_left_wheel_velocity = hz2kph(
-                #     left_hall_effect_frequency_monitor.frequency
-                # )
-                # contexts.miscellaneous_left_wheel_magnetic_field = (
-                #     left_hall_effect_frequency_monitor.reading
-                # )
-                # contexts.miscellaneous_right_wheel_velocity = hz2kph(
-                #     right_hall_effect_frequency_monitor.frequency
-                # )
-                # contexts.miscellaneous_right_wheel_magnetic_field = (
-                #     right_hall_effect_frequency_monitor.reading
-                # )
-
-                contexts.miscellaneous_left_wheel_accelerations = [
-                    left_accel.x,
-                    left_accel.y,
-                    left_accel.z,
-                ]
-                contexts.miscellaneous_right_wheel_accelerations = [
-                    right_accel.x,
-                    right_accel.y,
-                    right_accel.z,
-                ]
-                imu = deepcopy(contexts.miscellaneous_orientation)
-
-
-            print(
-                f'{datetime.now().time()}, '
-                f'{left_accel.x}, {left_accel.y}, {left_accel.z}, '
-                f'{right_accel.x}, {right_accel.y}, {right_accel.z}, '
-                f'{imu.get('x', -100)}, {imu.get('y', -100)}, '
-                f'{imu.get('z', -100)}',
-                file=log_file
-            )
-            log_file.flush()
+                log_file.flush()

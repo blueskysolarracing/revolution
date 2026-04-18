@@ -10,15 +10,8 @@ from can import BusABC, ThreadSafeBus
 from iclib.adc78h89 import ADC78H89, InputChannel
 from iclib.bno055 import BNO055
 from iclib.ina229 import INA229
-# from iclib.lis2ds12 import LIS2DS12, OutputDataRate, FullScale
-from iclib.tmag5273 import (
-    TMAG5273,
-    Variant as TMAG5273Variant,
-    Enable as TMAG5273Enable,
-    I2CReadMode as TMAG5273I2CReadMode,
-    OperatingMode as TMAG5273OperatingMode,
-    MagneticChannel as TMAG5273MagneticChannel,
-)
+from iclib.lis2hh12 import LIS2HH12
+from iclib.pca9546adr import PCA9546A
 from iclib.utilities import LockedI2C, LockedSPI, ManualCSSPI
 from iclib.wavesculptor22 import WaveSculptor22
 from json import load
@@ -35,7 +28,6 @@ from revolution import (
     Direction,
     Display,
     Driver,
-    LIS2HH12,
     Miscellaneous,
     Motor,
     Peripheries,
@@ -81,10 +73,6 @@ CONTEXTS: Contexts = Contexts(
     miscellaneous_latitude=0,
     miscellaneous_longitude=0,
 
-    miscellaneous_left_wheel_velocity=0,
-    miscellaneous_left_wheel_magnetic_field=0,
-    miscellaneous_right_wheel_velocity=0,
-    miscellaneous_right_wheel_magnetic_field=0,
     miscellaneous_left_wheel_accelerations=[0, 0, 0],
     miscellaneous_right_wheel_accelerations=[0, 0, 0],
     miscellaneous_left_wheel_accelerometer_i2c_error_status=False,
@@ -263,11 +251,12 @@ ORIENTATION_IMU_BNO055_IMU_RESET_GPIO: GPIO = MagicMock(
     direction='out',
     inverted=True,
 )
+ORIENTATION_IMU_BNO055_SA0: bool = False
 ORIENTATION_IMU_BNO055: BNO055 = BNO055(
     ORIENTATION_IMU_BNO055_I2C,
     ORIENTATION_IMU_BNO055_IMU_RESET_GPIO,
+    ORIENTATION_IMU_BNO055_SA0
 )
-ORIENTATION_IMU_BNO055.ADDRESS = 0x28
 
 POSITION_GPS_SERIAL: Serial = Serial('/dev/ttyLP0', timeout=10)
 POSITION_GPS: GPS = GPS(POSITION_GPS_SERIAL, debug=False)
@@ -281,32 +270,16 @@ FRONT_WHEELS_I2C: I2C = cast(
     I2C, LockedI2C(I2C('/dev/apalis-i2c1'), FRONT_WHEELS_I2C_LOCK)
 )
 
-"""
-LEFT_WHEEL_HALL_EFFECT: TMAG5273 = TMAG5273(
-    FRONT_WHEELS_I2C, TMAG5273Variant.B1
-)
-LEFT_WHEEL_HALL_EFFECT.crc_enable = TMAG5273Enable.ENABLE
-LEFT_WHEEL_HALL_EFFECT.operating_mode = TMAG5273OperatingMode.CONTINUOUS
-LEFT_WHEEL_HALL_EFFECT.magnetic_channel = TMAG5273MagneticChannel.X
-LEFT_WHEEL_HALL_EFFECT.i2c_read_mode = TMAG5273I2CReadMode.SHORT_8BIT_DATA
+FRONT_WHEELS_I2C_MUX: PCA9546A = PCA9546A(0x70, FRONT_WHEELS_I2C)
 
-RIGHT_WHEEL_HALL_EFFECT: TMAG5273 = TMAG5273(
-    FRONT_WHEELS_I2C, TMAG5273Variant.C1
-)
-RIGHT_WHEEL_HALL_EFFECT.crc_enable = TMAG5273Enable.ENABLE
-RIGHT_WHEEL_HALL_EFFECT.operating_mode = TMAG5273OperatingMode.CONTINUOUS
-RIGHT_WHEEL_HALL_EFFECT.magnetic_channel = TMAG5273MagneticChannel.X
-RIGHT_WHEEL_HALL_EFFECT.i2c_read_mode = TMAG5273I2CReadMode.SHORT_8BIT_DATA
-"""
-
+LEFT_WHEEL_ACCELEROMETER_SA0 = True
 LEFT_WHEEL_ACCELEROMETER: LIS2HH12 = LIS2HH12(
-    FRONT_WHEELS_I2C, 0x1E
+    FRONT_WHEELS_I2C, LEFT_WHEEL_ACCELEROMETER_SA0
 )
-
+RIGHT_WHEEL_ACCELEROMETER_SA0 = False
 RIGHT_WHEEL_ACCELEROMETER: LIS2HH12 = LIS2HH12(
-    FRONT_WHEELS_I2C, 0x1D
+    FRONT_WHEELS_I2C, RIGHT_WHEEL_ACCELEROMETER_SA0
 )
-
 
 ARRAY_RELAY_LOW_SIDE_GPIO: GPIO = GPIO('/dev/gpiochip4', 1, 'out')
 ARRAY_RELAY_HIGH_SIDE_GPIO: GPIO = GPIO('/dev/gpiochip0', 13, 'out')
@@ -467,10 +440,7 @@ PERIPHERIES: Peripheries = Peripheries(
     ),
     miscellaneous_orientation_imu_bno055=ORIENTATION_IMU_BNO055,
     miscellaneous_position_gps=POSITION_GPS,
-    miscellaneous_left_wheel_hall_effect=None,
-    miscellaneous_right_wheel_hall_effect=None,
-    # miscellaneous_left_wheel_hall_effect=LEFT_WHEEL_HALL_EFFECT,
-    # miscellaneous_right_wheel_hall_effect=RIGHT_WHEEL_HALL_EFFECT,
+    miscellaneous_front_wheels_i2c_mux=FRONT_WHEELS_I2C_MUX,
     miscellaneous_left_wheel_accelerometer=LEFT_WHEEL_ACCELEROMETER,
     miscellaneous_right_wheel_accelerometer=RIGHT_WHEEL_ACCELEROMETER,
 
