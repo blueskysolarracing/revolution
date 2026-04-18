@@ -266,15 +266,14 @@ class Miscellaneous(Application):
 
             if previous_imu_working:
                 try:
-                    orientation = asdict(
-                        (
-                            self
-                            .environment
-                            .peripheries
-                            .miscellaneous_orientation_imu_bno055
-                            .orientation
-                        ),
+                    raw_data = (
+                        self
+                        .environment
+                        .peripheries
+                        .miscellaneous_orientation_imu_bno055
+                        .orientation
                     )
+                    orientation = asdict(raw_data)
                     with self.environment.contexts() as contexts:
                         contexts.miscellaneous_orientation.update(orientation)
                     imu_working = True
