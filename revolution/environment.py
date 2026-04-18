@@ -77,6 +77,7 @@ class Contexts:
     miscellaneous_orientation_imu_working: bool
     miscellaneous_latitude: float
     miscellaneous_longitude: float
+    miscellaneous_altitude: float
 
     miscellaneous_left_wheel_accelerations: list[float]
     miscellaneous_right_wheel_accelerations: list[float]

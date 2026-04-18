@@ -72,6 +72,7 @@ CONTEXTS: Contexts = Contexts(
     miscellaneous_orientation_imu_working=False,
     miscellaneous_latitude=0,
     miscellaneous_longitude=0,
+    miscellaneous_altitude=0,
 
     miscellaneous_left_wheel_accelerations=[0, 0, 0],
     miscellaneous_right_wheel_accelerations=[0, 0, 0],
@@ -260,9 +261,6 @@ ORIENTATION_IMU_BNO055: BNO055 = BNO055(
 
 POSITION_GPS_SERIAL: Serial = Serial('/dev/ttyLP0', timeout=10)
 POSITION_GPS: GPS = GPS(POSITION_GPS_SERIAL, debug=False)
-
-POSITION_GPS.send_command(b'PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0')
-POSITION_GPS.send_command(b'PMTK220,1000')
 
 
 FRONT_WHEELS_I2C_LOCK: Lock = Lock()

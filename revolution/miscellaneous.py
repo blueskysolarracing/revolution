@@ -316,6 +316,17 @@ class Miscellaneous(Application):
                 contexts.miscellaneous_orientation_imu_working = imu_working
 
     def _position(self) -> None:
+        periphery = (
+            self
+            .environment
+            .peripheries
+            .miscellaneous_position_gps
+        )
+        periphery.send_command(
+            b'PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0'
+        )
+        periphery.send_command(b'PMTK220,1000')
+
         while (
                 not self._stoppage.wait(
                     (
@@ -326,19 +337,13 @@ class Miscellaneous(Application):
                     ),
                 )
         ):
-            periphery = (
-                self
-                .environment
-                .peripheries
-                .miscellaneous_position_gps
-            )
-
             periphery.update()
 
             if not periphery.has_fix:
                 with self.environment.contexts() as contexts:
                     contexts.miscellaneous_latitude = periphery.latitude
                     contexts.miscellaneous_longitude = periphery.longitude
+                    contexts.miscellaneous_altitude = periphery.altitude_m
 
     def _front_wheels(self) -> None:
         def left_accelerometer_config() -> None:

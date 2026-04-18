@@ -65,6 +65,7 @@ class Telemetry(Application):
         miscellaneous_orientation: dict[str, float]
         miscellaneous_latitude: float
         miscellaneous_longitude: float
+        miscellaneous_altitude: float
         miscellaneous_left_wheel_accelerations: list[float]
         miscellaneous_right_wheel_accelerations: list[float]
 
@@ -96,8 +97,6 @@ class Telemetry(Application):
                 for field in fields(self.Data):
                     name = field.name
                     kwargs[name] = getattr(contexts, name)
-                kwargs["miscellaneous_latitude"] = 0.0
-                kwargs["miscellaneous_longitude"] = 0.0
 
             data = self.Data(**kwargs)
             data_token = data.serialize()

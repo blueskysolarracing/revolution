@@ -2,16 +2,19 @@ from time import sleep
 
 while True:
     with environment.contexts() as ctx:
-        print(
-            f'L:{ctx.miscellaneous_left_wheel_accelerations} '
-            f'{ctx.miscellaneous_left_wheel_accelerometer_working} | '
-            f'R:{ctx.miscellaneous_right_wheel_accelerations} '
-            f'{ctx.miscellaneous_right_wheel_accelerometer_working}'
-        )
-        print(
-            f'imu orientation={ctx.miscellaneous_orientation} '
-            f'{ctx.miscellaneous_orientation_imu_working}'
-        )
+        # print(
+        #     f'L:{ctx.miscellaneous_left_wheel_accelerations} '
+        #     f'{ctx.miscellaneous_left_wheel_accelerometer_working} | '
+        #     f'R:{ctx.miscellaneous_right_wheel_accelerations} '
+        #     f'{ctx.miscellaneous_right_wheel_accelerometer_working}'
+        # )
+        # print(
+        #     f'imu orientation={ctx.miscellaneous_orientation} '
+        #     f'{ctx.miscellaneous_orientation_imu_working}'
+        # )
+
+        print(f'GPS latitude={ctx.miscellaneous_latitude} longitude={ctx.miscellaneous_longitude} altitude={ctx.miscellaneous_altitude}')
+
         # print(
         #     f'horn={ctx.miscellaneous_horn_status_input} '
         #     f'reverse={ctx.motor_direction_input} '
