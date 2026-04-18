@@ -11,7 +11,6 @@ from iclib.bno055 import OperationMode, Register, Unit
 from revolution.application import Application
 from revolution.environment import Endpoint
 from revolution.worker import Worker
-from revolution.LIS2HH12 import LIS2HH12
 
 _logger = getLogger(__name__)
 
@@ -226,27 +225,31 @@ class Miscellaneous(Application):
             previous_flash_status = flash_status
 
     def _orientation(self) -> None:
-        (
-            self
-            .environment
-            .peripheries
-            .miscellaneous_orientation_imu_bno055
-            .write(Register.OPR_MODE, 0x00)
-        )
-        (
-            self
-            .environment
-            .peripheries
-            .miscellaneous_orientation_imu_bno055
-            .select_units(Unit.MS2, Unit.DPS, Unit.DEGREES, Unit.CELSIUS)
-        )
-        (
-            self
-            .environment
-            .peripheries
-            .miscellaneous_orientation_imu_bno055
-            .write(Register.OPR_MODE, OperationMode.IMU)
-        )
+        def imu_config() -> None:
+            (
+                self
+                .environment
+                .peripheries
+                .miscellaneous_orientation_imu_bno055
+                .write(Register.OPR_MODE, 0x00)
+            )
+            (
+                self
+                .environment
+                .peripheries
+                .miscellaneous_orientation_imu_bno055
+                .select_units(Unit.MS2, Unit.DPS, Unit.DEGREES, Unit.CELSIUS)
+            )
+            (
+                self
+                .environment
+                .peripheries
+                .miscellaneous_orientation_imu_bno055
+                .write(Register.OPR_MODE, OperationMode.IMU)
+            )
+
+        imu_working = False
+        previous_imu_working = False
 
         while (
                 not self._stoppage.wait(
@@ -258,26 +261,33 @@ class Miscellaneous(Application):
                     ),
                 )
         ):
-            try:
-                orientation = asdict(
-                    (
-                        self
-                        .environment
-                        .peripheries
-                        .miscellaneous_orientation_imu_bno055
-                        .orientation
-                    ),
-                )
-                with self.environment.contexts() as contexts:
-                    contexts.miscellaneous_orientation_i2c_error_status = True
-            except I2CError: 
-                with self.environment.contexts() as contexts:
-                    contexts.miscellaneous_orientation_i2c_error_status = False
+            previous_imu_working = imu_working
 
-            # When orientation has not been initalized because of an I2CError, this code runs but produces an error
-            # HERE - What to do about this?
+            if previous_imu_working:
+                try:
+                    orientation = asdict(
+                        (
+                            self
+                            .environment
+                            .peripheries
+                            .miscellaneous_orientation_imu_bno055
+                            .orientation
+                        ),
+                    )
+                    with self.environment.contexts() as contexts:
+                        contexts.miscellaneous_orientation.update(orientation)
+                    imu_working = True
+                except I2CError:
+                    imu_working = False
+            else:
+                try:
+                    imu_config()
+                    imu_working = True
+                except I2CError:
+                    imu_working = False
+
             with self.environment.contexts() as contexts:
-                contexts.miscellaneous_orientation.update(orientation)
+                contexts.miscellaneous_orientation_imu_working = imu_working
 
     def _position(self) -> None:
         while (
@@ -305,18 +315,13 @@ class Miscellaneous(Application):
                     contexts.miscellaneous_longitude = periphery.longitude
 
     def _front_wheels(self) -> None:
-        (
-            self
-            .environment
-            .peripheries
-            .miscellaneous_front_wheels_i2c_mux.channel_select([0, 1])
-        )
-
-        left_accel_working = False
-        right_accel_working = False
-        previous_left_accel_working = False
-        previous_right_accel_working = False
-        try:
+        def left_accelerometer_config() -> None:
+            (
+                self
+                .environment
+                .peripheries
+                .miscellaneous_front_wheels_i2c_mux.channel_select([0, 1])
+            )
             (
                 self
                 .environment
@@ -328,11 +333,14 @@ class Miscellaneous(Application):
                     enable_auto_inc=True
                 )
             )
-            left_accel_working = True
-        except I2CError: 
-            left_accel_working = False
 
-        try:
+        def right_accelerometer_config() -> None:
+            (
+                self
+                .environment
+                .peripheries
+                .miscellaneous_front_wheels_i2c_mux.channel_select([0, 1])
+            )
             (
                 self
                 .environment
@@ -344,15 +352,11 @@ class Miscellaneous(Application):
                     enable_auto_inc=True
                 )
             )
-            right_accel_working = True
-        except I2CError:
-            right_accel_working = False
 
-        previous_left_accel_working = left_accel_working
-        previous_right_accel_working = right_accel_working
-        with self.environment.contexts() as contexts:
-            contexts.miscellaneous_left_wheel_accelerometer_i2c_error_status = left_accel_working
-            contexts.miscellaneous_right_wheel_accelerometer_i2c_error_status = right_accel_working
+        left_wheel_accel_working = False
+        right_wheel_accel_working = False
+        previous_left_wheel_accel_working = False
+        previous_right_wheel_accel_working = False
 
         filepath = (
             self.environment.settings.general_log_filepath
@@ -381,10 +385,10 @@ class Miscellaneous(Application):
                     ),
                 )
         ):
-            previous_left_accel_working = left_accel_working
-            previous_right_accel_working = right_accel_working
+            previous_left_wheel_accel_working = left_wheel_accel_working
+            previous_right_wheel_accel_working = right_wheel_accel_working
 
-            if previous_left_accel_working:
+            if previous_left_wheel_accel_working:
                 try:
                     left_accel = (
                         self
@@ -399,27 +403,17 @@ class Miscellaneous(Application):
                             left_accel.y,
                             left_accel.z,
                         ]
-                        left_accel_working = True
+                        left_wheel_accel_working = True
                 except I2CError:
-                    left_accel_working = False
+                    left_wheel_accel_working = False
             else:
                 try:
-                    (
-                        self
-                        .environment
-                        .peripheries
-                        .miscellaneous_left_wheel_accelerometer.config(
-                            odr=100,
-                            measurement_range=8,
-                            enable_axes=True,
-                            enable_auto_inc=True
-                        )
-                    )
-                    left_accel_working = True
-                except I2CError: 
-                    left_accel_working = False
+                    left_accelerometer_config()
+                    left_wheel_accel_working = True
+                except I2CError:
+                    left_wheel_accel_working = False
 
-            if previous_right_accel_working:
+            if previous_right_wheel_accel_working:
                 try:
                     right_accel = (
                         self
@@ -434,29 +428,23 @@ class Miscellaneous(Application):
                             right_accel.y,
                             right_accel.z,
                         ]
-                        right_accel_working = True
-                except I2CError: 
-                    right_accel_working = False
+                        right_wheel_accel_working = True
+                except I2CError:
+                    right_wheel_accel_working = False
             else:
                 try:
-                    (
-                        self
-                        .environment
-                        .peripheries
-                        .miscellaneous_right_wheel_accelerometer.config(
-                            odr=100,
-                            measurement_range=8,
-                            enable_axes=True,
-                            enable_auto_inc=True
-                        )
-                    )
-                    right_accel_working = True
+                    right_accelerometer_config()
+                    right_wheel_accel_working = True
                 except I2CError:
-                    right_accel_working = False
+                    right_wheel_accel_working = False
 
             with self.environment.contexts() as contexts:
-                contexts.miscellaneous_left_wheel_accelerometer_i2c_error_status = left_accel_working
-                contexts.miscellaneous_right_wheel_accelerometer_i2c_error_status = right_accel_working
+                contexts.miscellaneous_left_wheel_accelerometer_working = (
+                    left_wheel_accel_working
+                )
+                contexts.miscellaneous_right_wheel_accelerometer_working = (
+                    right_wheel_accel_working
+                )
 
             if print_log:
                 imu = {}

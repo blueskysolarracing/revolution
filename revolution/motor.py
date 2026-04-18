@@ -125,7 +125,7 @@ class Motor(Application):
                         )
                         motor_controller_sent_values = [
                             1,
-                            kph2rpm(cruise_control_velocity), 
+                            kph2rpm(cruise_control_velocity),
                         ]
                     elif regeneration_status_input:
                         regeneration_strength = (
@@ -143,7 +143,7 @@ class Motor(Application):
                         )
                         motor_controller_sent_values = [
                             regeneration_strength,
-                            0, 
+                            0,
                         ]
                     else:
                         if acceleration_input > filtered_acceleration_input:

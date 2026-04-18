@@ -531,7 +531,7 @@ class Power(Application):
                 psm_motor_voltage = contexts.power_psm_motor_voltage
 
                 bms_HV_current = contexts.power_battery_HV_current
-            
+
             print(
                 f'{datetime.now().time()}, '
                 f'{acceleration_input}, '

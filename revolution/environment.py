@@ -74,14 +74,14 @@ class Contexts:
     miscellaneous_backup_camera_control_status_input: bool
     miscellaneous_brake_status_input: bool
     miscellaneous_orientation: dict[str, float]
-    miscellaneous_orientation_i2c_error_status: bool
+    miscellaneous_orientation_imu_working: bool
     miscellaneous_latitude: float
     miscellaneous_longitude: float
 
     miscellaneous_left_wheel_accelerations: list[float]
     miscellaneous_right_wheel_accelerations: list[float]
-    miscellaneous_left_wheel_accelerometer_i2c_error_status: bool # bool to describe i2c error state of left wheel accelerometer
-    miscellaneous_right_wheel_accelerometer_i2c_error_status: bool # False is error, True is normal operation
+    miscellaneous_left_wheel_accelerometer_working: bool
+    miscellaneous_right_wheel_accelerometer_working: bool
 
     # Motor
 
