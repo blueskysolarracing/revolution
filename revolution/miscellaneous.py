@@ -2,6 +2,7 @@ from copy import deepcopy
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from logging import getLogger
+from os import makedirs
 from typing import ClassVar
 
 from periphery import PWM
@@ -331,6 +332,7 @@ class Miscellaneous(Application):
         print_log = filepath != ''
 
         if print_log:
+            makedirs(filepath, parents=True, exist_ok=True)
             now = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
             log_file = open(f'{filepath}{now}_front_wheel_log.csv', 'w')
             print(

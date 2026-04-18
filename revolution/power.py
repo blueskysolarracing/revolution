@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 from logging import getLogger
+from os import makedirs
 from time import sleep, time
 from typing import ClassVar
 
@@ -424,6 +425,7 @@ class Power(Application):
         if not print_log:
             return
 
+        makedirs(filepath, parents=True, exist_ok=True)
         now = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
         log_file = open(f'{filepath}{now}_power_log.csv', 'w')
         print(
