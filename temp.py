@@ -3,10 +3,15 @@ from time import sleep
 while True:
     with environment.contexts() as ctx:
         print(
-            f"L:{ctx.miscellaneous_left_wheel_accelerations} | "
-            f"R:{ctx.miscellaneous_right_wheel_accelerations}"
+            f'L:{ctx.miscellaneous_left_wheel_accelerations} '
+            f'{ctx.miscellaneous_left_wheel_accelerometer_working} | '
+            f'R:{ctx.miscellaneous_right_wheel_accelerations} '
+            f'{ctx.miscellaneous_right_wheel_accelerometer_working}'
         )
-        # print(f'imu orientation={ctx.miscellaneous_orientation}')
+        print(
+            f'imu orientation={ctx.miscellaneous_orientation} '
+            f'{ctx.miscellaneous_orientation_imu_working}'
+        )
         # print(
         #     f'horn={ctx.miscellaneous_horn_status_input} '
         #     f'reverse={ctx.motor_direction_input} '

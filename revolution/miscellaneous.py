@@ -8,6 +8,7 @@ from typing import ClassVar
 from periphery import PWM, I2CError
 
 from iclib.bno055 import OperationMode, Register, Unit
+from iclib.lis2hh12 import LIS2HH12
 from revolution.application import Application
 from revolution.environment import Endpoint
 from revolution.worker import Worker
@@ -376,18 +377,19 @@ class Miscellaneous(Application):
             log_file.flush()
 
         while (
-                not self._stoppage.wait(
-                    (
-                        self
-                        .environment
-                        .settings
-                        .miscellaneous_front_wheels_timeout
-                    ),
-                )
+            not self._stoppage.wait(
+                (
+                    self
+                    .environment
+                    .settings
+                    .miscellaneous_front_wheels_timeout
+                ),
+            )
         ):
             previous_left_wheel_accel_working = left_wheel_accel_working
             previous_right_wheel_accel_working = right_wheel_accel_working
 
+            left_accel = LIS2HH12.Vector(0.0, 0.0, 0.0)
             if previous_left_wheel_accel_working:
                 try:
                     left_accel = (
@@ -413,6 +415,7 @@ class Miscellaneous(Application):
                 except I2CError:
                     left_wheel_accel_working = False
 
+            right_accel = LIS2HH12.Vector(0.0, 0.0, 0.0)
             if previous_right_wheel_accel_working:
                 try:
                     right_accel = (
