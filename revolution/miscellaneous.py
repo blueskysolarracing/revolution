@@ -341,9 +341,12 @@ class Miscellaneous(Application):
 
             if not periphery.has_fix:
                 with self.environment.contexts() as contexts:
-                    contexts.miscellaneous_latitude = periphery.latitude
-                    contexts.miscellaneous_longitude = periphery.longitude
-                    contexts.miscellaneous_altitude = periphery.altitude_m
+                    if periphery.latitude is not None:
+                        contexts.miscellaneous_latitude = periphery.latitude
+                    if periphery.longitude is not None:
+                        contexts.miscellaneous_longitude = periphery.longitude
+                    if periphery.altitude_m is not None:
+                        contexts.miscellaneous_altitude = periphery.altitude_m
 
     def _front_wheels(self) -> None:
         def left_accelerometer_config() -> None:
