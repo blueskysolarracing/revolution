@@ -327,7 +327,7 @@ SETTINGS: Settings = Settings(
     # General
 
     general_wheel_diameter=0.557,
-    general_log_filepath='/usr/share/revolution_logs/',
+    general_log_filepath='',
 
     # Debugger
 

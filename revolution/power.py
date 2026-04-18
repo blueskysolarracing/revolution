@@ -418,8 +418,14 @@ class Power(Application):
         filepath = (
             self.environment.settings.general_log_filepath
         )
-        now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        log_file = open(f'{filepath}{now}_power_log.csv', "w")
+
+        print_log = filepath != ''
+
+        if not print_log:
+            return
+
+        now = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+        log_file = open(f'{filepath}{now}_power_log.csv', 'w')
         print(
             'time, '
             'acceleration_input, '
