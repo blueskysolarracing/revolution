@@ -339,26 +339,26 @@ class Miscellaneous(Application):
         ):
             periphery.update()
 
-            if not periphery.has_fix:
-                with self.environment.contexts() as contexts:
+            with self.environment.contexts() as contexts:
+                if periphery.has_fix:
                     if periphery.latitude is not None:
                         contexts.miscellaneous_latitude = periphery.latitude
                     if periphery.longitude is not None:
                         contexts.miscellaneous_longitude = periphery.longitude
                     if periphery.altitude_m is not None:
                         contexts.miscellaneous_altitude = periphery.altitude_m
-                    if periphery.fix_quality is not None:
-                        contexts.miscellaneous_gps_fix_quality = (
-                            periphery.fix_quality
-                        )
-                    if periphery.fix_quality_3d is not None:
-                        contexts.miscellaneous_gps_fix_quality_3d = (
-                            periphery.fix_quality_3d
-                        )
-                    if periphery.satellites is not None:
-                        contexts.miscellaneous_gps_satellites = (
-                            periphery.satellites
-                        )
+                if periphery.fix_quality is not None:
+                    contexts.miscellaneous_gps_fix_quality = (
+                        periphery.fix_quality
+                    )
+                if periphery.fix_quality_3d is not None:
+                    contexts.miscellaneous_gps_fix_quality_3d = (
+                        periphery.fix_quality_3d
+                    )
+                if periphery.satellites is not None:
+                    contexts.miscellaneous_gps_satellites = (
+                        periphery.satellites
+                    )
 
     def _front_wheels(self) -> None:
         def left_accelerometer_config() -> None:
