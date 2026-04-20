@@ -89,7 +89,7 @@ class Contexts:
 
     # Motor
 
-    motor_status_input: bool
+    battery_relay_status: bool
     motor_acceleration_input: float
     motor_direction_input: Direction
     motor_cruise_control_status_input: bool
@@ -156,6 +156,10 @@ class Contexts:
     power_psm_array_voltage: float
     power_psm_motor_current: float
     power_psm_motor_voltage: float
+
+    # Reset Related
+    motor_last_reset_timestamp: float
+    motor_reset_counter: int
 
     @property
     def power_battery_min_cell_voltage(self) -> float:
@@ -355,6 +359,11 @@ class Settings:
     telemetry_begin_token: bytes
     telemetry_separator_token: bytes
     telemetry_end_token: bytes
+
+    # Reset
+    motor_reset_limit: int
+    motor_reset_timeout: float
+    motor_reset_window: float
 
 
 @dataclass(frozen=True)
