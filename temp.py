@@ -1,7 +1,7 @@
 from time import sleep
 
 while True:
-    # with environment.contexts() as ctx:
+    with environment.contexts() as ctx:
         # Front wheel sensors
         # print(
         #     f'L:{ctx.miscellaneous_left_wheel_accelerations} '
@@ -25,19 +25,25 @@ while True:
         # )
 
         # Steering wheel
-        # print(
-        #     f'horn={ctx.miscellaneous_horn_status_input} '
-        #     f'reverse={ctx.motor_direction_input} '
-        #     f'regen={ctx.motor_regeneration_status_input} '
-        #     f'array={ctx.power_array_relay_status_input} '
-        #     f'batt={ctx.power_battery_relay_status_input} '
-        #     f'left={ctx.miscellaneous_left_indicator_light_status_input} '
-        #     f'right={ctx.miscellaneous_right_indicator_light_status_input} '
-        #     f'drl={ctx.miscellaneous_daytime_running_lights_status_input} '
-        #     f'cc={ctx.motor_cruise_control_status_input} '
-        #     f'vfm_up={ctx.motor_variable_field_magnet_up_input} '
-        #     f'vfm_down={ctx.motor_variable_field_magnet_down_input}'
-        # )
+        print(
+            f'horn={ctx.miscellaneous_horn_status_input} '
+            f'reverse={ctx.motor_direction_input} '
+            f'regen={ctx.motor_regeneration_status_input} '
+            f'array={ctx.power_array_relay_status_input} '
+            f'batt={ctx.power_battery_relay_status_input} '
+            f'left={ctx.miscellaneous_left_indicator_light_status_input} '
+            f'right={ctx.miscellaneous_right_indicator_light_status_input} '
+            f'drl={ctx.miscellaneous_daytime_running_lights_status_input} '
+            f'cc={ctx.motor_cruise_control_status_input} '
+            f'vfm_up={ctx.motor_variable_field_magnet_up_input} '
+            f'vfm_down={ctx.motor_variable_field_magnet_down_input}'
+        )
+
+        # VFM
+        print(
+            f'VFM={ctx.motor_variable_field_magnet_position} '
+            f'motor_status={ctx.motor_status_input}'
+        )
 
         # Power
         # print(
@@ -50,20 +56,5 @@ while True:
         #     f'supp={ctx.power_battery_supp_voltage:6.2f}'
         # )
 
-    # VFM
-    with environment.contexts() as ctx:
-        print(f'VFM={ctx.motor_variable_field_magnet_position}')
-
-    command = input('Enter VFM command: (u/0/d)')
-    if command == '0':
-        print('No action')
-    elif command == 'u':
-        with environment.contexts() as ctx:
-            ctx.motor_variable_field_magnet_up_input += 1
-    elif command == 'd':
-        with environment.contexts() as ctx:
-            ctx.motor_variable_field_magnet_up_input -= 1
-    else:
-        print('Invalid command')
 
     sleep(0.5)
