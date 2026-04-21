@@ -347,6 +347,7 @@ class Motor(Application):
                                 position = 0
                             else:
                                 position -= actual_step
+                                position = max(0, position)
 
                         previous_direction = direction
 
