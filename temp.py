@@ -51,20 +51,19 @@ while True:
         # )
 
     # VFM
-    try:
+    with environment.contexts() as ctx:
+        print(f'VFM={ctx.motor_variable_field_magnet_position}')
+
+    command = input('Enter VFM command: (u/0/d)')
+    if command == '0':
+        print('No action')
+    elif command == 'u':
         with environment.contexts() as ctx:
-            print(f'VFM={ctx.motor_variable_field_magnet_position}')
-    except:
-        command = input('Enter VFM command: (u/0/d)')
-        if command == '0':
-            print('No action')
-        elif command == 'u':
-            with environment.contexts() as ctx:
-                ctx.motor_variable_field_magnet_up_input += 1
-        elif command == 'd':
-            with environment.contexts() as ctx:
-                ctx.motor_variable_field_magnet_up_input -= 1
-        else:
-            print('Invalid command')
+            ctx.motor_variable_field_magnet_up_input += 1
+    elif command == 'd':
+        with environment.contexts() as ctx:
+            ctx.motor_variable_field_magnet_up_input -= 1
+    else:
+        print('Invalid command')
 
     sleep(0.5)
