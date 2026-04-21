@@ -323,9 +323,9 @@ class Motor(Application):
                     position = 0
                     previous_direction = VFMDirection.BACKWARD
                 else:
-                    if input_ > 0 and (position + step_size) <= step_range:
+                    if input_ > 0 and position <= step_range:
                         direction = VFMDirection.FORWARD
-                    elif input_ < 0 and (position - step_size) >= -step_size:
+                    elif input_ < 0 and position >= 0:
                         direction = VFMDirection.BACKWARD
                     else:
                         direction = None
