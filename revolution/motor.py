@@ -322,33 +322,33 @@ class Motor(Application):
                     move_vfm(VFMDirection.BACKWARD, 2 * step_range)
                     position = 0
                     previous_direction = VFMDirection.BACKWARD
-
-                if input_ > 0 and (position + step_size) <= step_range:
-                    direction = VFMDirection.FORWARD
-                elif input_ < 0 and (position - step_size) >= -step_size:
-                    direction = VFMDirection.BACKWARD
                 else:
-                    direction = None
+                    if input_ > 0 and (position + step_size) <= step_range:
+                        direction = VFMDirection.FORWARD
+                    elif input_ < 0 and (position - step_size) >= -step_size:
+                        direction = VFMDirection.BACKWARD
+                    else:
+                        direction = None
 
-                if direction is not None:
-                    if input_ > 0:
-                        command_step = step_size - (position % step_size)
-                    elif input_ < 0:
-                        command_step = position % step_size
+                    if direction is not None:
+                        if input_ > 0:
+                            command_step = step_size - (position % step_size)
+                        elif input_ < 0:
+                            command_step = position % step_size
 
-                    if direction != previous_direction:
-                        command_step -= 1
-                    stall_stop, actual_step = move_vfm(direction, command_step)
+                        if direction != previous_direction:
+                            command_step -= 1
+                        stall_stop, actual_step = move_vfm(direction, command_step)
 
-                    if direction == VFMDirection.FORWARD:
-                        position += actual_step
-                    elif direction == VFMDirection.BACKWARD:
-                        if stall_stop:
-                            position = 0
-                        else:
-                            position -= actual_step
+                        if direction == VFMDirection.FORWARD:
+                            position += actual_step
+                        elif direction == VFMDirection.BACKWARD:
+                            if stall_stop:
+                                position = 0
+                            else:
+                                position -= actual_step
 
-                    previous_direction = direction
+                        previous_direction = direction
 
                 with self.environment.contexts() as contexts:
                     contexts.motor_variable_field_magnet_position = (
