@@ -288,7 +288,7 @@ ARRAY_RELAY_PRE_CHARGE_GPIO: GPIO = GPIO('/dev/gpiochip4', 2, 'out')
 POWER_POINT_TRACKING_SWITCH_1_GPIO: GPIO = GPIO('/dev/gpiochip3', 26, 'out')
 POWER_POINT_TRACKING_SWITCH_2_GPIO: GPIO = GPIO('/dev/gpiochip3', 28, 'out')
 
-VARIABLE_FIELD_MAGNET_DIRECTION_GPIO: GPIO = GPIO('/dev/gpiochip1', 13, 'out')
+VARIABLE_FIELD_MAGNET_DIRECTION_GPIO: GPIO = GPIO('/dev/gpiochip0', 8, 'out')
 VARIABLE_FIELD_MAGNET_STALL_GPIO: GPIO = GPIO('/dev/gpiochip0', 1, 'in')
 VARIABLE_FIELD_MAGNET_ENCODER_A_GPIO: GPIO = GPIO(
     '/dev/gpiochip0',
@@ -302,7 +302,7 @@ VARIABLE_FIELD_MAGNET_ENCODER_B_GPIO: GPIO = GPIO(
     'in',
     edge='rising',
 )
-VARIABLE_FIELD_MAGNET_ENABLE_GPIO: GPIO = GPIO('/dev/gpiochip0', 8, 'out')
+VARIABLE_FIELD_MAGNET_ENABLE_GPIO: GPIO = GPIO('/dev/gpiochip1', 13, 'out')
 
 RADIO_SERIAL: Serial = Serial('/dev/ttyLP2', 115200, timeout=1)
 
@@ -516,13 +516,10 @@ SETTINGS: Settings = Settings(
     motor_filtered_acceleration_input_factor=1,
     motor_bus_current_limit=0.5,
     motor_regeneration_strength=0.3,
-    motor_variable_field_magnet_step_size=40,
-    motor_variable_field_magnet_step_upper_limit=320,
-    motor_variable_field_magnet_frequency=1000,
-    motor_variable_field_magnet_duty_cycle=0.75,
-    motor_variable_field_magnet_stall_threshold=20,
-    motor_variable_field_magnet_max_enable_time_reset=15.0,
-    motor_variable_field_magnet_max_enable_time_move=0.5,
+    motor_variable_field_magnet_step_size=50,
+    motor_variable_field_magnet_step_range=400,
+    motor_variable_field_magnet_stall_timeout=0.5,
+    motor_variable_field_magnet_stop_timeout=0.25,
 
     # Power
 

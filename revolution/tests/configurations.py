@@ -366,13 +366,10 @@ SETTINGS: Settings = Settings(
     motor_filtered_acceleration_input_factor=0.7,
     motor_bus_current_limit=0.7,
     motor_regeneration_strength=0.3,
-    motor_variable_field_magnet_step_size=40,
-    motor_variable_field_magnet_step_upper_limit=320,
-    motor_variable_field_magnet_frequency=1000,
-    motor_variable_field_magnet_duty_cycle=0.75,
-    motor_variable_field_magnet_stall_threshold=20,
-    motor_variable_field_magnet_max_enable_time_reset=15.0,
-    motor_variable_field_magnet_max_enable_time_move=0.5,
+    motor_variable_field_magnet_step_size=50,
+    motor_variable_field_magnet_step_range=400,
+    motor_variable_field_magnet_stall_timeout=0.5,
+    motor_variable_field_magnet_stop_timeout=0.25,
 
     # Power
 

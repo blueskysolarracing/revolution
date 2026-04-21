@@ -1,7 +1,8 @@
 from time import sleep
 
 while True:
-    with environment.contexts() as ctx:
+    # with environment.contexts() as ctx:
+        # Front wheel sensors
         # print(
         #     f'L:{ctx.miscellaneous_left_wheel_accelerations} '
         #     f'{ctx.miscellaneous_left_wheel_accelerometer_working} | '
@@ -13,15 +14,17 @@ while True:
         #     f'{ctx.miscellaneous_orientation_imu_working}'
         # )
 
-        print(
-            f'GPS latitude={ctx.miscellaneous_latitude} '
-            f'longitude={ctx.miscellaneous_longitude} '
-            f'altitude={ctx.miscellaneous_altitude} '
-            f'fix_quality={ctx.miscellaneous_gps_fix_quality} '
-            f'fix_quality_3d={ctx.miscellaneous_gps_fix_quality_3d} '
-            f'satellites={ctx.miscellaneous_gps_satellites} '
-        )
+        # GPS
+        # print(
+        #     f'GPS latitude={ctx.miscellaneous_latitude} '
+        #     f'longitude={ctx.miscellaneous_longitude} '
+        #     f'altitude={ctx.miscellaneous_altitude} '
+        #     f'fix_quality={ctx.miscellaneous_gps_fix_quality} '
+        #     f'fix_quality_3d={ctx.miscellaneous_gps_fix_quality_3d} '
+        #     f'satellites={ctx.miscellaneous_gps_satellites} '
+        # )
 
+        # Steering wheel
         # print(
         #     f'horn={ctx.miscellaneous_horn_status_input} '
         #     f'reverse={ctx.motor_direction_input} '
@@ -35,6 +38,8 @@ while True:
         #     f'vfm_up={ctx.motor_variable_field_magnet_up_input} '
         #     f'vfm_down={ctx.motor_variable_field_magnet_down_input}'
         # )
+
+        # Power
         # print(
         #     f'motor_v={ctx.power_psm_motor_voltage:6.2f}  '
         #     f'motor_i={ctx.power_psm_motor_current:6.2f}  '
@@ -44,4 +49,22 @@ while True:
         #     f'bms_LV_v={ctx.power_battery_LV_bus_voltage:6.2f}  '
         #     f'supp={ctx.power_battery_supp_voltage:6.2f}'
         # )
+
+    # VFM
+    try:
+        with environment.contexts() as ctx:
+            print(f'VFM={ctx.motor_variable_field_magnet_position}')
+    except:
+        command = input('Enter VFM command: (u/0/d)')
+        if command == '0':
+            print('No action')
+        elif command == 'u':
+            with environment.contexts() as ctx:
+                ctx.motor_variable_field_magnet_up_input += 1
+        elif command == 'd':
+            with environment.contexts() as ctx:
+                ctx.motor_variable_field_magnet_up_input -= 1
+        else:
+            print('Invalid command')
+
     sleep(0.5)
