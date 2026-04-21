@@ -41,6 +41,8 @@ while True:
 
         # VFM
         print(
+            f'vfm_up={ctx.motor_variable_field_magnet_up_input} '
+            f'vfm_down={ctx.motor_variable_field_magnet_down_input}'
             f'VFM={ctx.motor_variable_field_magnet_position} '
             f'motor_status={ctx.motor_status_input}'
         )
