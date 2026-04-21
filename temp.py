@@ -71,4 +71,4 @@ while True:
         print('Invalid command')
 
     print()
-    sleep(0.5)
+    sleep(2)
