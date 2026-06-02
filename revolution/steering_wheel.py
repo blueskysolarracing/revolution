@@ -174,10 +174,10 @@ class SteeringWheel:
             if shift != 0:
                 shift = 5 - shift
             ordered_raw = raw[-shift:] + raw[:-shift]
-            data_0 = (~ordered_raw[0]) & 0xFF
-            data_1 = (~ordered_raw[1]) & 0xFF
+            data_0 = (~ordered_raw[1]) & 0xFF
+            data_1 = (~ordered_raw[2]) & 0xFF
             inputs = [data_0, data_1]
-            crc_success = (ordered_raw[2] & 0xFF) == (data_0 ^ data_1)
+            crc_success = (ordered_raw[3] & 0xFF) == (data_0 ^ data_1)
 
             print(f'{shift}, [', end='')
             for x in ordered_raw:
@@ -185,7 +185,7 @@ class SteeringWheel:
             print(']')
             print(
                 f'inputs {inputs[0]:08b}, {inputs[1]:08b} '
-                f'crc {ordered_raw[2]:08b} {(data_0 ^ data_1):08b}'
+                f'crc {ordered_raw[3]:08b} {(data_0 ^ data_1):08b}'
             )
 
         return inputs
