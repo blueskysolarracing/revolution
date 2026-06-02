@@ -30,7 +30,7 @@ __all__ = (
     'PRBS',
     'Settings',
     'StatusesInformation',
-    'SteeringWheel'
+    'SteeringWheel',
     'Telemetry',
     'ThermistorTemperaturesInformation',
     'UndervoltageAndTemperatureFlagsInformation',
