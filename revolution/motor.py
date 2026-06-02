@@ -268,13 +268,13 @@ class Motor(Application):
             sleep(stop_timeout)
 
             while (
-                    (
-                        self
-                        .environment
-                        .peripheries
-                        .motor_variable_field_magnet_encoder_a_gpio
-                        .poll(0)
-                    )
+                (
+                    self
+                    .environment
+                    .peripheries
+                    .motor_variable_field_magnet_encoder_a_gpio
+                    .poll(0)
+                )
             ):
                 (
                     self
@@ -288,14 +288,14 @@ class Motor(Application):
             return (is_stalling, counter_a)
 
         while (
-                not self._stoppage.wait(
-                    (
-                        self
-                        .environment
-                        .settings
-                        .motor_variable_field_magnet_timeout
-                    ),
-                )
+            not self._stoppage.wait(
+                (
+                    self
+                    .environment
+                    .settings
+                    .motor_variable_field_magnet_timeout
+                ),
+            )
         ):
             with self.environment.contexts() as contexts:
                 status_input = contexts.motor_status_input
@@ -337,7 +337,7 @@ class Motor(Application):
                             command_step = position % step_size
 
                         if direction != previous_direction:
-                            command_step -= 1
+                            command_step += (step_size - 1)
                         stall_stop, actual_step = move_vfm(direction, command_step)
 
                         if direction == VFMDirection.FORWARD:
