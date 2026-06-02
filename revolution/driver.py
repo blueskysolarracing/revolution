@@ -96,6 +96,7 @@ class Driver(Application):
             raw_bytes = steering_wheel.get_input()
             if not raw_bytes:
                 continue
+            # print(f'{raw_bytes[0]:08b}, {raw_bytes[1]:08b}')
             lookup: dict[PRBS, bool] = {}
 
             for _byte in range(2):
