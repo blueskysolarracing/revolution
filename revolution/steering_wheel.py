@@ -156,36 +156,38 @@ class SteeringWheel:
     def get_input(self) -> list[int]:
         crc_success = False
 
-        while not crc_success:
-            for _ in range(2):
-                self.spi.transfer([0x00, 0x00, 0x00, 0x00, 0x00])
-            raw = list(self.spi.transfer([0x00, 0x00, 0x00, 0x00, 0x00]))
+        for _ in range(2):
+            self.spi.transfer([0x00, 0x00, 0x00, 0x00, 0x00])
+        raw = list(self.spi.transfer([0x00, 0x00, 0x00, 0x00, 0x00]))
 
-            # We may have to reorder the bytes, check the start marker
-            if raw.count(0b10101010) != 1:
-                return []
+        # Start marker
+        if raw.count(0b10101010) != 1:
+            return []
 
-            # Check the termination marker
-            if raw.count(0b01010101) != 1:
-                return []
+        # Termination marker
+        if raw.count(0b01010101) != 1:
+            return []
 
-            # Reorder the bytes based on marker
-            shift = raw.index(0b10101010)
-            if shift != 0:
-                shift = 5 - shift
-            ordered_raw = raw[-shift:] + raw[:-shift]
-            data_0 = (~ordered_raw[1]) & 0xFF
-            data_1 = (~ordered_raw[2]) & 0xFF
-            inputs = [data_0, data_1]
-            crc_success = (ordered_raw[3] & 0xFF) == (data_0 ^ data_1)
+        # Reorder the bytes based on marker
+        shift = raw.index(0b10101010)
+        if shift != 0:
+            shift = 5 - shift
+        ordered_raw = raw[-shift:] + raw[:-shift]
+        data_0 = (~ordered_raw[1]) & 0xFF
+        data_1 = (~ordered_raw[2]) & 0xFF
+        inputs = [data_0, data_1]
+        crc_success = (ordered_raw[3] & 0xFF) == (data_0 ^ data_1)
 
-            print(f'{shift}, [', end='')
-            for x in ordered_raw:
-                print(f'{x:08b}, ', end='')
-            print(']')
-            print(
-                f'inputs {inputs[0]:08b}, {inputs[1]:08b} '
-                f'crc {ordered_raw[3]:08b} {(data_0 ^ data_1):08b}'
-            )
+        if not crc_success:
+            return []
+
+        # print(f'{shift}, [', end='')
+        # for x in ordered_raw:
+        #     print(f'{x:08b}, ', end='')
+        # print(']')
+        # print(
+        #     f'inputs {inputs[0]:08b}, {inputs[1]:08b} '
+        #     f'crc {ordered_raw[3]:08b} {(data_0 ^ data_1):08b}'
+        # )
 
         return inputs
