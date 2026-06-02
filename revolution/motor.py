@@ -336,9 +336,11 @@ class Motor(Application):
                         elif input_ < 0:
                             command_step = position % step_size
 
-                        if direction != previous_direction:
+                        if direction != previous_direction and position > 0:
                             command_step += (step_size - 1)
-                        stall_stop, actual_step = move_vfm(direction, command_step)
+                        stall_stop, actual_step = move_vfm(
+                            direction, command_step
+                        )
 
                         if direction == VFMDirection.FORWARD:
                             position += actual_step

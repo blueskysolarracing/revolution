@@ -58,7 +58,7 @@ while True:
         #     f'supp={ctx.power_battery_supp_voltage:6.2f}'
         # )
 
-    command = input('Enter VFM command: (u/0/d)')
+    command = input('Enter VFM command (u/0/d): ')
     if command == '0':
         print('No action')
     elif command == 'u':
