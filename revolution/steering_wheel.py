@@ -102,7 +102,9 @@ class SteeringWheel:
         for i in range(32):
             self.draw_word(i, '')
 
-    def set_text_position(self, slot: DisplayItem, x: int, y: int) -> None:
+    def set_text_position(
+        self, slot: int | DisplayItem, x: int, y: int
+    ) -> None:
         if (
             not (0 <= slot <= 31) or not (0 <= x <= 536) or not (0 <= y <= 42)
         ):
@@ -112,7 +114,7 @@ class SteeringWheel:
         message += [(x >> 8) & 0xFF, x & 0xFF, (y >> 8) & 0xFF, y & 0xFF]
         self.spi.transfer(message)
 
-    def set_text_size(self, slot: DisplayItem, size: int) -> None:
+    def set_text_size(self, slot: int | DisplayItem, size: int) -> None:
         if (not (0 <= slot <= 31) or not (1 <= size <= 16)):
             return
 
@@ -120,7 +122,7 @@ class SteeringWheel:
         message.append(size - 1)
         self.spi.transfer(message)
 
-    def set_text_mode(self, slot: DisplayItem, mode: int) -> None:
+    def set_text_mode(self, slot: int | DisplayItem, mode: int) -> None:
         if (not (0 <= slot <= 31) or not (0 <= mode <= 7)):
             return
 
@@ -128,7 +130,7 @@ class SteeringWheel:
         message.append(mode)
         self.spi.transfer(message)
 
-    def draw_word(self, slot: DisplayItem, text: str) -> None:
+    def draw_word(self, slot: int | DisplayItem, text: str) -> None:
         if (not (0 <= slot <= 31)):
             return
 
@@ -154,7 +156,7 @@ class SteeringWheel:
         self.spi.transfer(message)
 
     def get_input(self) -> list[int]:
-        crc_success = False
+        parity_success = False
 
         for _ in range(2):
             self.spi.transfer([0x00, 0x00, 0x00, 0x00, 0x00])
@@ -164,7 +166,7 @@ class SteeringWheel:
         if raw.count(0b10101010) != 1:
             return []
 
-        # Termination marker
+        # End marker
         if raw.count(0b01010101) != 1:
             return []
 
@@ -176,9 +178,9 @@ class SteeringWheel:
         data_0 = (~ordered_raw[1]) & 0xFF
         data_1 = (~ordered_raw[2]) & 0xFF
         inputs = [data_0, data_1]
-        crc_success = (ordered_raw[3] & 0xFF) == (data_0 ^ data_1)
+        parity_success = (ordered_raw[3] & 0xFF) == (data_0 ^ data_1)
 
-        if not crc_success:
+        if not parity_success:
             return []
 
         # print(f'{shift}, [', end='')
