@@ -64,6 +64,7 @@ class Motor(Application):
         acceleration_input_max_decrease = (
             self.environment.settings.motor_acceleration_input_max_decrease
         )
+        resets = deque([])
         while (
                 not self._stoppage.wait(
                     self.environment.settings.motor_control_timeout,
@@ -80,8 +81,8 @@ class Motor(Application):
                     contexts.motor_regeneration_status_input
                 )
 
-            if status_input:
-                if not previous_status_input:
+            if battery_relay_status:
+                if not previous_battery_relay_status:
                     self.environment.peripheries.motor_wavesculptor22.reset()
                 else:
                     reset_limit = self.environment.settings.motor_reset_limit # Reset Limit Within a Window
@@ -211,7 +212,7 @@ class Motor(Application):
                 with self.environment.contexts() as contexts:
                     contexts.motor_cruise_control_status_input = False
 
-            previous_status_input = status_input
+            previous_battery_relay_status = battery_relay_status
             previous_cruise_control_status_input = cruise_control_status_input
 
     def _variable_field_magnet(self) -> None:
@@ -219,7 +220,7 @@ class Motor(Application):
             FORWARD = True
             BACKWARD = False
 
-        previous_status_input = False
+        previous_battery_relay_status = False
         previous_direction = VFMDirection.BACKWARD
 
         step_size = (
@@ -317,7 +318,7 @@ class Motor(Application):
                 )
         ):
             with self.environment.contexts() as contexts:
-                status_input = contexts.motor_status_input
+                battery_relay_status = contexts.battery_relay_status
                 min_value = min(
                     contexts.motor_variable_field_magnet_up_input,
                     contexts.motor_variable_field_magnet_down_input,
@@ -336,8 +337,8 @@ class Motor(Application):
 
                 position = contexts.motor_variable_field_magnet_position
 
-            if status_input:
-                if not previous_status_input:
+            if battery_relay_status:
+                if not previous_battery_relay_status:
                     move_vfm(VFMDirection.BACKWARD, 2 * step_range)
                     position = 0
                     previous_direction = VFMDirection.BACKWARD
