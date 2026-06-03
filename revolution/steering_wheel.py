@@ -7,22 +7,22 @@ from periphery import GPIO, SPI
 
 
 class DisplayItem(IntEnum):
-    BAT_HEADER      = 0
-    VEL_HEADER      = 1
-    VELOCITY        = 2
-    VELOCITY_UNIT   = 3
-    CRUISE_CTRL     = 4
+    BAT_HEADER = 0
+    VEL_HEADER = 1
+    VELOCITY = 2
+    VELOCITY_UNIT = 3
+    CRUISE_CTRL = 4
     CRUISE_CTRL_VEL = 5
-    REGEN           = 6
-    VFM             = 7
-    VFM_GEAR        = 8
+    REGEN = 6
+    VFM = 7
+    VFM_GEAR = 8
 
-    BAT_SOC         = 9
-    BAT_SOC_UNIT    = 10
-    SAFE_STATE      = 11
-    BMS_VOLT        = 12
-    BMS_TEMP        = 13
-    BMS_CURRENT     = 14
+    BAT_SOC = 9
+    BAT_SOC_UNIT = 10
+    SAFE_STATE = 11
+    BMS_VOLT = 12
+    BMS_TEMP = 13
+    BMS_CURRENT = 14
 
 
 class InputByte(IntEnum):
@@ -102,7 +102,9 @@ class SteeringWheel:
         for i in range(32):
             self.draw_word(i, '')
 
-    def set_text_position(self, slot: DisplayItem, x: int, y: int) -> None:
+    def set_text_position(
+        self, slot: int | DisplayItem, x: int, y: int
+    ) -> None:
         if (
             not (0 <= slot <= 31) or not (0 <= x <= 536) or not (0 <= y <= 42)
         ):
@@ -112,7 +114,7 @@ class SteeringWheel:
         message += [(x >> 8) & 0xFF, x & 0xFF, (y >> 8) & 0xFF, y & 0xFF]
         self.spi.transfer(message)
 
-    def set_text_size(self, slot: DisplayItem, size: int) -> None:
+    def set_text_size(self, slot: int | DisplayItem, size: int) -> None:
         if (not (0 <= slot <= 31) or not (1 <= size <= 16)):
             return
 
@@ -120,15 +122,15 @@ class SteeringWheel:
         message.append(size - 1)
         self.spi.transfer(message)
 
-    def set_text_mode(self, slot: DisplayItem, mode: int) -> None:
+    def set_text_mode(self, slot: int | DisplayItem, mode: int) -> None:
         if (not (0 <= slot <= 31) or not (0 <= mode <= 7)):
             return
 
         message = [(1 << 7) | ((slot & 0x1F) << 2) | 0b10]
         message.append(mode)
         self.spi.transfer(message)
-    
-    def draw_word(self, slot: DisplayItem, text: str) -> None:
+
+    def draw_word(self, slot: int | DisplayItem, text: str) -> None:
         if (not (0 <= slot <= 31)):
             return
 
@@ -154,26 +156,40 @@ class SteeringWheel:
         self.spi.transfer(message)
 
     def get_input(self) -> list[int]:
-        # TODO: Move this to the display code, it generates offset bytes that we have to clear like this
-        for i in range(2):
-            self.spi.transfer([0x00, 0x00, 0x00, 0x00])
-        raw = self.spi.transfer([0x00, 0x00, 0x00, 0x00])
+        parity_success = False
 
-        # We may have to reorder the bytes, check the start marker
+        for _ in range(2):
+            self.spi.transfer([0x00, 0x00, 0x00, 0x00, 0x00])
+        raw = list(self.spi.transfer([0x00, 0x00, 0x00, 0x00, 0x00]))
+
+        # Start marker
         if raw.count(0b10101010) != 1:
             return []
 
-        # Check the termination marker
+        # End marker
         if raw.count(0b01010101) != 1:
             return []
-        
+
         # Reorder the bytes based on marker
         shift = raw.index(0b10101010)
         if shift != 0:
-            shift = 4 - shift
+            shift = 5 - shift
         ordered_raw = raw[-shift:] + raw[:-shift]
-        # print(str(shift) + ", " + str(ordered_raw))
-        inputs = [(~raw[0]) & 0xFF, (~raw[1]) & 0xFF]
-        # print(str(shift) + " {0:8b}".format(inputs[0]) + ", " + "{0:8b}".format(inputs[1]))
+        data_0 = (~ordered_raw[1]) & 0xFF
+        data_1 = (~ordered_raw[2]) & 0xFF
+        inputs = [data_0, data_1]
+        parity_success = (ordered_raw[3] & 0xFF) == (data_0 ^ data_1)
+
+        if not parity_success:
+            return []
+
+        # print(f'{shift}, [', end='')
+        # for x in ordered_raw:
+        #     print(f'{x:08b}, ', end='')
+        # print(']')
+        # print(
+        #     f'inputs {inputs[0]:08b}, {inputs[1]:08b} '
+        #     f'crc {ordered_raw[3]:08b} {(data_0 ^ data_1):08b}'
+        # )
 
         return inputs

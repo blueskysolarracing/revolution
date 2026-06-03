@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 from logging import getLogger
+from os import makedirs
 from time import sleep, time
 from typing import ClassVar
 
@@ -418,8 +419,15 @@ class Power(Application):
         filepath = (
             self.environment.settings.general_log_filepath
         )
-        now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        log_file = open(f'{filepath}{now}_power_log.csv', "w")
+
+        print_log = filepath != ''
+
+        if not print_log:
+            return
+
+        makedirs(filepath, exist_ok=True)
+        now = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+        log_file = open(f'{filepath}{now}_power_log.csv', 'w')
         print(
             'time, '
             'acceleration_input, '
@@ -523,7 +531,7 @@ class Power(Application):
                 psm_motor_voltage = contexts.power_psm_motor_voltage
 
                 bms_HV_current = contexts.power_battery_HV_current
-            
+
             print(
                 f'{datetime.now().time()}, '
                 f'{acceleration_input}, '

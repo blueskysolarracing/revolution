@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from enum import Enum
 from logging import getLogger
 from math import pi
 from time import sleep, time
@@ -63,7 +64,6 @@ class Motor(Application):
         acceleration_input_max_decrease = (
             self.environment.settings.motor_acceleration_input_max_decrease
         )
-        resets = deque([])
         while (
                 not self._stoppage.wait(
                     self.environment.settings.motor_control_timeout,
@@ -80,8 +80,8 @@ class Motor(Application):
                     contexts.motor_regeneration_status_input
                 )
 
-            if battery_relay_status:
-                if not previous_battery_relay_status:
+            if status_input:
+                if not previous_status_input:
                     self.environment.peripheries.motor_wavesculptor22.reset()
                 else:
                     reset_limit = self.environment.settings.motor_reset_limit # Reset Limit Within a Window
@@ -144,7 +144,7 @@ class Motor(Application):
                         )
                         motor_controller_sent_values = [
                             1,
-                            kph2rpm(cruise_control_velocity), 
+                            kph2rpm(cruise_control_velocity),
                         ]
                     elif regeneration_status_input:
                         regeneration_strength = (
@@ -162,7 +162,7 @@ class Motor(Application):
                         )
                         motor_controller_sent_values = [
                             regeneration_strength,
-                            0, 
+                            0,
                         ]
                     else:
                         if acceleration_input > filtered_acceleration_input:
@@ -211,47 +211,100 @@ class Motor(Application):
                 with self.environment.contexts() as contexts:
                     contexts.motor_cruise_control_status_input = False
 
-            previous_battery_relay_status = battery_relay_status
+            previous_status_input = status_input
             previous_cruise_control_status_input = cruise_control_status_input
 
     def _variable_field_magnet(self) -> None:
-        previous_battery_relay_status = False
-        previous_direction = Direction.FORWARD
+        class VFMDirection(Enum):
+            FORWARD = True
+            BACKWARD = False
+
+        previous_status_input = False
+        previous_direction = VFMDirection.BACKWARD
 
         step_size = (
             self.environment.settings.motor_variable_field_magnet_step_size
         )
-        step_upper_limit = (
-            self
-            .environment
-            .settings.motor_variable_field_magnet_step_upper_limit
+        step_range = (
+            self.environment.settings.motor_variable_field_magnet_step_range
         )
-        frequency = (
-            self.environment.settings.motor_variable_field_magnet_frequency
+        stall_timeout = (
+            self.environment.settings.motor_variable_field_magnet_stall_timeout
         )
-        duty_cycle = (
-            self.environment.settings.motor_variable_field_magnet_duty_cycle
+        stop_timeout = (
+            self.environment.settings.motor_variable_field_magnet_stop_timeout
         )
-        delay_high = 1.0 / frequency * duty_cycle
-        delay_low = 1.0 / frequency * (1 - duty_cycle)
-        stall_threshold = (
-            self
-            .environment
-            .settings
-            .motor_variable_field_magnet_stall_threshold
-        )
-        max_enable_time_reset = (
-            self
-            .environment
-            .settings
-            .motor_variable_field_magnet_max_enable_time_reset
-        )
-        max_enable_time_move = (
-            self
-            .environment
-            .settings
-            .motor_variable_field_magnet_max_enable_time_move
-        )
+
+        def move_vfm(direction: VFMDirection, step: int) -> tuple[bool, int]:
+            counter_a = 0
+
+            (
+                self
+                .environment
+                .peripheries
+                .motor_variable_field_magnet_direction_gpio
+                .write(direction.value)
+            )
+            (
+                self
+                .environment
+                .peripheries
+                .motor_variable_field_magnet_enable_gpio
+                .write(True)
+            )
+
+            is_stalling = False
+
+            while not is_stalling and counter_a < step:
+                if (
+                    (
+                        self
+                        .environment
+                        .peripheries
+                        .motor_variable_field_magnet_encoder_a_gpio
+                        .poll(stall_timeout)
+                    )
+                ):
+                    (
+                        self
+                        .environment
+                        .peripheries
+                        .motor_variable_field_magnet_encoder_a_gpio
+                        .read_event()
+                    )
+                    counter_a += 1
+                else:
+                    is_stalling = True
+
+            (
+                self
+                .environment
+                .peripheries
+                .motor_variable_field_magnet_enable_gpio
+                .write(False)
+            )
+
+            sleep(stop_timeout)
+
+            while (
+                (
+                    self
+                    .environment
+                    .peripheries
+                    .motor_variable_field_magnet_encoder_a_gpio
+                    .poll(0)
+                )
+            ):
+                (
+                    self
+                    .environment
+                    .peripheries
+                    .motor_variable_field_magnet_encoder_a_gpio
+                    .read_event()
+                )
+                counter_a += 1
+
+            return (is_stalling, counter_a)
 
         while (
                 not self._stoppage.wait(
@@ -264,8 +317,7 @@ class Motor(Application):
                 )
         ):
             with self.environment.contexts() as contexts:
-                battery_relay_status = contexts.battery_relay_status
-                # CHANGE: Renamed battery_relay_status to battery_relay_status
+                status_input = contexts.motor_status_input
                 min_value = min(
                     contexts.motor_variable_field_magnet_up_input,
                     contexts.motor_variable_field_magnet_down_input,
@@ -284,147 +336,41 @@ class Motor(Application):
 
                 position = contexts.motor_variable_field_magnet_position
 
-            if battery_relay_status:
-                if not previous_battery_relay_status:
+            if status_input:
+                if not previous_status_input:
+                    move_vfm(VFMDirection.BACKWARD, 2 * step_range)
                     position = 0
-                    stall_count = 0
-                    start_time = time()
-
-                    (
-                        self
-                        .environment
-                        .peripheries
-                        .motor_variable_field_magnet_direction_gpio
-                        .write(bool(Direction.FORWARD))
-                    )
-
-                    while (
-                            stall_count < stall_threshold
-                            and (time() - start_time) < max_enable_time_reset
-                    ):
-                        if (
-                                (
-                                    self
-                                    .environment
-                                    .peripheries
-                                    .motor_variable_field_magnet_stall_gpio
-                                    .read()
-                                )
-                        ):
-                            stall_count += 1
-
-                        (
-                            self
-                            .environment
-                            .peripheries
-                            .motor_variable_field_magnet_enable_gpio
-                            .write(True)
-                        )
-                        sleep(delay_high)
-                        (
-                            self
-                            .environment
-                            .peripheries
-                            .motor_variable_field_magnet_enable_gpio
-                            .write(False)
-                        )
-                        sleep(delay_low)
-
-                    (
-                        self
-                        .environment
-                        .peripheries
-                        .motor_variable_field_magnet_enable_gpio
-                        .write(False)
-                    )
-
-                    previous_direction = Direction.FORWARD
-
-                if input_ > 0 and (position + step_size) <= step_upper_limit:
-                    direction = Direction.BACKWARD
-                    position += step_size
-                elif input_ < 0 and (position - step_size) >= 0:
-                    direction = Direction.FORWARD
-                    position -= step_size
+                    previous_direction = VFMDirection.BACKWARD
                 else:
-                    direction = None
+                    if input_ > 0 and position <= step_range:
+                        direction = VFMDirection.FORWARD
+                    elif input_ < 0 and position >= 0:
+                        direction = VFMDirection.BACKWARD
+                    else:
+                        direction = None
 
-                if direction is not None:
-                    (
-                        self
-                        .environment
-                        .peripheries
-                        .motor_variable_field_magnet_direction_gpio
-                        .write(bool(direction))
-                    )
+                    if direction is not None:
+                        if input_ > 0:
+                            command_step = step_size - (position % step_size)
+                        elif input_ < 0:
+                            command_step = position % step_size
 
-                    step_count = step_size
-                    stall_count = 0
-                    start_time = time()
-
-                    if direction != previous_direction:
-                        step_count += 1
-
-                    while (
-                            step_count
-                            and stall_count < stall_threshold
-                            and (time() - start_time) < max_enable_time_move
-                    ):
-                        if (
-                                (
-                                    self
-                                    .environment
-                                    .peripheries
-                                    .motor_variable_field_magnet_stall_gpio
-                                    .read()
-                                )
-                        ):
-                            stall_count += 1
-
-                        if (
-                                (
-                                    self
-                                    .environment
-                                    .peripheries
-                                    .motor_variable_field_magnet_encoder_a_gpio
-                                    .poll(0)
-                                )
-                        ):
-                            (
-                                self
-                                .environment
-                                .peripheries
-                                .motor_variable_field_magnet_encoder_a_gpio
-                                .read_event()
-                            )
-                            step_count -= 1
-
-                        (
-                            self
-                            .environment
-                            .peripheries
-                            .motor_variable_field_magnet_enable_gpio
-                            .write(True)
+                        if direction != previous_direction and position > 0:
+                            command_step += (step_size - 1)
+                        stall_stop, actual_step = move_vfm(
+                            direction, command_step
                         )
-                        sleep(delay_high)
-                        (
-                            self
-                            .environment
-                            .peripheries
-                            .motor_variable_field_magnet_enable_gpio
-                            .write(False)
-                        )
-                        sleep(delay_low)
 
-                    (
-                        self
-                        .environment
-                        .peripheries
-                        .motor_variable_field_magnet_enable_gpio
-                        .write(False)
-                    )
+                        if direction == VFMDirection.FORWARD:
+                            position += actual_step
+                        elif direction == VFMDirection.BACKWARD:
+                            if stall_stop:
+                                position = 0
+                            else:
+                                position -= actual_step
+                                position = max(0, position)
 
-                    previous_direction = direction
+                        previous_direction = direction
 
                 with self.environment.contexts() as contexts:
                     contexts.motor_variable_field_magnet_position = (
