@@ -76,8 +76,16 @@ class SteeringWheel:
     """The SPI for the steering wheel."""
     interrupt_gpio: GPIO
     """The interrupt pin for button toggles."""
+    INTERRUPT_DIRECTION: ClassVar[str] = 'in'
+    """The INTERRUPT GPIO direction."""
+    INTERRUPT_INVERTED: ClassVar[bool] = False
+    """The INTERRUPT GPIO inverted status."""
     fault_light_gpio: GPIO
     """The LED for BPS fault."""
+    FAULT_LIGHT_DIRECTION: ClassVar[str] = 'out'
+    """The FAULT LIGHT GPIO direction."""
+    FAULT_LIGHT_INVERTED: ClassVar[bool] = False
+    """The FAULT LIGHT GPIO inverted status."""
 
     def __post_init__(self) -> None:
         if self.spi.mode != self.SPI_MODE:
@@ -96,7 +104,15 @@ class SteeringWheel:
         if self.spi.extra_flags:
             warn(f'unknown spi extra flags {self.spi.extra_flags}')
 
-        # add gpio checks
+        if (self.interrupt_gpio.direction != self.INTERRUPT_DIRECTION):
+            raise ValueError('invalid interrupt GPIO direction')
+        elif (self.interrupt_gpio.inverted != self.INTERRUPT_INVERTED):
+            raise ValueError('invalid interrupt GPIO inverted status')
+
+        if (self.fault_light_gpio.direction != self.FAULT_LIGHT_DIRECTION):
+            raise ValueError('invalid fault light GPIO direction')
+        elif (self.fault_light_gpio.inverted != self.FAULT_LIGHT_INVERTED):
+            raise ValueError('invalid fault light GPIO inverted status')
 
     def clear_screen(self) -> None:
         for i in range(32):
