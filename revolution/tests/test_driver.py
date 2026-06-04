@@ -15,7 +15,7 @@ from pyexpat.errors import messages
 
 from revolution import StatusesInformation
 from revolution.driver import Driver
-from revolution.environment import Environment, Header, Message
+from revolution.environment import Environment, Header
 from revolution.tests import configurations
 
 
