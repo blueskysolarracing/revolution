@@ -15,7 +15,7 @@ from pyexpat.errors import messages
 
 from revolution import StatusesInformation
 from revolution.driver import Driver
-from revolution.environment import Environment, Header
+from revolution.environment import Environment, Header, Message
 from revolution.tests import configurations
 
 
@@ -162,13 +162,17 @@ class DriverTestCase(TestCase):
         while time.time() - start <= test_duration:  # Continual Resets
             data = pack('<HHHBB', 0, 1, 1, 0, 0)
 
-            msg = Message(
-                arbitration_id=(
-                        self.environment.peripheries.motor_wavesculptor22.motor_controller_base_address
+            can_properties = {
+                "arbitration_id": (
+                        motor.motor_controller_base_address
                         + StatusInformation.MESSAGE_IDENTIFIER
                 ),
-                data=data,
-                is_extended_id=False
+                "data": data,
+                "is_extended_id": False
+            }
+            msg = Message(
+                header=Header.CAN,
+                kwargs={"message": can_properties}
             )
 
             motor.parse(msg)
@@ -200,13 +204,17 @@ class DriverTestCase(TestCase):
         while time.time() - start <= window * 2:
             data = pack('<HHHBB', 0, 1, 1, 0, 0)
 
-            msg = Message(
-                arbitration_id=(
+            can_properties = {
+                "arbitration_id": (
                         motor.motor_controller_base_address
                         + StatusInformation.MESSAGE_IDENTIFIER
                 ),
-                data=data,
-                is_extended_id=False
+                "data": data,
+                "is_extended_id": False
+            }
+            msg = Message(
+                header=Header.CAN,
+                kwargs={"message": can_properties}
             )
 
             motor.parse(msg)
