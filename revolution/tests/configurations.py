@@ -226,7 +226,7 @@ WAVESCULPTOR22: WaveSculptor22 = MagicMock()
 BATTERY_MANAGEMENT_SYSTEM: BatteryManagementSystem = MagicMock()
 
 PSM_MOTOR_INA229: INA229 = MagicMock()
-PSM_BATTERY_INA229: INA229 = MagicMock()
+PSM_BATTERY_INA229: INA229 = MagicMock(current=0)
 PSM_ARRAY_INA229: INA229 = MagicMock()
 
 PERIPHERIES: Peripheries = Peripheries(
