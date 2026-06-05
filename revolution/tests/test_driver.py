@@ -144,7 +144,7 @@ class DriverTestCase(TestCase):
                 contexts.miscellaneous_left_indicator_light_status_input)
 
     def test_motor_controller_reset_timeout(self) -> None:
-        self.reset_times = []  # Window For Reset
+        self.reset_times = deque()  # Window For Reset
         intended_timeout = self.environment.settings.motor_reset_timeout
         test_duration = 5
 
@@ -220,7 +220,7 @@ class DriverTestCase(TestCase):
             motor.parse(msg)
             sleep(self.TIMEOUT)
 
-        self.assertLessEqual(len(self.reset_times), limit)
+        self.assertLessEqual(len(self.reset_window), limit)
 
     def test_right_light_status(self) -> None:
         with self.environment.contexts() as contexts:
