@@ -188,11 +188,13 @@ class DriverTestCase(TestCase):
         original_reset = motor.reset
 
         def reset_function():
+            print("Reset Function Initiated")
             now = time.time()
             self.reset_window.append(now)
             while self.reset_window and now - self.reset_window[0] > self.environment.settings.motor_reset_window:
                 self.reset_window.popleft()
             return original_reset()
+
 
         motor.reset = reset_function
 
