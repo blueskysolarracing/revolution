@@ -71,7 +71,7 @@ class Display(Application):
         periphery.set_text_position(DisplayItem.CRUISE_CTRL, 300, 25)
         periphery.set_text_size(DisplayItem.CRUISE_CTRL, 4)
         periphery.draw_word(DisplayItem.CRUISE_CTRL, 'CRUISE')
-        
+
         periphery.set_text_position(DisplayItem.CRUISE_CTRL_VEL, 300, 30)
         periphery.set_text_size(DisplayItem.CRUISE_CTRL_VEL, 8)
 
@@ -92,7 +92,7 @@ class Display(Application):
         periphery.set_text_size(DisplayItem.BMS_CURRENT, 5)
 
         timeout = 1 / self.environment.settings.display_frame_rate
-        
+
         fullref_period = 20
         fullref_counter = fullref_period
 
@@ -190,7 +190,7 @@ class Display(Application):
                 periphery.draw_word(DisplayItem.REGEN, 'REGEN')
             else:
                 periphery.draw_word(DisplayItem.REGEN, '')
-            
+
             motor_velocity = clip_value(motor_velocity, -99, 180)
             periphery.draw_word(DisplayItem.VELOCITY, f'{motor_velocity:3.0f}')
 
@@ -207,12 +207,18 @@ class Display(Application):
                 periphery.draw_word(DisplayItem.CRUISE_CTRL_VEL, "OFF")
 
             motor_variable_field_magnet_step = (
-                motor_variable_field_magnet_position / 32
+                motor_variable_field_magnet_position
+                // (
+                    self
+                    .environment
+                    .settings
+                    .motor_variable_field_magnet_step_size
+                )
             )
 
             periphery.draw_word(
                 DisplayItem.VFM_GEAR,
-                (f'{motor_variable_field_magnet_step:1.0f}'),
+                (f'{motor_variable_field_magnet_step:2.0f}'),
             )
 
             # Power

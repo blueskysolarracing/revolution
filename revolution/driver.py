@@ -95,9 +95,8 @@ class Driver(Application):
             steering_wheel = self.environment.peripheries.driver_steering_wheel
             raw_bytes = steering_wheel.get_input()
             if not raw_bytes:
-                # print("FAILED")
                 continue
-            # print("SUCCEEDED")
+            # print(f'{raw_bytes[0]:08b}, {raw_bytes[1]:08b}')
             lookup: dict[PRBS, bool] = {}
 
             for _byte in range(2):
@@ -186,6 +185,8 @@ class Driver(Application):
                         self.environment.peripheries,
                         raw_input_channel,
                     )
+
+
                     voltage = voltages[input_channel]
                     input_ = (voltage - min_) / (max_ - min_)
 

@@ -9,8 +9,8 @@ from can import BusABC
 from iclib.adc78h89 import ADC78H89, InputChannel
 from iclib.bno055 import BNO055
 from iclib.ina229 import INA229
-from iclib.lis2ds12 import LIS2DS12
-from iclib.tmag5273 import TMAG5273
+from iclib.lis2hh12 import LIS2HH12
+from iclib.pca9546adr import PCA9546A
 from iclib.wavesculptor22 import WaveSculptor22
 from json import load
 from periphery import GPIO, PWM
@@ -26,7 +26,6 @@ from revolution import (
     Direction,
     Display,
     Driver,
-    LIS2HH12,
     Miscellaneous,
     Motor,
     Peripheries,
@@ -68,19 +67,22 @@ CONTEXTS: Contexts = Contexts(
     miscellaneous_backup_camera_control_status_input=False,
     miscellaneous_brake_status_input=False,
     miscellaneous_orientation={},
+    miscellaneous_orientation_imu_working=False,
     miscellaneous_latitude=0,
     miscellaneous_longitude=0,
+    miscellaneous_altitude=0,
+    miscellaneous_gps_fix_quality=0,
+    miscellaneous_gps_fix_quality_3d=0,
+    miscellaneous_gps_satellites=0,
 
-    miscellaneous_left_wheel_velocity=0,
-    miscellaneous_left_wheel_magnetic_field=0,
-    miscellaneous_right_wheel_velocity=0,
-    miscellaneous_right_wheel_magnetic_field=0,
     miscellaneous_left_wheel_accelerations=[0, 0, 0],
     miscellaneous_right_wheel_accelerations=[0, 0, 0],
+    miscellaneous_left_wheel_accelerometer_working=False,
+    miscellaneous_right_wheel_accelerometer_working=False,
 
     # Motor
 
-    motor_status_input=False,
+    battery_relay_status=False,
     motor_acceleration_input=0,
     motor_direction_input=Direction.FORWARD,
     motor_cruise_control_status_input=False,
@@ -153,6 +155,10 @@ CONTEXTS: Contexts = Contexts(
     power_psm_array_voltage=0,
 
     # Telemetry
+
+    # Initialize for Reset
+    motor_reset_counter = 0,
+    motor_last_reset_timestamp = 0,
 )
 
 CAN_BUS: BusABC = MagicMock()
@@ -197,8 +203,7 @@ ORIENTATION_IMU_BNO055: BNO055 = MagicMock(
 )
 
 POSITION_GPS: GPS = MagicMock()
-LEFT_WHEEL_HALL_EFFECT: TMAG5273 = MagicMock()
-RIGHT_WHEEL_HALL_EFFECT: TMAG5273 = MagicMock()
+FRONT_WHEELS_I2C_MUX: PCA9546A = MagicMock()
 LEFT_WHEEL_ACCELEROMETER: LIS2HH12 = MagicMock()
 RIGHT_WHEEL_ACCELEROMETER: LIS2HH12 = MagicMock()
 
@@ -221,7 +226,7 @@ WAVESCULPTOR22: WaveSculptor22 = MagicMock()
 BATTERY_MANAGEMENT_SYSTEM: BatteryManagementSystem = MagicMock()
 
 PSM_MOTOR_INA229: INA229 = MagicMock()
-PSM_BATTERY_INA229: INA229 = MagicMock()
+PSM_BATTERY_INA229: INA229 = MagicMock(current=0)
 PSM_ARRAY_INA229: INA229 = MagicMock()
 
 PERIPHERIES: Peripheries = Peripheries(
@@ -290,8 +295,7 @@ PERIPHERIES: Peripheries = Peripheries(
     ),
     miscellaneous_orientation_imu_bno055=ORIENTATION_IMU_BNO055,
     miscellaneous_position_gps=POSITION_GPS,
-    miscellaneous_left_wheel_hall_effect=LEFT_WHEEL_HALL_EFFECT,
-    miscellaneous_right_wheel_hall_effect=RIGHT_WHEEL_HALL_EFFECT,
+    miscellaneous_front_wheels_i2c_mux=FRONT_WHEELS_I2C_MUX,
     miscellaneous_left_wheel_accelerometer=LEFT_WHEEL_ACCELEROMETER,
     miscellaneous_right_wheel_accelerometer=RIGHT_WHEEL_ACCELEROMETER,
 
@@ -334,7 +338,7 @@ SETTINGS: Settings = Settings(
     # General
 
     general_wheel_diameter=0.557,
-    general_log_filepath='/usr/share/revolution_logs/',
+    general_log_filepath='',
 
     # Debugger
 
@@ -352,6 +356,7 @@ SETTINGS: Settings = Settings(
     miscellaneous_light_timeout=0.1,
     miscellaneous_light_flash_timeout=0.5,
     miscellaneous_orientation_timeout=0.1,
+    miscellaneous_orientation_imu_mode_timeout=0.05,
     miscellaneous_position_timeout=1,
     miscellaneous_front_wheels_timeout=0.02,
 
@@ -365,13 +370,10 @@ SETTINGS: Settings = Settings(
     motor_filtered_acceleration_input_factor=0.7,
     motor_bus_current_limit=0.7,
     motor_regeneration_strength=0.3,
-    motor_variable_field_magnet_step_size=40,
-    motor_variable_field_magnet_step_upper_limit=320,
-    motor_variable_field_magnet_frequency=1000,
-    motor_variable_field_magnet_duty_cycle=0.75,
-    motor_variable_field_magnet_stall_threshold=20,
-    motor_variable_field_magnet_max_enable_time_reset=15.0,
-    motor_variable_field_magnet_max_enable_time_move=0.5,
+    motor_variable_field_magnet_step_size=50,
+    motor_variable_field_magnet_step_range=400,
+    motor_variable_field_magnet_stall_timeout=0.5,
+    motor_variable_field_magnet_stop_timeout=0.25,
 
     # Power
 
@@ -396,4 +398,9 @@ SETTINGS: Settings = Settings(
     telemetry_begin_token=b'',
     telemetry_separator_token=b'_',
     telemetry_end_token=b'\r\n',
+
+    # Reset Settings
+    motor_reset_limit = 4,
+    motor_reset_timeout = 0,
+    motor_reset_window = 5,
 )

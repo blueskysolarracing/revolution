@@ -4,7 +4,7 @@ while True:
     # input_ = float(input())
 
     # with environment.contexts() as ctx:
-    #     print(ctx.motor_status_input)
+    #     print(ctx.battery_relay_status)
     #     print(ctx.motor_acceleration_input)
     #     print(ctx.power_battery_heartbeat_timestamp)
     #     print(ctx.motor_heartbeat_timestamp)
@@ -30,7 +30,7 @@ while True:
         # print(ctx.power_battery_relay_status)
         # print(ctx.power_battery_discharge_status)
 
-        # print(ctx.motor_status_input)
+        # print(ctx.battery_relay_status)
         # print(ctx.motor_acceleration_input)
         # print(ctx.power_battery_heartbeat_timestamp)
         # print(ctx.motor_heartbeat_timestamp)
