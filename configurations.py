@@ -79,6 +79,7 @@ CONTEXTS: Contexts = Contexts(
     miscellaneous_orientation={},
     miscellaneous_latitude=0,
     miscellaneous_longitude=0,
+    miscellaneous_altitude=0.0,
 
     miscellaneous_left_wheel_velocity=0,
     miscellaneous_left_wheel_magnetic_field=0,
@@ -572,4 +573,10 @@ SETTINGS: Settings = Settings(
     telemetry_begin_token=b'',
     telemetry_separator_token=b'_',
     telemetry_end_token=b'\r\n',
+    telemetry_radio_frequency=915000000,
+    telemetry_radio_spreading_factor=7,
+    telemetry_radio_bandwidth=0,
+    telemetry_radio_code_rate=0,
+    telemetry_radio_preamble_length=200,
+    telemetry_radio_tx_power=14,
 )

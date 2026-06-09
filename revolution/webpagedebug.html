@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solar Car Telemetry Dashboard</title> 
+        <style>
+        :root {
+            --bg-color: #121212;
+            --panel-bg: #1e1e1e;
+            --text-main: #e0e0e0;
+            --text-muted: #888;
+            --accent: #00aaff;
+            --success: #00e676;
+            --error: #ff5252;
+            --warning: #ffb300;
+        }
+        
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: var(--bg-color); 
+            color: var(--text-main); 
+            margin: 0;
+            padding: 20px; 
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        h1 { 
+            margin: 0; 
+            font-size: 24px; 
+            color: var(--accent); 
+        }
+
+        #status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .dot {
+            height: 12px;
+            width: 12px;
+            background-color: var(--warning);
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .category-container {
+            margin-bottom: 30px;
+            background: #181818;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #333;
+        }
+
+        .category-title {
+            font-size: 18px;
+            color: var(--accent);
+            border-bottom: 1px solid #333;
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+            text-transform: capitalize;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 12px;
+        }
+
+        .card {
+            background: var(--panel-bg);
+            border-radius: 6px;
+            padding: 12px;
+            border-left: 3px solid #444;
+        }
+
+        .card-title {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .card-value {
+            font-size: 18px;
+            font-weight: bold;
+            font-family: monospace;
+            word-break: break-all;
+        }
+
+        .raw-data-section {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #333;
+        }
+
+        pre {
+            background: #000;
+            padding: 15px;
+            border-radius: 6px;
+            color: var(--success);
+            overflow-x: auto;
+            font-size: 13px;
+            max-height: 300px;
+        }
+        
+        .error-msg {
+            color: var(--warning);
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Blue Sky Telemetry Dashboard</h1>
+        <div id="status-indicator">
+            <span class="dot" id="status-dot"></span>
+            <span id="status-text" style="color: var(--warning);">Connecting...</span>
+        </div>
+    </header>
+    
+    <div id="error-container" class="error-msg"></div>
+    <div id="dashboard"></div>
+
+    <div class="raw-data-section">
+        <h3 style="color: var(--text-muted); font-size: 12px; text-transform: uppercase;">Raw Feed</h3>
+        <pre id="raw-output">Waiting for messages...</pre>
+    </div>
+    <script>
+        const toradexIP = "192.168.8.1"; 
+        const wsUrl = `ws://${toradexIP}:8765`;
+        
+        const statusText = document.getElementById("status-text");
+        const statusDot = document.getElementById("status-dot");
+        const dashboard = document.getElementById("dashboard");
+        const rawOutput = document.getElementById("raw-output");
+        const errorContainer = document.getElementById("error-container");
+
+        function updateStatus(state) {
+            if (state === 'connected') {
+                statusText.innerText = "Connected";
+                statusText.style.color = "var(--success)";
+                statusDot.style.backgroundColor = "var(--success)";
+            } else if (state === 'disconnected') {
+                statusText.innerText = "Disconnected! Retrying in 2s...";
+                statusText.style.color = "var(--error)";
+                statusDot.style.backgroundColor = "var(--error)";
+            }
+        }
+
+        function formatValue(val) {
+            if (typeof val === 'boolean') return val ? '<span style="color:var(--success)">TRUE</span>' : '<span style="color:var(--error)">FALSE</span>';
+            if (typeof val === 'number') return parseFloat(val.toFixed(4)); // limit decimals
+            if (Array.isArray(val)) return `[${val.map(v => typeof v === 'number' ? parseFloat(v.toFixed(2)) : v).join(', ')}]`;
+            if (typeof val === 'object' && val !== null) return JSON.stringify(val);
+            return val;
+        }
+
+        function updateDashboard(dataObj) {
+            dashboard.innerHTML = ''; 
+            errorContainer.innerHTML = '';
+
+            // Extract the actual telemetry data, ignoring Proxy metadata
+            const resourceData = dataObj._resource ? dataObj._resource : dataObj;
+            
+            // Group data by prefix to organize the UI
+            const groups = {};
+            
+            for (const [key, value] of Object.entries(resourceData)) {
+                let groupName = "General";
+                let displayName = key;
+
+                // Determine category based on prefix
+                if (key.startsWith("power_battery_")) { groupName = "Battery"; displayName = key.replace("power_battery_", ""); }
+                else if (key.startsWith("power_psm_")) { groupName = "Power PSM"; displayName = key.replace("power_psm_", ""); }
+                else if (key.startsWith("motor_controller_")) { groupName = "Motor Controller"; displayName = key.replace("motor_controller_", ""); }
+                else if (key.startsWith("motor_")) { groupName = "Motor"; displayName = key.replace("motor_", ""); }
+                else if (key.startsWith("miscellaneous_")) { groupName = "Miscellaneous"; displayName = key.replace("miscellaneous_", ""); }
+                else if (key.startsWith("power_")) { groupName = "Power Array"; displayName = key.replace("power_", ""); }
+
+                if (!groups[groupName]) groups[groupName] = [];
+                groups[groupName].push({ key: displayName.replace(/_/g, ' '), value: value });
+            }
+
+            // Render categories
+            for (const [groupName, items] of Object.entries(groups)) {
+                const container = document.createElement('div');
+                container.className = 'category-container';
+                
+                const title = document.createElement('div');
+                title.className = 'category-title';
+                title.innerText = groupName;
+                container.appendChild(title);
+
+                const grid = document.createElement('div');
+                grid.className = 'grid';
+
+                items.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    
+                    // Color code borders based on group
+                    if(groupName === "Battery") card.style.borderLeftColor = "#ff5252";
+                    if(groupName === "Motor Controller") card.style.borderLeftColor = "#00e676";
+                    if(groupName === "Motor") card.style.borderLeftColor = "#00aaff";
+                    
+                    const cardTitle = document.createElement('div');
+                    cardTitle.className = 'card-title';
+                    cardTitle.innerText = item.key;
+                    cardTitle.title = item.key; // Hover to see full name if truncated
+                    
+                    const cardValue = document.createElement('div');
+                    cardValue.className = 'card-value';
+                    cardValue.innerHTML = formatValue(item.value);
+
+                    card.appendChild(cardTitle);
+                    card.appendChild(cardValue);
+                    grid.appendChild(card);
+                });
+
+                container.appendChild(grid);
+                dashboard.appendChild(container);
+            }
+        }
+
+        function connect() {
+            const ws = new WebSocket(wsUrl);
+
+            ws.onopen = function() {
+                updateStatus('connected');
+            };
+
+            ws.onmessage = function(event) {
+                const rawData = event.data;
+                rawOutput.innerText = rawData; 
+
+                try {
+                    // Python's json.dumps allows Infinity and NaN, which breaks JS JSON.parse.
+                    // This regex safely wraps Infinity, -Infinity, and NaN in quotes so it parses.
+                    const sanitizedData = rawData
+                        .replace(/:\s*Infinity/g, ':"Infinity"')
+                        .replace(/:\s*-Infinity/g, ':"-Infinity"')
+                        .replace(/:\s*NaN/g, ':"NaN"');
+
+                    const parsedData = JSON.parse(sanitizedData);
+                    updateDashboard(parsedData);
+                } catch (e) {
+                    console.error("Parse Error: ", e);
+                    errorContainer.innerText = "Data received, but it is not valid JSON. Check the Raw Feed below.";
+                }
+            };
+
+            ws.onclose = function() {
+                updateStatus('disconnected');
+                setTimeout(connect, 2000); 
+            };
+            
+            ws.onerror = function(err) {
+                console.error("WebSocket Error: ", err);
+                ws.close(); 
+            };
+        }
+
+        connect();
+    </script>
+</body>
+</html>
