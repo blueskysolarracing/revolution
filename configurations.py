@@ -1,4 +1,3 @@
-from dataclasses import fields as _dataclass_fields
 from math import inf
 from os import system
 from threading import Lock
@@ -43,13 +42,13 @@ APPLICATION_TYPES: tuple[type[Application], ...] = (
     Debugger,
     Display,
     Driver,
-    # Miscellaneous,  # TODO: re-enable once I2C error status fields are added
+    Miscellaneous,
     Motor,
     Power,
     Telemetry,
 )
 
-_ctx_kwargs = dict(
+CONTEXTS: Contexts = Contexts(
     # General
 
     general_unused_status_input=False,
@@ -159,26 +158,6 @@ _ctx_kwargs = dict(
 
     # Telemetry
 )
-
-# Auto-fill any new Contexts fields not explicitly listed above
-# so we don't crash when the installed Contexts class adds fields
-for _f in _dataclass_fields(Contexts):
-    if _f.name not in _ctx_kwargs:
-        _t = str(_f.type)
-        if 'bool' in _t:
-            _ctx_kwargs[_f.name] = False
-        elif 'float' in _t:
-            _ctx_kwargs[_f.name] = 0.0
-        elif 'int' in _t:
-            _ctx_kwargs[_f.name] = 0
-        elif 'list' in _t:
-            _ctx_kwargs[_f.name] = []
-        elif 'dict' in _t:
-            _ctx_kwargs[_f.name] = {}
-        else:
-            _ctx_kwargs[_f.name] = None
-
-CONTEXTS: Contexts = Contexts(**_ctx_kwargs)
 
 CAN_BUS_CHANNEL: str = 'can0'
 CAN_BUS_TXQUEUELEN: int = 1000
