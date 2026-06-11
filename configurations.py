@@ -535,6 +535,10 @@ SETTINGS: Settings = Settings(
 
     # Debugger
 
+    debugger_host='0.0.0.0',
+    debugger_port=8765,
+    debugger_timeout=0.1,
+
     # Display
 
     display_frame_rate=20,

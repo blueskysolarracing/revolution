@@ -16,3 +16,4 @@ python-can~=4.5.0
 python-periphery~=2.4.1
 twine~=6.1.0
 types-pyserial~=3.5.0.20250326
+websockets~=16.0

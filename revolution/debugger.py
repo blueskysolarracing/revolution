@@ -2,7 +2,6 @@ import asyncio
 import dataclasses
 import json
 import math
-import threading
 from dataclasses import dataclass, fields
 from logging import getLogger
 from typing import Any, ClassVar
@@ -15,15 +14,12 @@ from revolution.worker import Worker
 
 _logger = getLogger(__name__)
 
-_DEBUGGER_HOST = '0.0.0.0'
-_DEBUGGER_PORT = 8765
-_DEBUGGER_INTERVAL = 0.1  # seconds between WebSocket broadcasts
-
 
 def _serialize_contexts(ctx: Any) -> dict[str, Any]:
     """
     Serialize a Contexts instance to a JSON-safe dict.
     """
+
     result: dict[str, Any] = {}
 
     # Dataclass fields (excludes @property)
@@ -43,7 +39,10 @@ def _serialize_contexts(ctx: Any) -> dict[str, Any]:
 
 
 def _coerce(value: Any) -> Any:
-    """Recursively convert a value to something json.dumps can handle."""
+    """
+    Recursively convert a value to something json.dumps can handle.
+    """
+
     if value is None or isinstance(value, (bool, int, str)):
         return value
     if isinstance(value, float):
@@ -93,10 +92,15 @@ class Debugger(Application):
         asyncio.run(self._serve())
 
     async def _serve(self) -> None:
-        async with websockets.serve(self._handler, _DEBUGGER_HOST, _DEBUGGER_PORT):
+        debugger_host = self.environment.settings.debugger_host
+        debugger_port = self.environment.settings.debugger_port
+
+        async with websockets.serve(
+            self._handler, debugger_host, debugger_port
+        ):
             _logger.info(
                 'Debugger WebSocket server running on '
-                f'ws://{_DEBUGGER_HOST}:{_DEBUGGER_PORT}'
+                f'ws://{debugger_host}:{debugger_port}'
             )
             # Keep the server alive until the stoppage event is set.
             loop = asyncio.get_running_loop()
@@ -113,7 +117,7 @@ class Debugger(Application):
 
                 payload = json.dumps(snapshot)
                 await websocket.send(payload)
-                await asyncio.sleep(_DEBUGGER_INTERVAL)
+                await asyncio.sleep(self.environment.settings.debugger_timeout)
 
         except websockets.exceptions.ConnectionClosed:
             _logger.info(
