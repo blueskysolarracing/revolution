@@ -293,6 +293,9 @@ class Settings:
     general_log_filepath: str
 
     # Debugger
+    debugger_host: str
+    debugger_port: int
+    debugger_timeout: float
 
     # Display
 
