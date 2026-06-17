@@ -123,10 +123,10 @@ class Motor(Application):
                                 kph2rpm(cruise_control_velocity),
                             )
                         )
-                        motor_controller_sent_values = [
-                            1,
-                            kph2rpm(cruise_control_velocity),
-                        ]
+                        motor_controller_sent_current = 1.0
+                        motor_controller_sent_velocity = kph2rpm(
+                            cruise_control_velocity
+                        )
                     elif regeneration_status_input:
                         regeneration_strength = (
                             self
@@ -141,10 +141,8 @@ class Motor(Application):
                             .motor_wavesculptor22
                             .motor_drive(regeneration_strength, 0)
                         )
-                        motor_controller_sent_values = [
-                            regeneration_strength,
-                            0,
-                        ]
+                        motor_controller_sent_current = regeneration_strength
+                        motor_controller_sent_velocity = 0
                     else:
                         if acceleration_input > filtered_acceleration_input:
                             filtered_acceleration_input = min(
@@ -180,13 +178,17 @@ class Motor(Application):
                                 final_acceleration_input,
                             )
                         )
-                        motor_controller_sent_values = [
-                            final_acceleration_input,
-                            20000,
-                        ]
+                        motor_controller_sent_current = (
+                            final_acceleration_input
+                        )
+                        motor_controller_sent_velocity = 20000
+
                     with self.environment.contexts() as contexts:
-                        contexts.motor_controller_sent_values = (
-                            motor_controller_sent_values
+                        contexts.motor_controller_sent_current = (
+                            motor_controller_sent_current
+                        )
+                        contexts.motor_controller_sent_velocity = (
+                            motor_controller_sent_velocity
                         )
             else:
                 with self.environment.contexts() as contexts:

@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from datetime import datetime
 from logging import getLogger
 from os import makedirs
@@ -425,52 +425,64 @@ class Power(Application):
         if not print_log:
             return
 
+        @dataclass
+        class PowerLogData:
+            motor_acceleration_input: float
+            motor_cruise_control_status_input: bool
+            motor_cruise_control_velocity: float
+            motor_regeneration_status_input: bool
+            motor_variable_field_magnet_position: int
+            motor_velocity: float
+
+            motor_controller_sent_current: float
+            motor_controller_sent_velocity: float
+            motor_controller_limit_flags: int
+            motor_controller_error_flags: int
+            motor_controller_active_motor: int
+            motor_controller_transmit_error_count: int
+            motor_controller_receive_error_count: int
+            motor_controller_bus_voltage: float
+            motor_controller_bus_current: float
+            motor_controller_vehicle_velocity: float
+            motor_controller_phase_B_current: float
+            motor_controller_phase_C_current: float
+            motor_controller_Vq: float
+            motor_controller_Vd: float
+            motor_controller_Iq: float
+            motor_controller_Id: float
+            motor_controller_BEMFq: float
+            motor_controller_BEMFd: float
+            motor_controller_supply_15v: float
+            motor_controller_supply_1_9v: float
+            motor_controller_supply_3_3v: float
+            motor_controller_motor_temp: float
+            motor_controller_heat_sink_temp: float
+            motor_controller_dsp_board_temp: float
+            motor_controller_odometer: float
+            motor_controller_dc_bus_amphours: float
+            motor_controller_slip_speed: float
+
+            power_battery_HV_bus_voltage: float
+            power_battery_HV_current: float
+            power_battery_LV_bus_voltage: float
+            power_battery_LV_current: float
+            power_battery_supp_voltage: float
+
+            power_psm_battery_current: float
+            power_psm_battery_voltage: float
+            power_psm_array_current: float
+            power_psm_array_voltage: float
+            power_psm_motor_current: float
+            power_psm_motor_voltage: float
+
         makedirs(filepath, exist_ok=True)
         now = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
         log_file = open(f'{filepath}{now}_power_log.csv', 'w')
-        print(
-            'time, '
-            'acceleration_input, '
-            'cruise_control, '
-            'regen, '
-            'vfm, '
-            'motor_velocity, '
-            'motor_controller_sent_value_current, '
-            'motor_controller_sent_value_velocity, '
-            'motor_controller_limit_flags, '
-            'motor_controller_error_flags, '
-            'motor_controller_active_motor, '
-            'motor_controller_transmit_error_count, '
-            'motor_controller_receive_error_count, '
-            'motor_controller_bus_voltage, '
-            'motor_controller_bus_current, '
-            'motor_controller_vehicle_velocity, '
-            'motor_controller_phase_B_current, '
-            'motor_controller_phase_C_current, '
-            'motor_controller_Vq, '
-            'motor_controller_Vd, '
-            'motor_controller_Iq, '
-            'motor_controller_Id, '
-            'motor_controller_BEMFq, '
-            'motor_controller_BEMFd, '
-            'motor_controller_supply_15v, '
-            'motor_controller_supply_1_9v, '
-            'motor_controller_supply_3_3v, '
-            'motor_controller_motor_temp, '
-            'motor_controller_heat_sink_temp, '
-            'motor_controller_dsp_board_temp, '
-            'motor_controller_odometer, '
-            'motor_controller_dc_bus_amphours, '
-            'motor_controller_slip_speed, '
-            'psm_battery_current, '
-            'psm_battery_voltage, '
-            'psm_array_current, '
-            'psm_array_voltage, '
-            'psm_motor_current, '
-            'psm_motor_voltage, '
-            'bfm_HV_current, ',
-            file=log_file,
-        )
+
+        print('time, ', end='', file=log_file)
+        for field in fields(PowerLogData):
+            print(f'{field.name}, ', end='', file=log_file)
+        print(file=log_file)
         log_file.flush()
 
         while (
@@ -483,98 +495,15 @@ class Power(Application):
                     ),
                 )
         ):
+            print(f'{datetime.now().time()}, ', end='', file=log_file)
             with self.environment.contexts() as contexts:
-                acceleration_input = contexts.motor_acceleration_input
-                cruise_control = contexts.motor_cruise_control_status_input
-                regen = contexts.motor_regeneration_status_input
-                vfm = contexts.motor_variable_field_magnet_position
-                motor_velocity = contexts.motor_velocity
-                motor_controller_sent_values = (
-                    contexts.motor_controller_sent_values
-                )
-
-                limit_flags = contexts.motor_controller_limit_flags
-                error_flags = contexts.motor_controller_error_flags
-                active_motor = contexts.motor_controller_active_motor
-                transmit_error_count = (
-                    contexts.motor_controller_transmit_error_count
-                )
-                receive_error_count = (
-                    contexts.motor_controller_receive_error_count
-                )
-                mc_bus_voltage = contexts.motor_controller_bus_voltage
-                mc_bus_current = contexts.motor_controller_bus_current
-                vehicle_velocity = contexts.motor_controller_vehicle_velocity
-                phase_B_current = contexts.motor_controller_phase_B_current
-                phase_C_current = contexts.motor_controller_phase_C_current
-                Vq = contexts.motor_controller_Vq
-                Vd = contexts.motor_controller_Vd
-                Iq = contexts.motor_controller_Iq
-                Id = contexts.motor_controller_Id
-                BEMFq = contexts.motor_controller_BEMFq
-                BEMFd = contexts.motor_controller_BEMFd
-                supply_15v = contexts.motor_controller_supply_15v
-                supply_1_9v = contexts.motor_controller_supply_1_9v
-                supply_3_3v = contexts.motor_controller_supply_3_3v
-                motor_temp = contexts.motor_controller_motor_temp
-                heat_sink_temp = contexts.motor_controller_heat_sink_temp
-                dsp_board_temp = contexts.motor_controller_dsp_board_temp
-                odometer = contexts.motor_controller_odometer
-                dc_bus_amphours = contexts.motor_controller_dc_bus_amphours
-                slip_speed = contexts.motor_controller_slip_speed
-
-                psm_battery_current = contexts.power_psm_battery_current
-                psm_battery_voltage = contexts.power_psm_battery_voltage
-                psm_array_current = contexts.power_psm_array_current
-                psm_array_voltage = contexts.power_psm_array_voltage
-                psm_motor_current = contexts.power_psm_motor_current
-                psm_motor_voltage = contexts.power_psm_motor_voltage
-
-                bms_HV_current = contexts.power_battery_HV_current
-
-            print(
-                f'{datetime.now().time()}, '
-                f'{acceleration_input}, '
-                f'{cruise_control}, '
-                f'{regen}, '
-                f'{vfm}, '
-                f'{motor_velocity}, '
-                f'{motor_controller_sent_values[0]}, '
-                f'{motor_controller_sent_values[1]}, '
-                f'{limit_flags}, '
-                f'{error_flags}, '
-                f'{active_motor}, '
-                f'{transmit_error_count}, '
-                f'{receive_error_count}, '
-                f'{mc_bus_voltage}, '
-                f'{mc_bus_current}, '
-                f'{vehicle_velocity}, '
-                f'{phase_B_current}, '
-                f'{phase_C_current}, '
-                f'{Vq}, '
-                f'{Vd}, '
-                f'{Iq}, '
-                f'{Id}, '
-                f'{BEMFq}, '
-                f'{BEMFd}, '
-                f'{supply_15v}, '
-                f'{supply_1_9v}, '
-                f'{supply_3_3v}, '
-                f'{motor_temp}, '
-                f'{heat_sink_temp}, '
-                f'{dsp_board_temp}, '
-                f'{odometer}, '
-                f'{dc_bus_amphours}, '
-                f'{slip_speed}, '
-                f'{psm_battery_current}, '
-                f'{psm_battery_voltage}, '
-                f'{psm_array_current}, '
-                f'{psm_array_voltage}, '
-                f'{psm_motor_current}, '
-                f'{psm_motor_voltage}, '
-                f'{bms_HV_current}, ',
-                file=log_file
-            )
+                for field in fields(PowerLogData):
+                    print(
+                        f'{getattr(contexts, field.name)}, ',
+                        end='',
+                        file=log_file
+                    )
+            print(file=log_file)
             log_file.flush()
 
     def _handle_can(self, message: Message) -> None:

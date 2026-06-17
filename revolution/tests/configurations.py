@@ -94,7 +94,8 @@ CONTEXTS: Contexts = Contexts(
     motor_velocity=0,
     motor_heartbeat_timestamp=inf,
 
-    motor_controller_sent_values=[0, 0],
+    motor_controller_sent_current=0,
+    motor_controller_sent_velocity=0,
     motor_controller_limit_flags=0,
     motor_controller_error_flags=0,
     motor_controller_active_motor=0,
@@ -334,7 +335,7 @@ SETTINGS: Settings = Settings(
     # General
 
     general_wheel_diameter=0.557,
-    general_log_filepath='',
+    general_log_filepath='./temp_logs/',
 
     # Debugger
 
