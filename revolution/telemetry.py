@@ -23,16 +23,11 @@ class Telemetry(Application):
         motor_cruise_control_velocity: float
         motor_variable_field_magnet_position: int
         motor_velocity: float
-
-        motor_controller_limit_flags: int
-        motor_controller_error_flags: int
-        motor_controller_active_motor: int
-        motor_controller_transmit_error_count: int
-        motor_controller_receive_error_count: int
-
-        motor_controller_supply_15v: float
+        motor_heartbeat_working: bool
 
         power_array_relay_status_input: bool
+        power_array_relay_status: bool
+
         power_battery_relay_status_input: bool
         power_battery_min_cell_voltage: float
         power_battery_max_cell_voltage: float
@@ -48,6 +43,7 @@ class Telemetry(Application):
         power_battery_relay_status: bool
         power_battery_electric_safe_discharge_status: bool
         power_battery_discharge_status: bool
+        power_battery_heartbeat_working: bool
 
         power_battery_flags: int
 
@@ -66,8 +62,6 @@ class Telemetry(Application):
         miscellaneous_latitude: float
         miscellaneous_longitude: float
         miscellaneous_altitude: float
-        miscellaneous_left_wheel_accelerations: list[float]
-        miscellaneous_right_wheel_accelerations: list[float]
 
         def serialize(self) -> bytes:
             return dump(self)

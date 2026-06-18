@@ -202,6 +202,9 @@ class BatteryManagementSystem:
     def update_horn(self, status: bool, timeout: float | None = None) -> None:
         self._send(0x4, pack('<B', status), timeout)
 
+    def heartbeat(self, timeout: float | None = None) -> None:
+        self._send(0x1f, b'', timeout)
+
     INFORMATION_TYPES: ClassVar[tuple[type[Information], ...]] = (
         CellVoltagesInformation,
         ThermistorTemperaturesInformation,

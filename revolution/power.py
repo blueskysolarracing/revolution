@@ -10,7 +10,6 @@ from can import Message
 
 from revolution.application import Application
 from revolution.battery_management_system import (
-    BatteryFlag,
     BATTERY_CELL_COUNT,
     CellVoltagesInformation,
     HVBusVoltageAndCurrentInformation,
@@ -55,6 +54,51 @@ class Power(Application):
         self._power_log_worker.join()
 
     def _monitor(self) -> None:
+        def array_relay(status: bool) -> None:
+            (
+                self
+                .environment
+                .peripheries
+                .power_array_relay_low_side_gpio
+                .write(status)
+            )
+            (
+                self
+                .environment
+                .peripheries
+                .power_array_relay_high_side_gpio
+                .write(status)
+            )
+            if status:
+                sleep(self.environment.settings.power_array_relay_timeout)
+            (
+                self
+                .environment
+                .peripheries
+                .power_array_relay_pre_charge_gpio
+                .write(status)
+            )
+
+        def ppt_relay(status: bool) -> None:
+            if status:
+                sleep(self.environment.settings.power_point_tracking_timeout)
+            (
+                self
+                .environment
+                .peripheries
+                .power_point_tracking_switch_1_gpio
+                .write(status)
+            )
+            (
+                self
+                .environment
+                .peripheries
+                .power_point_tracking_switch_2_gpio
+                .write(status)
+            )
+            if not status:
+                sleep(self.environment.settings.power_point_tracking_timeout)
+
         previous_array_relay_status_input = False
         previous_battery_relay_status = False
         previous_all_relay_status = False
@@ -79,39 +123,32 @@ class Power(Application):
                 battery_discharge_status = (
                     contexts.power_battery_discharge_status
                 )
-                battery_cell_flags = contexts.power_battery_cell_flags.copy()
-                battery_thermistor_flags = (
-                    contexts.power_battery_thermistor_flags.copy()
+                battery_flags = contexts.power_battery_flags
+                battery_heartbeat_timestamp = (
+                    contexts.power_battery_heartbeat_timestamp
                 )
                 battery_mean_state_of_charge = (
                     contexts.power_battery_mean_state_of_charge
                 )
-                psm_battery_current = contexts.power_psm_battery_current
 
-            battery_current_flag_psm = 0
-            if (
-                    psm_battery_current
-                    > self.environment.settings.power_battery_overcurrent_limit
-            ):
-                battery_current_flag_psm |= BatteryFlag.OVERCURRENT
-            if (
-                    psm_battery_current
-                    < (
-                            self
-                            .environment
-                            .settings
-                            .power_battery_undercurrent_limit
-                    )
-            ):
-                battery_current_flag_psm |= BatteryFlag.UNDERCURRENT
+            battery_heartbeat_working = (
+                (time() - battery_heartbeat_timestamp)
+                < (
+                    self
+                    .environment
+                    .settings
+                    .power_battery_can_timeout
+                )
+            )
             with self.environment.contexts() as contexts:
-                # contexts.power_battery_current_flag |= battery_current_flag_psm
-                battery_current_flag = contexts.power_battery_current_flag
-                battery_flags = contexts.power_battery_flags
+                contexts.power_battery_heartbeat_working = (
+                    battery_heartbeat_working
+                )
 
             if battery_flags:
                 with self.environment.contexts() as contexts:
                     contexts.power_battery_flags_hold |= battery_flags
+
             if battery_mean_state_of_charge >= (
                 self
                 .environment
@@ -119,6 +156,7 @@ class Power(Application):
                 .power_disable_charging_battery_soc_threshold
             ):
                 array_relay_status_input = False
+
             if (
                     (
                         battery_relay_status_input
@@ -126,6 +164,7 @@ class Power(Application):
                     )
                     or battery_discharge_status
                     or battery_flags
+                    or not battery_heartbeat_working
             ):
                 array_relay_status_input = False
                 battery_relay_status_input = False
@@ -139,9 +178,9 @@ class Power(Application):
                     and not battery_flags
                     and battery_electric_safe_discharge_flag
             ):
-                battery_clear_status_input = True
+                battery_clear_input = True
             else:
-                battery_clear_status_input = False
+                battery_clear_input = False
 
             all_relay_status = (
                 array_relay_status_input
@@ -153,90 +192,25 @@ class Power(Application):
                 battery_electric_safe_discharge_flag = True
 
             if previous_all_relay_status and not all_relay_status:
-                (
-                    self
-                    .environment
-                    .peripheries
-                    .power_point_tracking_switch_1_gpio
-                    .write(False)
-                )
-                (
-                    self
-                    .environment
-                    .peripheries
-                    .power_point_tracking_switch_2_gpio
-                    .write(False)
-                )
-                sleep(self.environment.settings.power_point_tracking_timeout)
+                ppt_relay(False)
 
             if (
                     not previous_array_relay_status_input
                     and array_relay_status_input
             ):
-                (
-                    self
-                    .environment
-                    .peripheries
-                    .power_array_relay_low_side_gpio
-                    .write(True)
-                )
-                (
-                    self
-                    .environment
-                    .peripheries
-                    .power_array_relay_high_side_gpio
-                    .write(True)
-                )
-                sleep(self.environment.settings.power_array_relay_timeout)
-                (
-                    self
-                    .environment
-                    .peripheries
-                    .power_array_relay_pre_charge_gpio
-                    .write(True)
-                )
+                array_relay(True)
+                with self.environment.contexts() as contexts:
+                    contexts.power_array_relay_status = True
             elif (
                     previous_array_relay_status_input
                     and not array_relay_status_input
             ):
-                (
-                    self
-                    .environment
-                    .peripheries
-                    .power_array_relay_low_side_gpio
-                    .write(False)
-                )
-                (
-                    self
-                    .environment
-                    .peripheries
-                    .power_array_relay_high_side_gpio
-                    .write(False)
-                )
-                (
-                    self
-                    .environment
-                    .peripheries
-                    .power_array_relay_pre_charge_gpio
-                    .write(False)
-                )
+                array_relay(False)
+                with self.environment.contexts() as contexts:
+                    contexts.power_array_relay_status = False
 
             if not previous_all_relay_status and all_relay_status:
-                sleep(self.environment.settings.power_point_tracking_timeout)
-                (
-                    self
-                    .environment
-                    .peripheries
-                    .power_point_tracking_switch_1_gpio
-                    .write(True)
-                )
-                (
-                    self
-                    .environment
-                    .peripheries
-                    .power_point_tracking_switch_2_gpio
-                    .write(True)
-                )
+                ppt_relay(True)
 
             if not battery_relay_status and battery_relay_status_input:
                 (
@@ -264,11 +238,6 @@ class Power(Application):
                     and not battery_discharge_status
                     and battery_discharge_status_input
             ):
-                assert (
-                    not array_relay_status_input
-                    and not battery_relay_status_input
-                )
-
                 (
                     self
                     .environment
@@ -277,7 +246,7 @@ class Power(Application):
                     .discharge()
                 )
 
-            if battery_discharge_status and battery_clear_status_input:
+            if battery_discharge_status and battery_clear_input:
                 (
                     self
                     .environment
@@ -288,6 +257,14 @@ class Power(Application):
                 battery_electric_safe_discharge_flag = False
                 with self.environment.contexts() as contexts:
                     contexts.power_battery_flags_hold = 0
+
+            (
+                self
+                .environment
+                .peripheries
+                .power_battery_management_system
+                .heartbeat()
+            )
 
             previous_array_relay_status_input = array_relay_status_input
             previous_battery_relay_status = battery_relay_status

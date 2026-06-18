@@ -93,6 +93,7 @@ CONTEXTS: Contexts = Contexts(
     motor_variable_field_magnet_position=0,
     motor_velocity=0,
     motor_heartbeat_timestamp=inf,
+    motor_heartbeat_working=False,
 
     motor_controller_sent_current=0,
     motor_controller_sent_velocity=0,
@@ -125,6 +126,7 @@ CONTEXTS: Contexts = Contexts(
     # Power
 
     power_array_relay_status_input=False,
+    power_array_relay_status=False,
     power_battery_relay_status_input=False,
     power_battery_cell_voltages=[0 for _ in range(BATTERY_CELL_COUNT)],
     power_battery_thermistor_temperatures=[
@@ -146,6 +148,8 @@ CONTEXTS: Contexts = Contexts(
     power_battery_current_flag=0,
     power_battery_flags_hold=0,
     power_battery_heartbeat_timestamp=inf,
+    power_battery_heartbeat_working=False,
+
     power_battery_state_of_charges=[0 for _ in range(BATTERY_CELL_COUNT)],
 
     power_psm_motor_current=0,
@@ -371,6 +375,7 @@ SETTINGS: Settings = Settings(
     motor_filtered_acceleration_input_factor=0.7,
     motor_bus_current_limit=0.7,
     motor_regeneration_strength=0.3,
+    motor_can_timeout=5.0,
     motor_variable_field_magnet_step_size=50,
     motor_variable_field_magnet_step_range=400,
     motor_variable_field_magnet_stall_timeout=0.5,
@@ -384,14 +389,14 @@ SETTINGS: Settings = Settings(
     power_soc_timeout=0.05,
     power_psm_timeout=0.1,
     power_steering_wheel_led_timeout=0.5,
+    power_log_timeout=0.1,
+
     power_battery=BATTERY,
+    power_battery_can_timeout=5.0,
     power_disable_charging_battery_soc_threshold=0.98,
     power_psm_motor_ina229_voltage_correction_factor=12.9,
     power_psm_battery_ina229_voltage_correction_factor=12.9,
     power_psm_array_ina229_voltage_correction_factor=12.9,
-    power_battery_overcurrent_limit=60.0,
-    power_battery_undercurrent_limit=-50.0,
-    power_log_timeout=0.1,
 
     # Telemetry
 

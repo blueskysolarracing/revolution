@@ -100,6 +100,7 @@ class Contexts:
     motor_variable_field_magnet_position: int
     motor_velocity: float
     motor_heartbeat_timestamp: float
+    motor_heartbeat_working: bool
 
     motor_controller_sent_current: float
     motor_controller_sent_velocity: float
@@ -132,6 +133,7 @@ class Contexts:
     # Power
 
     power_array_relay_status_input: bool
+    power_array_relay_status: bool
     power_battery_relay_status_input: bool
     power_battery_cell_voltages: list[float]
     power_battery_thermistor_temperatures: list[float]
@@ -149,6 +151,8 @@ class Contexts:
     power_battery_current_flag: int
     power_battery_flags_hold: int
     power_battery_heartbeat_timestamp: float
+    power_battery_heartbeat_working: bool
+
     power_battery_state_of_charges: list[float]
 
     power_psm_battery_current: float
@@ -328,6 +332,7 @@ class Settings:
     motor_filtered_acceleration_input_factor: float
     motor_bus_current_limit: float
     motor_regeneration_strength: float
+    motor_can_timeout: float
     motor_variable_field_magnet_step_size: int
     motor_variable_field_magnet_step_range: int
     motor_variable_field_magnet_stall_timeout: float
@@ -341,14 +346,14 @@ class Settings:
     power_soc_timeout: float
     power_psm_timeout: float
     power_steering_wheel_led_timeout: float
+    power_log_timeout: float
+
     power_battery: Battery
+    power_battery_can_timeout: float
     power_disable_charging_battery_soc_threshold: float
     power_psm_motor_ina229_voltage_correction_factor: float
     power_psm_battery_ina229_voltage_correction_factor: float
     power_psm_array_ina229_voltage_correction_factor: float
-    power_battery_overcurrent_limit: float
-    power_battery_undercurrent_limit: float
-    power_log_timeout: float
 
     # Telemetry
 
