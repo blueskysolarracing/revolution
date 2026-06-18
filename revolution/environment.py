@@ -317,6 +317,8 @@ class Settings:
     miscellaneous_orientation_imu_mode_timeout: float
     miscellaneous_position_timeout: float
     miscellaneous_front_wheels_timeout: float
+    miscellaneous_error_log_timeout: float
+    miscellaneous_error_log_capacity:int
 
     # Motor
 
