@@ -1,4 +1,4 @@
-Sphinx~=8.2.3
+Sphinx~=7.1.2
 adafruit-circuitpython-gps==3.11.2
 battlib==0.0.0.dev2
 build~=1.2.2.post1

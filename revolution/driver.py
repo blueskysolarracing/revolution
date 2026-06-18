@@ -185,6 +185,8 @@ class Driver(Application):
                         self.environment.peripheries,
                         raw_input_channel,
                     )
+
+
                     voltage = voltages[input_channel]
                     input_ = (voltage - min_) / (max_ - min_)
 
