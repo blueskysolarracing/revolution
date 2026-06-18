@@ -5,6 +5,7 @@ from logging import getLogger
 from os import makedirs
 from time import sleep
 from typing import ClassVar
+from collections import deque
 
 from periphery import PWM, I2CError
 
@@ -23,18 +24,21 @@ class Miscellaneous(Application):
 
     def _setup(self) -> None:
         super()._setup()
+        self._error_log_deque = deque(maxlen=self.environment.settings.miscellaneous_error_log_capacity)
 
         self._light_worker = Worker(target=self._light)
         self._indicator_light_worker = Worker(target=self._indicator_light)
         self._orientation_worker = Worker(target=self._orientation)
         self._position_worker = Worker(target=self._position)
         self._front_wheels_worker = Worker(target=self._front_wheels)
+        self._error_log_worker = Worker(target=self._error_log)
 
         self._light_worker.start()
         self._indicator_light_worker.start()
         self._orientation_worker.start()
         self._position_worker.start()
         self._front_wheels_worker.start()
+        self._error_log_worker.start()
 
     def _teardown(self) -> None:
         self._light_worker.join()
@@ -42,6 +46,7 @@ class Miscellaneous(Application):
         self._orientation_worker.join()
         self._position_worker.join()
         self._front_wheels_worker.join()
+        self._error_log_worker.join()
 
     def update_pwm(self, pwm: PWM, previous_input: bool, input: bool) -> None:
         if not previous_input and input:
@@ -508,3 +513,21 @@ class Miscellaneous(Application):
                     file=log_file
                 )
                 log_file.flush()
+
+    def _error_log(self) -> None:
+
+        while (
+            not self._stoppage.wait(
+                self.environment.settings.miscellaneous_error_log_timeout
+            )
+        ):
+            with self.environment.contexts() as contexts:
+                snapshot = deepcopy(asdict(contexts))
+
+            entry = {
+                "timestamp": datetime.now().time(),
+                "context": snapshot,
+            }
+
+            self._error_log_deque.append(entry)
+            
