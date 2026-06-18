@@ -133,12 +133,7 @@ class Power(Application):
 
             battery_heartbeat_working = (
                 (time() - battery_heartbeat_timestamp)
-                < (
-                    self
-                    .environment
-                    .settings
-                    .power_battery_can_timeout
-                )
+                < self.environment.settings.power_battery_can_timeout
             )
             with self.environment.contexts() as contexts:
                 contexts.power_battery_heartbeat_working = (

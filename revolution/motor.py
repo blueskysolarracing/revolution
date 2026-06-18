@@ -77,6 +77,16 @@ class Motor(Application):
                 regeneration_status_input = (
                     contexts.motor_regeneration_status_input
                 )
+                motor_heartbeat_timestamp = contexts.motor_heartbeat_timestamp
+
+            motor_heartbeat_working = (
+                (time() - motor_heartbeat_timestamp)
+                < self.environment.settings.motor_can_timeout
+            )
+            with self.environment.contexts() as contexts:
+                contexts.motor_heartbeat_working = (
+                    motor_heartbeat_working
+                )
 
             if status_input:
                 if not previous_status_input:
@@ -88,10 +98,7 @@ class Motor(Application):
                         .peripheries
                         .motor_wavesculptor22
                         .motor_power(
-                            self
-                            .environment
-                            .settings
-                            .motor_bus_current_limit
+                            self.environment.settings.motor_bus_current_limit
                         )
                     )
 
