@@ -17,7 +17,7 @@ from revolution.battery_management_system import (
     OvervoltageTemperatureAndCurrentFlagsInformation,
     StatusesInformation,
     ThermistorTemperaturesInformation,
-    UndervoltageAndTemperatureFlagsInformation,
+    UndervoltageTemperatureAndCurrentFlagsInformation,
 )
 from revolution.environment import Endpoint
 from revolution.worker import Worker
@@ -521,7 +521,7 @@ class Power(Application):
                         information,
                         (
                             OvervoltageTemperatureAndCurrentFlagsInformation
-                            | UndervoltageAndTemperatureFlagsInformation
+                            | UndervoltageTemperatureAndCurrentFlagsInformation
                         ),
                     )
             ):

@@ -148,7 +148,9 @@ class OvervoltageTemperatureAndCurrentFlagsInformation(
 
 
 @dataclass
-class UndervoltageAndTemperatureFlagsInformation(BatteryPackFlagsInformation):
+class UndervoltageTemperatureAndCurrentFlagsInformation(
+    BatteryPackFlagsInformation
+):
     MESSAGE_IDENTIFIERS = range(30, 31)
     CELL_FLAG = BatteryFlag.UNDERVOLTAGE
     THERMISTOR_FLAG = BatteryFlag.UNDERTEMPERATURE
@@ -212,7 +214,7 @@ class BatteryManagementSystem:
         LVBusVoltageAndCurrentInformation,
         StatusesInformation,
         OvervoltageTemperatureAndCurrentFlagsInformation,
-        UndervoltageAndTemperatureFlagsInformation,
+        UndervoltageTemperatureAndCurrentFlagsInformation,
     )
 
     def parse(self, message: Message) -> Information | None:

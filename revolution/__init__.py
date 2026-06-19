@@ -33,7 +33,7 @@ __all__ = (
     'SteeringWheel',
     'Telemetry',
     'ThermistorTemperaturesInformation',
-    'UndervoltageAndTemperatureFlagsInformation',
+    'UndervoltageTemperatureAndCurrentFlagsInformation',
     'Worker',
 )
 
@@ -52,7 +52,7 @@ from revolution.battery_management_system import (
     PartialInformation,
     StatusesInformation,
     ThermistorTemperaturesInformation,
-    UndervoltageAndTemperatureFlagsInformation,
+    UndervoltageTemperatureAndCurrentFlagsInformation,
 )
 from revolution.debugger import Debugger
 from revolution.display import Display
