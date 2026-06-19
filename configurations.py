@@ -553,5 +553,11 @@ SETTINGS: Settings = Settings(
     telemetry_timeout=0.2,
     telemetry_begin_token=b'',
     telemetry_separator_token=b'_',
-    telemetry_end_token=b'\r\n',
+    telemetry_end_token=b'',
+    telemetry_radio_frequency=915000000,
+    telemetry_radio_spreading_factor=7,
+    telemetry_radio_bandwidth=0,
+    telemetry_radio_code_rate=0,
+    telemetry_radio_preamble_length=200,
+    telemetry_radio_tx_power=14,
 )

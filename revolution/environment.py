@@ -361,6 +361,12 @@ class Settings:
     telemetry_begin_token: bytes
     telemetry_separator_token: bytes
     telemetry_end_token: bytes
+    telemetry_radio_frequency: int
+    telemetry_radio_spreading_factor: int
+    telemetry_radio_bandwidth: int
+    telemetry_radio_code_rate: int
+    telemetry_radio_preamble_length: int
+    telemetry_radio_tx_power: int
 
 
 @dataclass(frozen=True)

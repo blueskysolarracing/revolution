@@ -80,6 +80,21 @@ class Telemetry(Application):
         self._can_worker.join()
 
     def _telemetry(self) -> None:
+        p2p_command = (
+            f"AT+P2P={self.environment.settings.telemetry_radio_frequency}"
+            f":{self.environment.settings.telemetry_radio_spreading_factor}"
+            f":{self.environment.settings.telemetry_radio_bandwidth}"
+            f":{self.environment.settings.telemetry_radio_code_rate}"
+            f":{self.environment.settings.telemetry_radio_preamble_length}"
+            f":{self.environment.settings.telemetry_radio_tx_power}\r\n"
+        )
+        serial = self.environment.peripheries.telemetry_radio_serial
+        serial.write(p2p_command.encode())
+        serial.flush()
+
+        serial.write(b"AT+PRECV=65533\r\n")
+        serial.flush()
+
         while (
                 not self._stoppage.wait(
                     self.environment.settings.telemetry_timeout,
@@ -103,8 +118,13 @@ class Telemetry(Application):
                 self.environment.settings.telemetry_end_token,
             )
             raw_data = b''.join(tokens)
-
-            self.environment.peripheries.telemetry_radio_serial.write(raw_data)
+            hex_payload = raw_data.hex()
+            at_command = f"AT+PSEND={hex_payload}\r\n".encode()
+            print(at_command)
+            print(f'length: {len(at_command)}')
+            self.environment.peripheries.telemetry_radio_serial.write(
+                at_command
+            )
             self.environment.peripheries.telemetry_radio_serial.flush()
 
     def _can(self) -> None:

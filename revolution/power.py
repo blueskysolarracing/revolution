@@ -10,6 +10,7 @@ from can import Message
 
 from revolution.application import Application
 from revolution.battery_management_system import (
+    BatteryFlag,
     BATTERY_CELL_COUNT,
     CellVoltagesInformation,
     HVBusVoltageAndCurrentInformation,
@@ -399,12 +400,18 @@ class Power(Application):
 
         @dataclass
         class PowerLogData:
+            miscellaneous_brake_status_input: bool
+
+            motor_status_input: bool
             motor_acceleration_input: float
-            motor_cruise_control_status_input: bool
             motor_cruise_control_velocity: float
             motor_regeneration_status_input: bool
+            motor_variable_field_magnet_up_input: int
+            motor_variable_field_magnet_down_input: int
             motor_variable_field_magnet_position: int
             motor_velocity: float
+            motor_heartbeat_timestamp: float
+            motor_heartbeat_working: bool
 
             motor_controller_sent_current: float
             motor_controller_sent_velocity: float
@@ -434,11 +441,34 @@ class Power(Application):
             motor_controller_dc_bus_amphours: float
             motor_controller_slip_speed: float
 
+            power_array_relay_status_input: bool
+            power_array_relay_status: bool
+            power_battery_relay_status_input: bool
+
+            power_battery_min_cell_voltage: float
+            power_battery_max_cell_voltage: float
+            power_battery_mean_cell_voltage: float
+            power_battery_min_thermistor_temperature: float
+            power_battery_max_thermistor_temperature: float
+            power_battery_mean_thermistor_temperature: float
+
             power_battery_HV_bus_voltage: float
             power_battery_HV_current: float
             power_battery_LV_bus_voltage: float
             power_battery_LV_current: float
             power_battery_supp_voltage: float
+
+            power_battery_relay_status: bool
+            power_battery_electric_safe_discharge_status: bool
+            power_battery_discharge_status: bool
+            power_battery_flags: BatteryFlag
+            power_battery_flags_hold: int
+            power_battery_heartbeat_timestamp: float
+            power_battery_heartbeat_working: bool
+
+            power_battery_min_state_of_charge: float
+            power_battery_max_state_of_charge: float
+            power_battery_mean_state_of_charge: float
 
             power_psm_battery_current: float
             power_psm_battery_voltage: float
