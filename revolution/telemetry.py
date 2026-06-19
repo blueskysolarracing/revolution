@@ -18,50 +18,28 @@ class Telemetry(Application):
 
     @dataclass
     class Data:
-        motor_acceleration_input: float
-        motor_cruise_control_status_input: bool
-        motor_cruise_control_velocity: float
         motor_variable_field_magnet_position: int
         motor_velocity: float
-        motor_heartbeat_working: bool
 
-        power_array_relay_status_input: bool
-        power_array_relay_status: bool
-
-        power_battery_relay_status_input: bool
         power_battery_min_cell_voltage: float
         power_battery_max_cell_voltage: float
-        power_battery_mean_cell_voltage: float
         power_battery_max_thermistor_temperature: float
-        power_battery_mean_thermistor_temperature: float
 
         power_battery_HV_bus_voltage: float
         power_battery_HV_current: float
         power_battery_LV_bus_voltage: float
         power_battery_LV_current: float
         power_battery_supp_voltage: float
-        power_battery_relay_status: bool
-        power_battery_electric_safe_discharge_status: bool
-        power_battery_discharge_status: bool
-        power_battery_heartbeat_working: bool
 
         power_battery_flags: int
 
         power_battery_min_state_of_charge: float
         power_battery_max_state_of_charge: float
-        power_battery_mean_state_of_charge: float
 
         power_psm_battery_current: float
         power_psm_battery_voltage: float
         power_psm_array_current: float
-        power_psm_array_voltage: float
         power_psm_motor_current: float
-        power_psm_motor_voltage: float
-
-        miscellaneous_orientation: dict[str, float]
-        miscellaneous_latitude: float
-        miscellaneous_longitude: float
-        miscellaneous_altitude: float
 
         def serialize(self) -> bytes:
             return dump(self)
@@ -120,8 +98,8 @@ class Telemetry(Application):
             raw_data = b''.join(tokens)
             hex_payload = raw_data.hex()
             at_command = f"AT+PSEND={hex_payload}\r\n".encode()
-            print(at_command)
-            print(f'length: {len(at_command)}')
+            # print(at_command)
+            # print(f'length: {len(at_command)}')
             self.environment.peripheries.telemetry_radio_serial.write(
                 at_command
             )
