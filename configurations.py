@@ -309,7 +309,7 @@ VARIABLE_FIELD_MAGNET_ENCODER_B_GPIO: GPIO = GPIO(
 )
 VARIABLE_FIELD_MAGNET_ENABLE_GPIO: GPIO = GPIO('/dev/gpiochip1', 13, 'out')
 
-RADIO_SERIAL: Serial = Serial('/dev/ttyLP2', 115200, timeout=1)
+RADIO_SERIAL: Serial = Serial('/dev/ttyLP2', 9600, timeout=1)
 
 if CAN_BUS_BITRATE not in WaveSculptor22.CAN_BUS_BITRATES:
     raise ValueError('invalid can bus bitrate')
