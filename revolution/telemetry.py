@@ -18,7 +18,7 @@ class Telemetry(Application):
 
     @dataclass
     class Data:
-        motor_variable_field_magnet_position: int
+        # motor_variable_field_magnet_position: int
         motor_velocity: float
 
         power_battery_min_cell_voltage: float
@@ -27,14 +27,14 @@ class Telemetry(Application):
 
         power_battery_HV_bus_voltage: float
         power_battery_HV_current: float
-        power_battery_LV_bus_voltage: float
-        power_battery_LV_current: float
+        # power_battery_LV_bus_voltage: float
+        # power_battery_LV_current: float
         power_battery_supp_voltage: float
 
-        power_battery_flags: int
+        # power_battery_flags: int
 
-        power_battery_min_state_of_charge: float
-        power_battery_max_state_of_charge: float
+        # power_battery_min_state_of_charge: float
+        # power_battery_max_state_of_charge: float
 
         power_psm_battery_current: float
         power_psm_battery_voltage: float
