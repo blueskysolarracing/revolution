@@ -254,14 +254,6 @@ class Power(Application):
                 with self.environment.contexts() as contexts:
                     contexts.power_battery_flags_hold = 0
 
-            (
-                self
-                .environment
-                .peripheries
-                .power_battery_management_system
-                .heartbeat()
-            )
-
             previous_array_relay_status_input = array_relay_status_input
             previous_battery_relay_status = battery_relay_status
             previous_all_relay_status = all_relay_status

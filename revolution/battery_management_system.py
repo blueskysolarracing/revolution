@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from enum import auto, IntFlag
+from enum import IntFlag
 from logging import getLogger
 from struct import pack, unpack
 from typing import ClassVar
@@ -13,12 +13,12 @@ _logger = getLogger(__name__)
 
 
 class BatteryFlag(IntFlag):
-    OVERVOLTAGE = auto()
-    UNDERVOLTAGE = auto()
-    OVERTEMPERATURE = auto()
-    UNDERTEMPERATURE = auto()
-    OVERCURRENT = auto()
-    UNDERCURRENT = auto()
+    OVERVOLTAGE = 0b000001
+    UNDERVOLTAGE = 0b000010
+    OVERTEMPERATURE = 0b000100
+    UNDERTEMPERATURE = 0b001000
+    OVERCURRENT = 0b010000
+    UNDERCURRENT = 0b100000
 
 
 @dataclass
