@@ -21,6 +21,7 @@ from serial import Serial
 from revolution import (
     Application,
     BATTERY_CELL_COUNT,
+    BatteryFlag,
     BatteryManagementSystem,
     BATTERY_THERMISTOR_COUNT,
     Contexts,
@@ -148,7 +149,7 @@ CONTEXTS: Contexts = Contexts(
         0 for _ in range(BATTERY_THERMISTOR_COUNT)
     ],
     power_battery_current_flag=0,
-    power_battery_flags_hold=0,
+    power_battery_flags_hold=BatteryFlag.CLEAR,
     power_battery_heartbeat_timestamp=inf,
     power_battery_heartbeat_working=False,
 

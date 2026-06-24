@@ -141,10 +141,6 @@ class Power(Application):
                     battery_heartbeat_working
                 )
 
-            if battery_flags:
-                with self.environment.contexts() as contexts:
-                    contexts.power_battery_flags_hold |= battery_flags
-
             if battery_mean_state_of_charge >= (
                 self
                 .environment
@@ -251,8 +247,6 @@ class Power(Application):
                     .clear()
                 )
                 battery_electric_safe_discharge_flag = False
-                with self.environment.contexts() as contexts:
-                    contexts.power_battery_flags_hold = 0
 
             previous_array_relay_status_input = array_relay_status_input
             previous_battery_relay_status = battery_relay_status
@@ -454,7 +448,7 @@ class Power(Application):
             power_battery_electric_safe_discharge_status: bool
             power_battery_discharge_status: bool
             power_battery_flags: BatteryFlag
-            power_battery_flags_hold: int
+            power_battery_flags_hold: BatteryFlag
             power_battery_heartbeat_timestamp: float
             power_battery_heartbeat_working: bool
 
@@ -537,6 +531,7 @@ class Power(Application):
                 contexts.power_battery_discharge_status = (
                     information.discharge_status
                 )
+                contexts.power_battery_flags_hold = information.flag_hold
                 contexts.power_battery_supp_voltage = information.supp_voltage
             elif (
                     isinstance(

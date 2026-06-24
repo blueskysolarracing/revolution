@@ -13,6 +13,7 @@ _logger = getLogger(__name__)
 
 
 class BatteryFlag(IntFlag):
+    CLEAR = 0b000000
     OVERVOLTAGE = 0b000001
     UNDERVOLTAGE = 0b000010
     OVERTEMPERATURE = 0b000100
@@ -89,6 +90,10 @@ class StatusesInformation(Information):
     @property
     def discharge_status(self) -> bool:
         return bool(self.statuses & (1 << 2))
+
+    @property
+    def flag_hold(self) -> BatteryFlag:
+        return BatteryFlag((self.statuses >> 24) & 0xff)
 
 
 @dataclass
