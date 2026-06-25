@@ -18,31 +18,54 @@ class Telemetry(Application):
 
     @dataclass
     class Data:
-        # motor_variable_field_magnet_position: int
+        motor_acceleration_input: float
+        motor_cruise_control_status_input: bool
+        motor_cruise_control_velocity: float
+        motor_variable_field_magnet_position: int
         motor_velocity: float
+        motor_heartbeat_working: bool
 
+        power_array_relay_status_input: bool
+        power_array_relay_status: bool
+
+        power_battery_relay_status_input: bool
         power_battery_min_cell_voltage: float
         power_battery_max_cell_voltage: float
+        power_battery_mean_cell_voltage: float
         power_battery_max_thermistor_temperature: float
+        power_battery_mean_thermistor_temperature: float
 
         power_battery_HV_bus_voltage: float
         power_battery_HV_current: float
-        # power_battery_LV_bus_voltage: float
-        # power_battery_LV_current: float
+        power_battery_LV_bus_voltage: float
+        power_battery_LV_current: float
         power_battery_supp_voltage: float
+        power_battery_relay_status: bool
+        power_battery_electric_safe_discharge_status: bool
+        power_battery_discharge_status: bool
+        power_battery_heartbeat_working: bool
 
-        # power_battery_flags: int
+        power_battery_flags: int
+        power_battery_flags_hold: int
 
-        # power_battery_min_state_of_charge: float
-        # power_battery_max_state_of_charge: float
+        power_battery_min_state_of_charge: float
+        power_battery_max_state_of_charge: float
+        power_battery_mean_state_of_charge: float
 
         power_psm_battery_current: float
         power_psm_battery_voltage: float
         power_psm_array_current: float
+        power_psm_array_voltage: float
         power_psm_motor_current: float
+        power_psm_motor_voltage: float
+
+        miscellaneous_orientation: dict[str, float]
+        miscellaneous_latitude: float
+        miscellaneous_longitude: float
+        miscellaneous_altitude: float
 
         def serialize(self) -> bytes:
-            return dump(self)
+            return dump(self, 2, 2)
 
     def _setup(self) -> None:
         super()._setup()
@@ -70,9 +93,6 @@ class Telemetry(Application):
         serial.write(p2p_command.encode())
         serial.flush()
 
-        serial.write(b"AT+PRECV=65533\r\n")
-        serial.flush()
-
         while (
                 not self._stoppage.wait(
                     self.environment.settings.telemetry_timeout,
@@ -87,19 +107,23 @@ class Telemetry(Application):
 
             data = self.Data(**kwargs)
             data_token = data.serialize()
-            checksum_token = md5(data_token).hexdigest()
+            checksum_token = md5(data_token).hexdigest().encode()
             tokens = (
                 self.environment.settings.telemetry_begin_token,
-                data_token.hex().encode(),
+                data_token,
                 self.environment.settings.telemetry_separator_token,
-                checksum_token.encode(),
+                checksum_token,
                 self.environment.settings.telemetry_end_token,
             )
             raw_data = b''.join(tokens)
             hex_payload = raw_data.hex()
             at_command = f"AT+PSEND={hex_payload}\r\n".encode()
-            # print(at_command)
-            # print(f'length: {len(at_command)}')
+            # print(
+            #     f'data_token={len(data_token)} '
+            #     f'checksum_token={len(checksum_token)} '
+            #     f'raw={len(raw_data)} hex={len(hex_payload)} '
+            #     f'at={len(at_command)}\n'
+            # )
             self.environment.peripheries.telemetry_radio_serial.write(
                 at_command
             )
