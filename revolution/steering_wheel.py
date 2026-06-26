@@ -7,22 +7,29 @@ from periphery import GPIO, SPI
 
 
 class DisplayItem(IntEnum):
-    BAT_HEADER = 0
-    VEL_HEADER = 1
-    VELOCITY = 2
-    VELOCITY_UNIT = 3
-    CRUISE_CTRL = 4
-    CRUISE_CTRL_VEL = 5
-    REGEN = 6
-    VFM = 7
+    VELOCITY_HEADER = 0
+    VELOCITY = 1
+    REVERSE = 2
+    CRUISE_HEADER = 3
+    CRUISE_VELOCITY = 4
+    REGEN = 5
+    MOTOR_STATUS = 6
+    VFM_HEADER = 7
     VFM_GEAR = 8
 
-    BAT_SOC = 9
-    BAT_SOC_UNIT = 10
+    BAT_SOC_HEADER = 9
+    BAT_SOC = 10
     SAFE_STATE = 11
     BMS_VOLT = 12
     BMS_TEMP = 13
     BMS_CURRENT = 14
+
+    BMS_VOLT_FLAG = 15
+    BMS_TEMP_FLAG = 16
+    BMS_CURRENT_FLAG = 17
+
+    ARRAY_RELAY = 18
+    BATTERY_RELAY = 19
 
 
 class InputByte(IntEnum):
@@ -116,6 +123,7 @@ class SteeringWheel:
 
     def clear_screen(self) -> None:
         for i in range(32):
+            self.set_text_mode(i, 0)
             self.draw_word(i, '')
 
     def set_text_position(
