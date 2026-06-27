@@ -53,7 +53,7 @@ class Motor(Application):
                 * 1000
             )
 
-        previous_status_input = False
+        previous_motor_status_input = False
         previous_cruise_control_status_input = False
         filtered_acceleration_input = 0.0
         acceleration_input_max_increase = (
@@ -68,7 +68,21 @@ class Motor(Application):
                 )
         ):
             with self.environment.contexts() as contexts:
-                status_input = contexts.motor_status_input
+                motor_heartbeat_timestamp = contexts.motor_heartbeat_timestamp
+
+            motor_heartbeat_working = (
+                (time() - motor_heartbeat_timestamp)
+                < self.environment.settings.motor_can_timeout
+            )
+
+            with self.environment.contexts() as contexts:
+                contexts.motor_heartbeat_working = motor_heartbeat_working
+                contexts.motor_status_input = (
+                    contexts.battery_relay_status
+                    and contexts.motor_heartbeat_working
+                    and contexts.motor_controller_error_flags == 0
+                )
+                motor_status_input = contexts.motor_status_input
                 acceleration_input = contexts.motor_acceleration_input
                 direction_input = contexts.motor_direction_input
                 cruise_control_status_input = (
@@ -77,19 +91,9 @@ class Motor(Application):
                 regeneration_status_input = (
                     contexts.motor_regeneration_status_input
                 )
-                motor_heartbeat_timestamp = contexts.motor_heartbeat_timestamp
 
-            motor_heartbeat_working = (
-                (time() - motor_heartbeat_timestamp)
-                < self.environment.settings.motor_can_timeout
-            )
-            with self.environment.contexts() as contexts:
-                contexts.motor_heartbeat_working = (
-                    motor_heartbeat_working
-                )
-
-            if status_input:
-                if not previous_status_input:
+            if motor_status_input:
+                if not previous_motor_status_input:
                     self.environment.peripheries.motor_wavesculptor22.reset()
                 else:
                     (
@@ -201,7 +205,7 @@ class Motor(Application):
                 with self.environment.contexts() as contexts:
                     contexts.motor_cruise_control_status_input = False
 
-            previous_status_input = status_input
+            previous_motor_status_input = motor_status_input
             previous_cruise_control_status_input = cruise_control_status_input
 
     def _variable_field_magnet(self) -> None:
@@ -209,7 +213,7 @@ class Motor(Application):
             FORWARD = True
             BACKWARD = False
 
-        previous_status_input = False
+        previous_battery_relay_status = False
         previous_direction = VFMDirection.BACKWARD
 
         step_size = (
@@ -307,7 +311,7 @@ class Motor(Application):
             )
         ):
             with self.environment.contexts() as contexts:
-                status_input = contexts.motor_status_input
+                battery_relay_status = contexts.battery_relay_status
                 min_value = min(
                     contexts.motor_variable_field_magnet_up_input,
                     contexts.motor_variable_field_magnet_down_input,
@@ -326,8 +330,8 @@ class Motor(Application):
 
                 position = contexts.motor_variable_field_magnet_position
 
-            if status_input:
-                if not previous_status_input:
+            if battery_relay_status:
+                if not previous_battery_relay_status:
                     move_vfm(VFMDirection.BACKWARD, 2 * step_range)
                     position = 0
                     previous_direction = VFMDirection.BACKWARD
@@ -367,7 +371,7 @@ class Motor(Application):
                         position
                     )
 
-            previous_status_input = status_input
+            previous_battery_relay_status = battery_relay_status
 
     def _handle_can(self, message: Message) -> None:
 
