@@ -101,9 +101,6 @@ class Power(Application):
                 sleep(self.environment.settings.power_point_tracking_timeout)
 
         previous_array_relay_status_input = False
-        previous_battery_relay_status = False
-        previous_all_relay_status = False
-        battery_electric_safe_discharge_flag = False
 
         while (
                 not self._stoppage.wait(
@@ -118,13 +115,6 @@ class Power(Application):
                     contexts.power_battery_relay_status_input
                 )
                 battery_relay_status = contexts.power_battery_relay_status
-                battery_electric_safe_discharge_status = (
-                    contexts.power_battery_electric_safe_discharge_status
-                )
-                battery_discharge_status = (
-                    contexts.power_battery_discharge_status
-                )
-                battery_flags = contexts.power_battery_flags
                 battery_heartbeat_timestamp = (
                     contexts.power_battery_heartbeat_timestamp
                 )
@@ -141,68 +131,32 @@ class Power(Application):
                     battery_heartbeat_working
                 )
 
-            if battery_mean_state_of_charge >= (
-                self
-                .environment
-                .settings
-                .power_disable_charging_battery_soc_threshold
+            if (
+                battery_mean_state_of_charge >= (
+                    self
+                    .environment
+                    .settings
+                    .power_disable_charging_battery_soc_threshold
+                ) or not battery_relay_status
             ):
                 array_relay_status_input = False
-
-            if (
-                    (
-                        battery_relay_status_input
-                        and battery_electric_safe_discharge_status
-                    )
-                    or battery_discharge_status
-                    or battery_flags
-                    or not battery_heartbeat_working
-            ):
-                array_relay_status_input = False
-                battery_relay_status_input = False
-                battery_discharge_status_input = True
-            else:
-                battery_discharge_status_input = False
-
-            if (
-                    not battery_relay_status_input
-                    and not battery_electric_safe_discharge_status
-                    and not battery_flags
-                    and battery_electric_safe_discharge_flag
-            ):
-                battery_clear_input = True
-            else:
-                battery_clear_input = False
-
-            all_relay_status = (
-                array_relay_status_input
-                and battery_relay_status_input
-                and battery_relay_status
-            )
-
-            if battery_electric_safe_discharge_status:
-                battery_electric_safe_discharge_flag = True
-
-            if previous_all_relay_status and not all_relay_status:
-                ppt_relay(False)
 
             if (
                     not previous_array_relay_status_input
                     and array_relay_status_input
             ):
                 array_relay(True)
+                ppt_relay(True)
                 with self.environment.contexts() as contexts:
                     contexts.power_array_relay_status = True
             elif (
                     previous_array_relay_status_input
                     and not array_relay_status_input
             ):
+                ppt_relay(False)
                 array_relay(False)
                 with self.environment.contexts() as contexts:
                     contexts.power_array_relay_status = False
-
-            if not previous_all_relay_status and all_relay_status:
-                ppt_relay(True)
 
             if not battery_relay_status and battery_relay_status_input:
                 (
@@ -221,32 +175,7 @@ class Power(Application):
                     .open_relay()
                 )
 
-            if (
-                    not battery_relay_status
-                    and not battery_discharge_status
-                    and battery_discharge_status_input
-            ):
-                (
-                    self
-                    .environment
-                    .peripheries
-                    .power_battery_management_system
-                    .discharge()
-                )
-
-            if battery_discharge_status and battery_clear_input:
-                (
-                    self
-                    .environment
-                    .peripheries
-                    .power_battery_management_system
-                    .clear()
-                )
-                battery_electric_safe_discharge_flag = False
-
             previous_array_relay_status_input = array_relay_status_input
-            previous_battery_relay_status = battery_relay_status
-            previous_all_relay_status = all_relay_status
 
     def _soc(self) -> None:
         estimators: list[EKFSOCEstimator | None] = [
