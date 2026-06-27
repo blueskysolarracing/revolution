@@ -28,20 +28,20 @@ class Miscellaneous(Application):
         self._indicator_light_worker = Worker(target=self._indicator_light)
         self._orientation_worker = Worker(target=self._orientation)
         self._position_worker = Worker(target=self._position)
-        self._front_wheels_worker = Worker(target=self._front_wheels)
+        # self._front_wheels_worker = Worker(target=self._front_wheels)
 
         self._light_worker.start()
         self._indicator_light_worker.start()
         self._orientation_worker.start()
         self._position_worker.start()
-        self._front_wheels_worker.start()
+        # self._front_wheels_worker.start()
 
     def _teardown(self) -> None:
         self._light_worker.join()
         self._indicator_light_worker.join()
         self._orientation_worker.join()
         self._position_worker.join()
-        self._front_wheels_worker.join()
+        # self._front_wheels_worker.join()
 
     def update_pwm(self, pwm: PWM, previous_input: bool, input: bool) -> None:
         if not previous_input and input:
