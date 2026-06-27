@@ -78,7 +78,7 @@ class Motor(Application):
             with self.environment.contexts() as contexts:
                 contexts.motor_heartbeat_working = motor_heartbeat_working
                 contexts.motor_status_input = (
-                    contexts.battery_relay_status
+                    contexts.power_battery_relay_status
                     and contexts.motor_heartbeat_working
                     and contexts.motor_controller_error_flags == 0
                 )
@@ -311,7 +311,7 @@ class Motor(Application):
             )
         ):
             with self.environment.contexts() as contexts:
-                battery_relay_status = contexts.battery_relay_status
+                battery_relay_status = contexts.power_battery_relay_status
                 min_value = min(
                     contexts.motor_variable_field_magnet_up_input,
                     contexts.motor_variable_field_magnet_down_input,
