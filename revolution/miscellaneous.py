@@ -503,8 +503,8 @@ class Miscellaneous(Application):
                     f'{datetime.now().time()}, '
                     f'{left_accel.x}, {left_accel.y}, {left_accel.z}, '
                     f'{right_accel.x}, {right_accel.y}, {right_accel.z}, '
-                    f'{imu.get('x', -100)}, {imu.get('y', -100)}, '
-                    f'{imu.get('z', -100)}',
+                    f'{imu.get("x", -100)}, {imu.get("y", -100)}, '
+                    f'{imu.get("z", -100)}',
                     file=log_file
                 )
                 log_file.flush()
