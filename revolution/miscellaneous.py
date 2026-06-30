@@ -292,16 +292,25 @@ class Miscellaneous(Application):
 
             if previous_imu_working:
                 try:
-                    raw_data = (
+                    bno055 = (
                         self
                         .environment
                         .peripheries
                         .miscellaneous_orientation_imu_bno055
-                        .orientation
                     )
-                    orientation = asdict(raw_data)
+                    orientation = asdict(bno055.orientation)
+                    angular_velocity = asdict(bno055.angular_velocity)
+                    linear_acceleration = asdict(bno055.linear_acceleration)
+
                     with self.environment.contexts() as contexts:
                         contexts.miscellaneous_orientation.update(orientation)
+                        contexts.miscellaneous_angular_velocity.update(
+                            angular_velocity,
+                        )
+                        contexts.miscellaneous_linear_acceleration.update(
+                            linear_acceleration,
+                        )
+
                     imu_working = True
                 except I2CError:
                     imu_working = False
