@@ -312,13 +312,19 @@ class Power(Application):
         @dataclass
         class PowerLogData:
             miscellaneous_brake_status_input: bool
+            miscellaneous_orientation: dict[str, float]
+            miscellaneous_angular_velocity: dict[str, float]
+            miscellaneous_linear_acceleration: dict[str, float]
+            miscellaneous_imu_working: bool
+            miscellaneous_latitude: float
+            miscellaneous_longitude: float
+            miscellaneous_altitude: float
+            miscellaneous_gps_fix_quality: int
 
             motor_status_input: bool
             motor_acceleration_input: float
             motor_cruise_control_velocity: float
             motor_regeneration_status_input: bool
-            motor_variable_field_magnet_up_input: int
-            motor_variable_field_magnet_down_input: int
             motor_variable_field_magnet_position: int
             motor_velocity: float
             motor_heartbeat_timestamp: float
@@ -393,8 +399,13 @@ class Power(Application):
         log_file = open(f'{filepath}{now}_power_log.csv', 'w')
 
         print('time, ', end='', file=log_file)
-        for field in fields(PowerLogData):
-            print(f'{field.name}, ', end='', file=log_file)
+        with self.environment.contexts() as contexts:
+            for field in fields(PowerLogData):
+                if isinstance(getattr(contexts, field.name), dict):
+                    for key in getattr(contexts, field.name).keys():
+                        print(f'{field.name}.{key}, ', end='', file=log_file)
+                else:
+                    print(f'{field.name}, ', end='', file=log_file)
         print(file=log_file)
         log_file.flush()
 
@@ -411,11 +422,15 @@ class Power(Application):
             print(f'{datetime.now().time()}, ', end='', file=log_file)
             with self.environment.contexts() as contexts:
                 for field in fields(PowerLogData):
-                    print(
-                        f'{getattr(contexts, field.name)}, ',
-                        end='',
-                        file=log_file
-                    )
+                    if isinstance(getattr(contexts, field.name), dict):
+                        for value in getattr(contexts, field.name).values():
+                            print(f'{value}, ', end='', file=log_file)
+                    else:
+                        print(
+                            f'{getattr(contexts, field.name)}, ',
+                            end='',
+                            file=log_file
+                        )
             print(file=log_file)
             log_file.flush()
 
