@@ -67,9 +67,9 @@ CONTEXTS: Contexts = Contexts(
     miscellaneous_horn_status_input=False,
     miscellaneous_backup_camera_control_status_input=False,
     miscellaneous_brake_status_input=False,
-    miscellaneous_orientation={},
-    miscellaneous_angular_velocity={},
-    miscellaneous_linear_acceleration={},
+    miscellaneous_orientation={'x': 0, 'y': 0, 'z': 0},
+    miscellaneous_angular_velocity={'x': 0, 'y': 0, 'z': 0},
+    miscellaneous_linear_acceleration={'x': 0, 'y': 0, 'z': 0},
     miscellaneous_orientation_imu_working=False,
     miscellaneous_latitude=0,
     miscellaneous_longitude=0,
@@ -204,6 +204,8 @@ BACKUP_CAMERA_CONTROL_SWITCH_GPIO: GPIO = MagicMock()
 
 ORIENTATION_IMU_BNO055: BNO055 = MagicMock(
     orientation=make_dataclass('', [])(),
+    angular_velocity=make_dataclass('', [])(),
+    linear_acceleration=make_dataclass('', [])(),
 )
 
 POSITION_GPS: GPS = MagicMock()
