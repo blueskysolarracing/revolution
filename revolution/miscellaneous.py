@@ -3,7 +3,7 @@ from dataclasses import asdict, dataclass
 from datetime import datetime
 from logging import getLogger
 from os import makedirs
-from time import monotonic, sleep
+from time import sleep
 from typing import ClassVar
 
 from periphery import PWM, I2CError
@@ -15,34 +15,6 @@ from revolution.environment import Endpoint
 from revolution.worker import Worker
 
 _logger = getLogger(__name__)
-
-
-def derive_angular_acceleration(
-        current: dict[str, float],
-        previous: dict[str, float] | None,
-        dt: float,
-) -> dict[str, float]:
-    """Derive angular acceleration by numerically differentiating angular
-    velocity over the elapsed time ``dt``.
-
-    The BNO055 has no hardware register for angular acceleration, so it is
-    computed in software as ``(current - previous) / dt`` per axis.
-
-    :param current: The latest angular velocity reading with keys ``"x"``,
-        ``"y"``, ``"z"``.
-    :param previous: The previous angular velocity reading with the same keys,
-        or ``None`` when no prior sample exists.
-    :param dt: The elapsed time between the two samples (seconds).
-    :return: A dict with keys ``"x"``, ``"y"``, ``"z"``. Returns zeros when no
-        previous sample exists or ``dt`` is ``0`` (cannot differentiate).
-    """
-    if previous is None or dt == 0:
-        return {'x': 0.0, 'y': 0.0, 'z': 0.0}
-
-    return {
-        axis: (current[axis] - previous[axis]) / dt
-        for axis in ('x', 'y', 'z')
-    }
 
 
 @dataclass
@@ -305,8 +277,6 @@ class Miscellaneous(Application):
 
         imu_working = False
         previous_imu_working = False
-        previous_angular_velocity: dict[str, float] | None = None
-        previous_timestamp: float | None = None
 
         while (
                 not self._stoppage.wait(
@@ -331,18 +301,6 @@ class Miscellaneous(Application):
                     orientation = asdict(bno055.orientation)
                     angular_velocity = asdict(bno055.angular_velocity)
                     linear_acceleration = asdict(bno055.linear_acceleration)
-                    now = monotonic()
-
-                    if previous_timestamp is not None:
-                        dt = now - previous_timestamp
-                    else:
-                        dt = 0.0
-
-                    angular_acceleration = derive_angular_acceleration(
-                        angular_velocity,
-                        previous_angular_velocity,
-                        dt,
-                    )
 
                     with self.environment.contexts() as contexts:
                         contexts.miscellaneous_orientation.update(orientation)
@@ -352,17 +310,10 @@ class Miscellaneous(Application):
                         contexts.miscellaneous_linear_acceleration.update(
                             linear_acceleration,
                         )
-                        contexts.miscellaneous_angular_acceleration.update(
-                            angular_acceleration,
-                        )
 
-                    previous_angular_velocity = angular_velocity
-                    previous_timestamp = now
                     imu_working = True
                 except I2CError:
                     imu_working = False
-                    previous_angular_velocity = None
-                    previous_timestamp = None
             else:
                 try:
                     imu_config()

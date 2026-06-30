@@ -76,7 +76,6 @@ class Contexts:
     miscellaneous_orientation: dict[str, float]
     miscellaneous_angular_velocity: dict[str, float]
     miscellaneous_linear_acceleration: dict[str, float]
-    miscellaneous_angular_acceleration: dict[str, float]
     miscellaneous_orientation_imu_working: bool
     miscellaneous_latitude: float
     miscellaneous_longitude: float

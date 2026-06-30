@@ -70,7 +70,6 @@ CONTEXTS: Contexts = Contexts(
     miscellaneous_orientation={},
     miscellaneous_angular_velocity={},
     miscellaneous_linear_acceleration={},
-    miscellaneous_angular_acceleration={},
     miscellaneous_orientation_imu_working=False,
     miscellaneous_latitude=0,
     miscellaneous_longitude=0,
