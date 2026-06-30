@@ -72,7 +72,7 @@ CONTEXTS: Contexts = Contexts(
     miscellaneous_orientation={'x': 0, 'y': 0, 'z': 0},
     miscellaneous_angular_velocity={'x': 0, 'y': 0, 'z': 0},
     miscellaneous_linear_acceleration={'x': 0, 'y': 0, 'z': 0},
-    miscellaneous_orientation_imu_working=False,
+    miscellaneous_imu_working=False,
     miscellaneous_latitude=0,
     miscellaneous_longitude=0,
     miscellaneous_altitude=0,
@@ -258,21 +258,17 @@ BRAKE_LIGHTS_PWM.duty_cycle = 0.10
 
 BACKUP_CAMERA_CONTROL_SWITCH_GPIO: GPIO = GPIO('/dev/gpiochip6', 21, 'out')
 
-ORIENTATION_IMU_BNO055_I2C: I2C = I2C('/dev/apalis-i2c3')
-ORIENTATION_IMU_BNO055_IMU_RESET_GPIO: GPIO = MagicMock(
-    direction='out',
-    inverted=True,
-)
-ORIENTATION_IMU_BNO055_SA0: bool = False
-ORIENTATION_IMU_BNO055: BNO055 = BNO055(
-    ORIENTATION_IMU_BNO055_I2C,
-    ORIENTATION_IMU_BNO055_IMU_RESET_GPIO,
-    ORIENTATION_IMU_BNO055_SA0
-)
+GPS_SERIAL: Serial = Serial('/dev/ttyLP0', timeout=10)
+GPS_PA1616S: GPS = GPS(GPS_SERIAL, debug=False)
 
-POSITION_GPS_SERIAL: Serial = Serial('/dev/ttyLP0', timeout=10)
-POSITION_GPS: GPS = GPS(POSITION_GPS_SERIAL, debug=False)
-
+IMU_BNO055_I2C: I2C = I2C('/dev/apalis-i2c3')
+IMU_BNO055_IMU_RESET_GPIO: GPIO = MagicMock(direction='out', inverted=True,)
+IMU_BNO055_SA0: bool = False
+IMU_BNO055: BNO055 = BNO055(
+    IMU_BNO055_I2C,
+    IMU_BNO055_IMU_RESET_GPIO,
+    IMU_BNO055_SA0
+)
 
 FRONT_WHEELS_I2C_LOCK: Lock = Lock()
 FRONT_WHEELS_I2C: I2C = cast(
@@ -447,8 +443,8 @@ PERIPHERIES: Peripheries = Peripheries(
     miscellaneous_backup_camera_control_switch_gpio=(
         BACKUP_CAMERA_CONTROL_SWITCH_GPIO
     ),
-    miscellaneous_orientation_imu_bno055=ORIENTATION_IMU_BNO055,
-    miscellaneous_position_gps=POSITION_GPS,
+    miscellaneous_imu_bno055=IMU_BNO055,
+    miscellaneous_gps=GPS_PA1616S,
     miscellaneous_front_wheels_i2c_mux=FRONT_WHEELS_I2C_MUX,
     miscellaneous_left_wheel_accelerometer=LEFT_WHEEL_ACCELEROMETER,
     miscellaneous_right_wheel_accelerometer=RIGHT_WHEEL_ACCELEROMETER,
@@ -513,9 +509,9 @@ SETTINGS: Settings = Settings(
 
     miscellaneous_light_timeout=0.1,
     miscellaneous_light_flash_timeout=0.5,
-    miscellaneous_orientation_timeout=0.1,
-    miscellaneous_orientation_imu_mode_timeout=0.05,
-    miscellaneous_position_timeout=1,
+    miscellaneous_imu_timeout=0.1,
+    miscellaneous_imu_mode_timeout=0.05,
+    miscellaneous_gps_timeout=1,
     miscellaneous_front_wheels_timeout=0.02,
 
     # Motor

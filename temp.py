@@ -13,7 +13,7 @@ while True:
             f'imu orientation={ctx.miscellaneous_orientation} '
             f'angular_velocity={ctx.miscellaneous_angular_velocity} '
             f'linear_acceleration={ctx.miscellaneous_linear_acceleration} '
-            f'{ctx.miscellaneous_orientation_imu_working}'
+            f'{ctx.miscellaneous_imu_working}'
         )
 
         # GPS

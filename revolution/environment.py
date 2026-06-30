@@ -76,7 +76,7 @@ class Contexts:
     miscellaneous_orientation: dict[str, float]
     miscellaneous_angular_velocity: dict[str, float]
     miscellaneous_linear_acceleration: dict[str, float]
-    miscellaneous_orientation_imu_working: bool
+    miscellaneous_imu_working: bool
     miscellaneous_latitude: float
     miscellaneous_longitude: float
     miscellaneous_altitude: float
@@ -259,8 +259,8 @@ class Peripheries:
     miscellaneous_daytime_running_lights_pwm: PWM
     miscellaneous_brake_lights_pwm: PWM
     miscellaneous_backup_camera_control_switch_gpio: GPIO
-    miscellaneous_orientation_imu_bno055: BNO055
-    miscellaneous_position_gps: GPS
+    miscellaneous_imu_bno055: BNO055
+    miscellaneous_gps: GPS
     miscellaneous_front_wheels_i2c_mux: PCA9546A
     miscellaneous_left_wheel_accelerometer: LIS2HH12
     miscellaneous_right_wheel_accelerometer: LIS2HH12
@@ -319,9 +319,9 @@ class Settings:
 
     miscellaneous_light_timeout: float
     miscellaneous_light_flash_timeout: float
-    miscellaneous_orientation_timeout: float
-    miscellaneous_orientation_imu_mode_timeout: float
-    miscellaneous_position_timeout: float
+    miscellaneous_imu_timeout: float
+    miscellaneous_imu_mode_timeout: float
+    miscellaneous_gps_timeout: float
     miscellaneous_front_wheels_timeout: float
 
     # Motor

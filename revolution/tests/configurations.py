@@ -70,7 +70,7 @@ CONTEXTS: Contexts = Contexts(
     miscellaneous_orientation={'x': 0, 'y': 0, 'z': 0},
     miscellaneous_angular_velocity={'x': 0, 'y': 0, 'z': 0},
     miscellaneous_linear_acceleration={'x': 0, 'y': 0, 'z': 0},
-    miscellaneous_orientation_imu_working=False,
+    miscellaneous_imu_working=False,
     miscellaneous_latitude=0,
     miscellaneous_longitude=0,
     miscellaneous_altitude=0,
@@ -202,13 +202,13 @@ BRAKE_LIGHTS_PWM: PWM = MagicMock()
 
 BACKUP_CAMERA_CONTROL_SWITCH_GPIO: GPIO = MagicMock()
 
-ORIENTATION_IMU_BNO055: BNO055 = MagicMock(
+GPS_PA1616S: GPS = MagicMock()
+IMU_BNO055: BNO055 = MagicMock(
     orientation=make_dataclass('', [])(),
     angular_velocity=make_dataclass('', [])(),
     linear_acceleration=make_dataclass('', [])(),
 )
 
-POSITION_GPS: GPS = MagicMock()
 FRONT_WHEELS_I2C_MUX: PCA9546A = MagicMock()
 LEFT_WHEEL_ACCELEROMETER: LIS2HH12 = MagicMock()
 RIGHT_WHEEL_ACCELEROMETER: LIS2HH12 = MagicMock()
@@ -299,8 +299,8 @@ PERIPHERIES: Peripheries = Peripheries(
     miscellaneous_backup_camera_control_switch_gpio=(
         BACKUP_CAMERA_CONTROL_SWITCH_GPIO
     ),
-    miscellaneous_orientation_imu_bno055=ORIENTATION_IMU_BNO055,
-    miscellaneous_position_gps=POSITION_GPS,
+    miscellaneous_imu_bno055=IMU_BNO055,
+    miscellaneous_gps=GPS_PA1616S,
     miscellaneous_front_wheels_i2c_mux=FRONT_WHEELS_I2C_MUX,
     miscellaneous_left_wheel_accelerometer=LEFT_WHEEL_ACCELEROMETER,
     miscellaneous_right_wheel_accelerometer=RIGHT_WHEEL_ACCELEROMETER,
@@ -365,9 +365,9 @@ SETTINGS: Settings = Settings(
 
     miscellaneous_light_timeout=0.1,
     miscellaneous_light_flash_timeout=0.5,
-    miscellaneous_orientation_timeout=0.1,
-    miscellaneous_orientation_imu_mode_timeout=0.05,
-    miscellaneous_position_timeout=1,
+    miscellaneous_imu_timeout=0.1,
+    miscellaneous_imu_mode_timeout=0.05,
+    miscellaneous_gps_timeout=1,
     miscellaneous_front_wheels_timeout=0.02,
 
     # Motor

@@ -26,21 +26,21 @@ class Miscellaneous(Application):
 
         self._light_worker = Worker(target=self._light)
         self._indicator_light_worker = Worker(target=self._indicator_light)
-        self._orientation_worker = Worker(target=self._orientation)
-        self._position_worker = Worker(target=self._position)
+        self._imu_worker = Worker(target=self._imu)
+        self._gps_worker = Worker(target=self._gps)
         # self._front_wheels_worker = Worker(target=self._front_wheels)
 
         self._light_worker.start()
         self._indicator_light_worker.start()
-        self._orientation_worker.start()
-        self._position_worker.start()
+        self._imu_worker.start()
+        self._gps_worker.start()
         # self._front_wheels_worker.start()
 
     def _teardown(self) -> None:
         self._light_worker.join()
         self._indicator_light_worker.join()
-        self._orientation_worker.join()
-        self._position_worker.join()
+        self._imu_worker.join()
+        self._gps_worker.join()
         # self._front_wheels_worker.join()
 
     def update_pwm(self, pwm: PWM, previous_input: bool, input: bool) -> None:
@@ -226,54 +226,26 @@ class Miscellaneous(Application):
             previous_hazard_lights_status_input = hazard_lights_status_input
             previous_flash_status = flash_status
 
-    def _orientation(self) -> None:
+    def _imu(self) -> None:
         def imu_config() -> None:
-            (
-                self
-                .environment
-                .peripheries
-                .miscellaneous_orientation_imu_bno055
-                .reset2()
+            self.environment.peripheries.miscellaneous_imu_bno055.reset2()
+            self.environment.peripheries.miscellaneous_imu_bno055.write(
+                Register.OPR_MODE,
+                0x00
             )
-            (
-                self
-                .environment
-                .peripheries
-                .miscellaneous_orientation_imu_bno055
-                .write(Register.OPR_MODE, 0x00)
+            sleep(self.environment.settings.miscellaneous_imu_mode_timeout)
+            self.environment.peripheries.miscellaneous_imu_bno055.select_units(
+                Unit.MS2,
+                Unit.DPS,
+                Unit.DEGREES,
+                Unit.CELSIUS
             )
-            sleep(
-                self
-                .environment
-                .settings
-                .miscellaneous_orientation_imu_mode_timeout
+            sleep(self.environment.settings.miscellaneous_imu_mode_timeout)
+            self.environment.peripheries.miscellaneous_imu_bno055.write(
+                Register.OPR_MODE,
+                OperationMode.IMU
             )
-            (
-                self
-                .environment
-                .peripheries
-                .miscellaneous_orientation_imu_bno055
-                .select_units(Unit.MS2, Unit.DPS, Unit.DEGREES, Unit.CELSIUS)
-            )
-            sleep(
-                self
-                .environment
-                .settings
-                .miscellaneous_orientation_imu_mode_timeout
-            )
-            (
-                self
-                .environment
-                .peripheries
-                .miscellaneous_orientation_imu_bno055
-                .write(Register.OPR_MODE, OperationMode.IMU)
-            )
-            sleep(
-                self
-                .environment
-                .settings
-                .miscellaneous_orientation_imu_mode_timeout
-            )
+            sleep(self.environment.settings.miscellaneous_imu_mode_timeout)
 
         imu_working = False
         previous_imu_working = False
@@ -284,7 +256,7 @@ class Miscellaneous(Application):
                         self
                         .environment
                         .settings
-                        .miscellaneous_orientation_timeout
+                        .miscellaneous_imu_timeout
                     ),
                 )
         ):
@@ -293,10 +265,7 @@ class Miscellaneous(Application):
             if previous_imu_working:
                 try:
                     bno055 = (
-                        self
-                        .environment
-                        .peripheries
-                        .miscellaneous_orientation_imu_bno055
+                        self.environment.peripheries.miscellaneous_imu_bno055
                     )
                     orientation = asdict(bno055.orientation)
                     angular_velocity = asdict(bno055.angular_velocity)
@@ -322,15 +291,10 @@ class Miscellaneous(Application):
                     imu_working = False
 
             with self.environment.contexts() as contexts:
-                contexts.miscellaneous_orientation_imu_working = imu_working
+                contexts.miscellaneous_imu_working = imu_working
 
-    def _position(self) -> None:
-        periphery = (
-            self
-            .environment
-            .peripheries
-            .miscellaneous_position_gps
-        )
+    def _gps(self) -> None:
+        periphery = self.environment.peripheries.miscellaneous_gps
         periphery.send_command(
             b'PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0'
         )
@@ -342,7 +306,7 @@ class Miscellaneous(Application):
                         self
                         .environment
                         .settings
-                        .miscellaneous_position_timeout
+                        .miscellaneous_gps_timeout
                     ),
                 )
         ):
