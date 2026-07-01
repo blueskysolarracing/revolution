@@ -18,12 +18,10 @@ class Driver(Application):
         'driver_miscellaneous_horn_switch_prbs': (
             'miscellaneous_horn_status_input'
         ),
-
         'driver_motor_direction_switch_prbs': 'motor_direction_input',
         'driver_motor_regeneration_switch_prbs': (
             'motor_regeneration_status_input'
         ),
-
         'driver_power_array_relay_switch_prbs': (
             'power_array_relay_status_input'
         ),
@@ -38,15 +36,9 @@ class Driver(Application):
         'driver_miscellaneous_right_indicator_light_switch_prbs': (
             'miscellaneous_right_indicator_light_status_input'
         ),
-        # 'driver_miscellaneous_hazard_lights_switch_prbs': (
-        #     'miscellaneous_hazard_lights_status_input'
-        # ),
         'driver_miscellaneous_daytime_running_lights_switch_prbs': (
             'miscellaneous_daytime_running_lights_status_input'
         ),
-        # 'driver_miscellaneous_backup_camera_control_switch_prbs': (
-        #     'miscellaneous_backup_camera_control_status_input'
-        # ),
         'driver_motor_cruise_control_switch_prbs': (
             'motor_cruise_control_status_input'
         ),
@@ -77,14 +69,19 @@ class Driver(Application):
     def _setup(self) -> None:
         super()._setup()
 
-        self._driver_worker = Worker(target=self._driver)
+        self._steering_wheel_button_worker = Worker(
+            target=self._steering_wheel_button
+        )
+        self._pedal_brake_worker = Worker(target=self._pedal_brake)
 
-        self._driver_worker.start()
+        self._steering_wheel_button_worker.start()
+        self._pedal_brake_worker.start()
 
     def _teardown(self) -> None:
-        self._driver_worker.join()
+        self._steering_wheel_button_worker.join()
+        self._pedal_brake_worker.join()
 
-    def _driver(self) -> None:
+    def _steering_wheel_button(self) -> None:
         previous_lookup: defaultdict[PRBS, bool] = defaultdict(bool)
 
         while (
@@ -105,22 +102,6 @@ class Driver(Application):
                         raw_bytes[_byte] & (1 << bit)
                     )
 
-            brake_status_input = (
-                self
-                .environment
-                .peripheries
-                .driver_miscellaneous_brake_switch_gpio
-                .read()
-            )
-
-            voltages = (
-                self
-                .environment
-                .peripheries
-                .driver_pedals_adc78h89
-                .sample_all()
-            )
-
             with self.environment.contexts() as contexts:
                 for raw_prbs, value in self.MOMENTARY_SWITCHES.items():
                     prbs = getattr(self.environment.peripheries, raw_prbs)
@@ -139,19 +120,19 @@ class Driver(Application):
                     if not previous_lookup[prbs] and lookup[prbs]:
                         setattr(contexts, value, 1 + getattr(contexts, value))
 
-                contexts.miscellaneous_brake_status_input = brake_status_input
-
-                if (
-                    brake_status_input
-                    or contexts.motor_regeneration_status_input
-                ):
+                if contexts.motor_regeneration_status_input:
                     contexts.motor_cruise_control_status_input = False
 
-                if contexts.power_battery_mean_state_of_charge >= (
-                    self
-                    .environment
-                    .settings
-                    .power_disable_charging_battery_soc_threshold
+                if (
+                    (
+                        contexts.power_battery_mean_state_of_charge >= (
+                            self
+                            .environment
+                            .settings
+                            .power_disable_charging_battery_soc_threshold
+                        )
+                    )
+                    or not contexts.motor_status_input
                 ):
                     contexts.motor_regeneration_status_input = False
 
@@ -178,6 +159,35 @@ class Driver(Application):
 
                         setattr(contexts, value, input_)
 
+            previous_lookup.update(lookup)
+
+    def _pedal_brake(self) -> None:
+        while (
+                not self._stoppage.wait(
+                    self.environment.settings.driver_timeout,
+                )
+        ):
+            brake_status_input = (
+                self
+                .environment
+                .peripheries
+                .driver_miscellaneous_brake_switch_gpio
+                .read()
+            )
+
+            voltages = (
+                self
+                .environment
+                .peripheries
+                .driver_pedals_adc78h89
+                .sample_all()
+            )
+
+            with self.environment.contexts() as contexts:
+                contexts.miscellaneous_brake_status_input = brake_status_input
+                if brake_status_input:
+                    contexts.motor_cruise_control_status_input = False
+
                 for raw_input_channel, (value, (min_, max_)) in (
                         self.ANALOG_SIGNALS.items()
                 ):
@@ -194,5 +204,3 @@ class Driver(Application):
                         input_ = 1
 
                     setattr(contexts, value, input_)
-
-            previous_lookup.update(lookup)
