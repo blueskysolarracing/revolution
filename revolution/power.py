@@ -12,13 +12,21 @@ from revolution.application import Application
 from revolution.battery_management_system import (
     BatteryFlag,
     BATTERY_CELL_COUNT,
+    BATTERY_THERMISTOR_COUNT,
     CellVoltagesInformation,
-    HVBusVoltageAndCurrentInformation,
-    LVBusVoltageAndCurrentInformation,
-    OvervoltageTemperatureAndCurrentFlagsInformation,
-    StatusesInformation,
+    LVInformation,
+    OverBatteryFlagsHoldInformation,
+    OverBatteryFlagsInformation,
+    OvercurrentHoldInformation,
+    OvertemperatureHoldInformation,
+    OvervoltageHoldInformation,
+    StatusesAndHVInformation,
     ThermistorTemperaturesInformation,
-    UndervoltageTemperatureAndCurrentFlagsInformation,
+    UnderBatteryFlagsHoldInformation,
+    UnderBatteryFlagsInformation,
+    UndercurrentHoldInformation,
+    UndertemperatureHoldInformation,
+    UndervoltageHoldInformation,
 )
 from revolution.environment import Endpoint
 from revolution.worker import Worker
@@ -369,9 +377,9 @@ class Power(Application):
             power_battery_max_thermistor_temperature: float
             power_battery_mean_thermistor_temperature: float
 
-            power_battery_HV_bus_voltage: float
+            power_battery_HV_voltage: float
             power_battery_HV_current: float
-            power_battery_LV_bus_voltage: float
+            power_battery_LV_voltage: float
             power_battery_LV_current: float
             power_battery_supp_voltage: float
 
@@ -449,21 +457,8 @@ class Power(Application):
             return
 
         with self.environment.contexts() as contexts:
-            if isinstance(information, CellVoltagesInformation):
-                for i, voltage in information.data.items():
-                    contexts.power_battery_cell_voltages[i] = voltage
-            elif isinstance(information, ThermistorTemperaturesInformation):
-                for i, temperature in information.data.items():
-                    contexts.power_battery_thermistor_temperatures[i] = (
-                        temperature
-                    )
-            elif isinstance(information, HVBusVoltageAndCurrentInformation):
-                contexts.power_battery_HV_bus_voltage = information.bus_voltage
-                contexts.power_battery_HV_current = information.current
-            elif isinstance(information, LVBusVoltageAndCurrentInformation):
-                contexts.power_battery_LV_bus_voltage = information.bus_voltage
-                contexts.power_battery_LV_current = information.current
-            elif isinstance(information, StatusesInformation):
+            # Important
+            if isinstance(information, StatusesAndHVInformation):
                 contexts.power_battery_relay_status = information.relay_status
                 contexts.power_battery_electric_safe_discharge_status = (
                     information.electric_safe_discharge_status
@@ -471,14 +466,17 @@ class Power(Application):
                 contexts.power_battery_discharge_status = (
                     information.discharge_status
                 )
-                contexts.power_battery_flags_hold = information.flag_hold
-                contexts.power_battery_supp_voltage = information.supp_voltage
+                contexts.power_battery_flags_hold = BatteryFlag(
+                    information.flag_hold
+                )
+                contexts.power_battery_HV_voltage = information.HV_voltage
+                contexts.power_battery_HV_current = information.HV_current
             elif (
                     isinstance(
                         information,
                         (
-                            OvervoltageTemperatureAndCurrentFlagsInformation
-                            | UndervoltageTemperatureAndCurrentFlagsInformation
+                            OverBatteryFlagsInformation
+                            | UnderBatteryFlagsInformation
                         ),
                     )
             ):
@@ -503,5 +501,122 @@ class Power(Application):
                 contexts.power_battery_current_flag |= (
                     information.current_flag
                 )
+            elif isinstance(information, LVInformation):
+                contexts.power_battery_LV_voltage = information.LV_voltage
+                contexts.power_battery_LV_current = information.LV_current
+                contexts.power_battery_supp_voltage = information.supp_voltage
+                contexts.power_battery_rolling_min_LV_voltage = (
+                    information.rolling_min_LV_voltage
+                )
+
+            # Battery Flag Event
+            elif (
+                    isinstance(
+                        information,
+                        (
+                            OverBatteryFlagsHoldInformation
+                            | UnderBatteryFlagsHoldInformation
+                        ),
+                    )
+            ):
+                for i, flag in information.cell_flags.items():
+                    contexts.power_battery_hold_cell_flags[i] -= (
+                        contexts.power_battery_hold_cell_flags[i]
+                        & information.CELL_FLAG
+                    )
+                    contexts.power_battery_hold_cell_flags[i] |= flag
+
+                for i, flag in information.thermistor_flags.items():
+                    contexts.power_battery_hold_thermistor_flags[i] -= (
+                        contexts.power_battery_hold_thermistor_flags[i]
+                        & information.THERMISTOR_FLAG
+                    )
+                    contexts.power_battery_hold_thermistor_flags[i] |= flag
+
+                contexts.power_battery_hold_current_flag -= (
+                    contexts.power_battery_hold_current_flag
+                    & information.CURRENT_FLAG
+                )
+                contexts.power_battery_hold_current_flag |= (
+                    information.current_flag
+                )
+            elif isinstance(information, OvervoltageHoldInformation):
+                contexts.power_battery_hold_elapsed_count = max(
+                    information.hold_elapsed_count,
+                    contexts.power_battery_hold_elapsed_count
+                )
+                contexts.power_battery_hold_OV_count = (
+                    information.hold_OV_count
+                )
+                contexts.power_battery_hold_OV_max = (
+                    information.hold_OV_max
+                )
+            elif isinstance(information, UndervoltageHoldInformation):
+                contexts.power_battery_hold_elapsed_count = max(
+                    information.hold_elapsed_count,
+                    contexts.power_battery_hold_elapsed_count
+                )
+                contexts.power_battery_hold_UV_count = (
+                    information.hold_UV_count
+                )
+                contexts.power_battery_hold_UV_min = (
+                    information.hold_UV_min
+                )
+            elif isinstance(information, OvertemperatureHoldInformation):
+                contexts.power_battery_hold_elapsed_count = max(
+                    information.hold_elapsed_count,
+                    contexts.power_battery_hold_elapsed_count
+                )
+                contexts.power_battery_hold_OT_count = (
+                    information.hold_OT_count
+                )
+                contexts.power_battery_hold_OT_max = (
+                    information.hold_OT_max
+                )
+            elif isinstance(information, UndertemperatureHoldInformation):
+                contexts.power_battery_hold_elapsed_count = max(
+                    information.hold_elapsed_count,
+                    contexts.power_battery_hold_elapsed_count
+                )
+                contexts.power_battery_hold_UT_count = (
+                    information.hold_UT_count
+                )
+                contexts.power_battery_hold_UT_min = (
+                    information.hold_UT_min
+                )
+            elif isinstance(information, OvercurrentHoldInformation):
+                contexts.power_battery_hold_elapsed_count = max(
+                    information.hold_elapsed_count,
+                    contexts.power_battery_hold_elapsed_count
+                )
+                contexts.power_battery_hold_OC_count = (
+                    information.hold_OC_count
+                )
+                contexts.power_battery_hold_OC_max = (
+                    information.hold_OC_max
+                )
+            elif isinstance(information, UndercurrentHoldInformation):
+                contexts.power_battery_hold_elapsed_count = max(
+                    information.hold_elapsed_count,
+                    contexts.power_battery_hold_elapsed_count
+                )
+                contexts.power_battery_hold_UC_count = (
+                    information.hold_UC_count
+                )
+                contexts.power_battery_hold_UC_min = (
+                    information.hold_UC_min
+                )
+
+            # Voltages / Temperatures
+            elif isinstance(information, CellVoltagesInformation):
+                for i, voltage in information.data.items():
+                    if i < BATTERY_CELL_COUNT:
+                        contexts.power_battery_cell_voltages[i] = voltage
+            elif isinstance(information, ThermistorTemperaturesInformation):
+                for i, temperature in information.data.items():
+                    if i < BATTERY_THERMISTOR_COUNT:
+                        contexts.power_battery_thermistor_temperatures[i] = (
+                            temperature
+                        )
 
             contexts.power_battery_heartbeat_timestamp = time()

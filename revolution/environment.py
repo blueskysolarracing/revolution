@@ -139,10 +139,12 @@ class Contexts:
     power_battery_relay_status_input: bool
     power_battery_cell_voltages: list[float]
     power_battery_thermistor_temperatures: list[float]
-    power_battery_HV_bus_voltage: float
+
+    power_battery_HV_voltage: float
     power_battery_HV_current: float
-    power_battery_LV_bus_voltage: float
+    power_battery_LV_voltage: float
     power_battery_LV_current: float
+    power_battery_rolling_min_LV_voltage: float
     power_battery_supp_voltage: float
 
     power_battery_relay_status: bool
@@ -152,6 +154,24 @@ class Contexts:
     power_battery_thermistor_flags: list[int]
     power_battery_current_flag: int
     power_battery_flags_hold: BatteryFlag
+
+    power_battery_hold_cell_flags: list[int]
+    power_battery_hold_thermistor_flags: list[int]
+    power_battery_hold_current_flag: int
+    power_battery_hold_elapsed_count: int
+    power_battery_hold_OV_count: int
+    power_battery_hold_UV_count: int
+    power_battery_hold_OT_count: int
+    power_battery_hold_UT_count: int
+    power_battery_hold_OC_count: int
+    power_battery_hold_UC_count: int
+    power_battery_hold_OV_max: float
+    power_battery_hold_UV_min: float
+    power_battery_hold_OT_max: float
+    power_battery_hold_UT_min: float
+    power_battery_hold_OC_max: float
+    power_battery_hold_UC_min: float
+
     power_battery_heartbeat_timestamp: float
     power_battery_heartbeat_working: bool
 
