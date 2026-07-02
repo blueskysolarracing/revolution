@@ -135,10 +135,12 @@ CONTEXTS: Contexts = Contexts(
     power_battery_thermistor_temperatures=[
         0 for _ in range(BATTERY_THERMISTOR_COUNT)
     ],
-    power_battery_HV_bus_voltage=0,
+
+    power_battery_HV_voltage=0,
     power_battery_HV_current=0,
-    power_battery_LV_bus_voltage=0,
+    power_battery_LV_voltage=0,
     power_battery_LV_current=0,
+    power_battery_rolling_min_LV_voltage=0,
     power_battery_supp_voltage=0,
 
     power_battery_relay_status=False,
@@ -150,6 +152,26 @@ CONTEXTS: Contexts = Contexts(
     ],
     power_battery_current_flag=0,
     power_battery_flags_hold=BatteryFlag.CLEAR,
+
+    power_battery_hold_cell_flags=[0 for _ in range(BATTERY_CELL_COUNT)],
+    power_battery_hold_thermistor_flags=[
+        0 for _ in range(BATTERY_THERMISTOR_COUNT)
+    ],
+    power_battery_hold_current_flag=0,
+    power_battery_hold_elapsed_count=0,
+    power_battery_hold_OV_count=0,
+    power_battery_hold_UV_count=0,
+    power_battery_hold_OT_count=0,
+    power_battery_hold_UT_count=0,
+    power_battery_hold_OC_count=0,
+    power_battery_hold_UC_count=0,
+    power_battery_hold_OV_max=0,
+    power_battery_hold_UV_min=0,
+    power_battery_hold_OT_max=0,
+    power_battery_hold_UT_min=0,
+    power_battery_hold_OC_max=0,
+    power_battery_hold_UC_min=0,
+
     power_battery_heartbeat_timestamp=inf,
     power_battery_heartbeat_working=False,
 

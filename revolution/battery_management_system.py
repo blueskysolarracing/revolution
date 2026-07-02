@@ -8,7 +8,9 @@ from typing import ClassVar
 from can import BusABC, Message
 
 BATTERY_CELL_COUNT: int = 36
+BATTERY_CELL_PER_PACK_COUNT: int = 6
 BATTERY_THERMISTOR_COUNT: int = 18
+BATTERY_THERMISTOR_PER_PACK_COUNT: int = 3
 _logger = getLogger(__name__)
 
 
@@ -31,69 +33,26 @@ class Information(ABC):
 
 @dataclass
 class PartialInformation(Information, ABC):
-    FORMAT = '<ff'
+    FORMAT = '<eeee'
     datum_1: float
     datum_2: float
+    datum_3: float
+    datum_4: float
 
     @abstractmethod
-    def _get_keys(self) -> tuple[int, int]:
+    def _get_keys(self) -> tuple[int, int, int, int]:
         pass
 
     @property
     def data(self) -> dict[int, float]:
-        key_1, key_2 = self._get_keys()
+        key_1, key_2, key_3, key_4 = self._get_keys()
 
-        return {key_1: self.datum_1, key_2: self.datum_2}
-
-
-@dataclass
-class CellVoltagesInformation(PartialInformation):
-    MESSAGE_IDENTIFIERS = range(18)
-
-    def _get_keys(self) -> tuple[int, int]:
-        return 2 * self.message_identifier, 2 * self.message_identifier + 1
-
-
-@dataclass
-class ThermistorTemperaturesInformation(PartialInformation):
-    MESSAGE_IDENTIFIERS = range(18, 27)
-
-    def _get_keys(self) -> tuple[int, int]:
-        i = self.message_identifier - 18
-
-        return 2 * i, 2 * i + 1
-
-
-@dataclass
-class HVBusVoltageAndCurrentInformation(Information):
-    MESSAGE_IDENTIFIERS = range(27, 28)
-    FORMAT = '<ff'
-    bus_voltage: float
-    current: float
-
-
-@dataclass
-class StatusesInformation(Information):
-    MESSAGE_IDENTIFIERS = range(28, 29)
-    FORMAT = '<If'
-    statuses: int
-    supp_voltage: float
-
-    @property
-    def relay_status(self) -> bool:
-        return bool(self.statuses & (1 << 0))
-
-    @property
-    def electric_safe_discharge_status(self) -> bool:
-        return bool(self.statuses & (1 << 1))
-
-    @property
-    def discharge_status(self) -> bool:
-        return bool(self.statuses & (1 << 2))
-
-    @property
-    def flag_hold(self) -> BatteryFlag:
-        return BatteryFlag((self.statuses >> 24) & 0xff)
+        return {
+            key_1: self.datum_1,
+            key_2: self.datum_2,
+            key_3: self.datum_3,
+            key_4: self.datum_4
+        }
 
 
 @dataclass
@@ -142,32 +101,158 @@ class BatteryPackFlagsInformation(Information, ABC):
         return flag
 
 
+# Important
 @dataclass
-class OvervoltageTemperatureAndCurrentFlagsInformation(
+class StatusesAndHVInformation(Information):
+    MESSAGE_IDENTIFIERS = range(0, 1)
+    FORMAT = '<BBeee'
+    statuses: int
+    flag_hold: int
+    reserved: float
+    HV_voltage: float
+    HV_current: float
+
+    @property
+    def relay_status(self) -> bool:
+        return bool(self.statuses & (1 << 0))
+
+    @property
+    def electric_safe_discharge_status(self) -> bool:
+        return bool(self.statuses & (1 << 1))
+
+    @property
+    def discharge_status(self) -> bool:
+        return bool(self.statuses & (1 << 2))
+
+
+@dataclass
+class OverBatteryFlagsInformation(
         BatteryPackFlagsInformation,
 ):
-    MESSAGE_IDENTIFIERS = range(29, 30)
+    MESSAGE_IDENTIFIERS = range(1, 2)
     CELL_FLAG = BatteryFlag.OVERVOLTAGE
     THERMISTOR_FLAG = BatteryFlag.OVERTEMPERATURE
     CURRENT_FLAG = BatteryFlag.OVERCURRENT
 
 
 @dataclass
-class UndervoltageTemperatureAndCurrentFlagsInformation(
+class UnderBatteryFlagsInformation(
     BatteryPackFlagsInformation
 ):
-    MESSAGE_IDENTIFIERS = range(30, 31)
+    MESSAGE_IDENTIFIERS = range(2, 3)
     CELL_FLAG = BatteryFlag.UNDERVOLTAGE
     THERMISTOR_FLAG = BatteryFlag.UNDERTEMPERATURE
     CURRENT_FLAG = BatteryFlag.UNDERCURRENT
 
 
 @dataclass
-class LVBusVoltageAndCurrentInformation(Information):
-    MESSAGE_IDENTIFIERS = range(31, 32)
-    FORMAT = '<ff'
-    bus_voltage: float
-    current: float
+class LVInformation(Information):
+    MESSAGE_IDENTIFIERS = range(3, 4)
+    FORMAT = '<eeee'
+    LV_voltage: float
+    LV_current: float
+    supp_voltage: float
+    rolling_min_LV_voltage: float
+
+
+# Battery Flag Event
+@dataclass
+class OverBatteryFlagsHoldInformation(
+        BatteryPackFlagsInformation,
+):
+    MESSAGE_IDENTIFIERS = range(4, 5)
+    CELL_FLAG = BatteryFlag.OVERVOLTAGE
+    THERMISTOR_FLAG = BatteryFlag.OVERTEMPERATURE
+    CURRENT_FLAG = BatteryFlag.OVERCURRENT
+
+
+@dataclass
+class UnderBatteryFlagsHoldInformation(
+    BatteryPackFlagsInformation
+):
+    MESSAGE_IDENTIFIERS = range(5, 6)
+    CELL_FLAG = BatteryFlag.UNDERVOLTAGE
+    THERMISTOR_FLAG = BatteryFlag.UNDERTEMPERATURE
+    CURRENT_FLAG = BatteryFlag.UNDERCURRENT
+
+
+@dataclass
+class OvervoltageHoldInformation(Information):
+    MESSAGE_IDENTIFIERS = range(6, 7)
+    FORMAT = '<HHee'
+    hold_elapsed_count: int
+    hold_OV_count: int
+    hold_OV_max: float
+    reserved: float
+
+
+@dataclass
+class UndervoltageHoldInformation(Information):
+    MESSAGE_IDENTIFIERS = range(7, 8)
+    FORMAT = '<HHee'
+    hold_elapsed_count: int
+    hold_UV_count: int
+    hold_UV_min: float
+    reserved: float
+
+
+@dataclass
+class OvertemperatureHoldInformation(Information):
+    MESSAGE_IDENTIFIERS = range(8, 9)
+    FORMAT = '<HHee'
+    hold_elapsed_count: int
+    hold_OT_count: int
+    hold_OT_max: float
+    reserved: float
+
+
+@dataclass
+class UndertemperatureHoldInformation(Information):
+    MESSAGE_IDENTIFIERS = range(9, 10)
+    FORMAT = '<HHee'
+    hold_elapsed_count: int
+    hold_UT_count: int
+    hold_UT_min: float
+    reserved: float
+
+
+@dataclass
+class OvercurrentHoldInformation(Information):
+    MESSAGE_IDENTIFIERS = range(10, 11)
+    FORMAT = '<HHee'
+    hold_elapsed_count: int
+    hold_OC_count: int
+    hold_OC_max: float
+    reserved: float
+
+
+@dataclass
+class UndercurrentHoldInformation(Information):
+    MESSAGE_IDENTIFIERS = range(11, 12)
+    FORMAT = '<HHee'
+    hold_elapsed_count: int
+    hold_UC_count: int
+    hold_UC_min: float
+    reserved: float
+
+
+# Voltages / Temperatures
+@dataclass
+class CellVoltagesInformation(PartialInformation):
+    MESSAGE_IDENTIFIERS = range(18, 27)
+
+    def _get_keys(self) -> tuple[int, int, int, int]:
+        i = self.message_identifier - 18
+        return (4 * i, 4 * i + 1, 4 * i + 2, 4 * i + 3)
+
+
+@dataclass
+class ThermistorTemperaturesInformation(PartialInformation):
+    MESSAGE_IDENTIFIERS = range(27, 32)
+
+    def _get_keys(self) -> tuple[int, int, int, int]:
+        i = self.message_identifier - 27
+        return (4 * i, 4 * i + 1, 4 * i + 2, 4 * i + 3)
 
 
 @dataclass
@@ -213,13 +298,23 @@ class BatteryManagementSystem:
         self._send(0x1f, b'', timeout)
 
     INFORMATION_TYPES: ClassVar[tuple[type[Information], ...]] = (
+        # Important
+        StatusesAndHVInformation,
+        OverBatteryFlagsInformation,
+        UnderBatteryFlagsInformation,
+        LVInformation,
+        # Battery Flag Event
+        OverBatteryFlagsHoldInformation,
+        UnderBatteryFlagsHoldInformation,
+        OvervoltageHoldInformation,
+        OvertemperatureHoldInformation,
+        OvercurrentHoldInformation,
+        UndervoltageHoldInformation,
+        UndertemperatureHoldInformation,
+        UndercurrentHoldInformation,
+        # Voltages / Temperatures
         CellVoltagesInformation,
         ThermistorTemperaturesInformation,
-        HVBusVoltageAndCurrentInformation,
-        LVBusVoltageAndCurrentInformation,
-        StatusesInformation,
-        OvervoltageTemperatureAndCurrentFlagsInformation,
-        UndervoltageTemperatureAndCurrentFlagsInformation,
     )
 
     def parse(self, message: Message) -> Information | None:
