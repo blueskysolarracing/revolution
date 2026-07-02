@@ -8,7 +8,9 @@ from typing import ClassVar
 from can import BusABC, Message
 
 BATTERY_CELL_COUNT: int = 36
+BATTERY_CELL_PER_PACK_COUNT: int = 6
 BATTERY_THERMISTOR_COUNT: int = 18
+BATTERY_THERMISTOR_PER_PACK_COUNT: int = 3
 _logger = getLogger(__name__)
 
 
