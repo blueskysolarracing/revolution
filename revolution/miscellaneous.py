@@ -1,5 +1,4 @@
-from copy import deepcopy
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, fields
 from datetime import datetime
 from logging import getLogger
 from os import makedirs
@@ -11,7 +10,7 @@ from periphery import PWM, I2CError
 from iclib.bno055 import OperationMode, Register, Unit
 from iclib.lis2hh12 import LIS2HH12
 from revolution.application import Application
-from revolution.environment import Endpoint
+from revolution.environment import Contexts, Endpoint
 from revolution.worker import Worker
 
 _logger = getLogger(__name__)
@@ -28,20 +27,23 @@ class Miscellaneous(Application):
         self._indicator_light_worker = Worker(target=self._indicator_light)
         self._imu_worker = Worker(target=self._imu)
         self._gps_worker = Worker(target=self._gps)
-        # self._front_wheels_worker = Worker(target=self._front_wheels)
+        self._front_wheels_worker = Worker(target=self._front_wheels)
+        self._runtime_log_worker = Worker(target=self._runtime_log)
 
         self._light_worker.start()
         self._indicator_light_worker.start()
         self._imu_worker.start()
         self._gps_worker.start()
-        # self._front_wheels_worker.start()
+        self._front_wheels_worker.start()
+        self._runtime_log_worker.start()
 
     def _teardown(self) -> None:
         self._light_worker.join()
         self._indicator_light_worker.join()
         self._imu_worker.join()
         self._gps_worker.join()
-        # self._front_wheels_worker.join()
+        self._front_wheels_worker.join()
+        self._runtime_log_worker.join()
 
     def update_pwm(self, pwm: PWM, previous_input: bool, input: bool) -> None:
         if not previous_input and input:
@@ -372,6 +374,14 @@ class Miscellaneous(Application):
                 )
             )
 
+        @dataclass
+        class FrontWheelLogData:
+            miscellaneous_left_wheel_accelerations: list[float]
+            miscellaneous_right_wheel_accelerations: list[float]
+            miscellaneous_orientation: dict[str, float]
+            miscellaneous_angular_velocity: dict[str, float]
+            miscellaneous_linear_acceleration: dict[str, float]
+
         left_wheel_accel_working = False
         right_wheel_accel_working = False
         previous_left_wheel_accel_working = False
@@ -384,14 +394,23 @@ class Miscellaneous(Application):
         print_log = filepath != ''
 
         if print_log:
+            filepath += 'front_wheel_log/'
             makedirs(filepath, exist_ok=True)
             now = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
             log_file = open(f'{filepath}{now}_front_wheel_log.csv', 'w')
-            print(
-                'time, left.x, left.y, left.z, right.x, right.y, right.z, '
-                'imu.x, imu.y, imu.z',
-                file=log_file,
-            )
+            print('time, ', end='', file=log_file)
+            with self.environment.contexts() as contexts:
+                for field in fields(FrontWheelLogData):
+                    if isinstance(getattr(contexts, field.name), dict):
+                        for k in getattr(contexts, field.name).keys():
+                            print(f'{field.name}.{k}, ', end='', file=log_file)
+                    elif isinstance(getattr(contexts, field.name), list):
+                        for i in range(len(getattr(contexts, field.name))):
+                            print(f'{field.name}.{i}, ', end='', file=log_file)
+                    else:
+                        print(f'{field.name}, ', end='', file=log_file)
+
+            print(file=log_file)
             log_file.flush()
 
         while (
@@ -467,17 +486,85 @@ class Miscellaneous(Application):
                     right_wheel_accel_working
                 )
 
-            if print_log:
-                imu = {}
-                with self.environment.contexts() as contexts:
-                    imu = deepcopy(contexts.miscellaneous_orientation)
+            if not print_log:
+                continue
 
-                print(
-                    f'{datetime.now().time()}, '
-                    f'{left_accel.x}, {left_accel.y}, {left_accel.z}, '
-                    f'{right_accel.x}, {right_accel.y}, {right_accel.z}, '
-                    f'{imu.get("x", -100)}, {imu.get("y", -100)}, '
-                    f'{imu.get("z", -100)}',
-                    file=log_file
+            print(f'{datetime.now().time()}, ', end='', file=log_file)
+            with self.environment.contexts() as contexts:
+                for field in fields(FrontWheelLogData):
+                    if isinstance(getattr(contexts, field.name), dict):
+                        for value in getattr(contexts, field.name).values():
+                            print(f'{value}, ', end='', file=log_file)
+                    elif isinstance(getattr(contexts, field.name), list):
+                        for i in range(len(getattr(contexts, field.name))):
+                            value = getattr(contexts, field.name)[i]
+                            print(f'{value}, ', end='', file=log_file)
+                    else:
+                        value = getattr(contexts, field.name)
+                        print(f'{value}, ', end='', file=log_file)
+
+            print(file=log_file)
+            log_file.flush()
+
+        if print_log:
+            log_file.close()
+
+    def _runtime_log(self) -> None:
+        filepath = (
+            self.environment.settings.general_log_filepath
+        )
+
+        print_log = filepath != ''
+
+        if not print_log:
+            return
+
+        filepath += 'runtime_log/'
+        makedirs(filepath, exist_ok=True)
+        now = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+        log_file = open(f'{filepath}{now}_runtime_log.csv', 'w')
+
+        print('time, ', end='', file=log_file)
+        with self.environment.contexts() as contexts:
+            for field in fields(Contexts):
+                if isinstance(getattr(contexts, field.name), dict):
+                    for key in getattr(contexts, field.name).keys():
+                        print(f'{field.name}.{key}, ', end='', file=log_file)
+                elif isinstance(getattr(contexts, field.name), list):
+                    for i in range(len(getattr(contexts, field.name))):
+                        print(f'{field.name}.{i}, ', end='', file=log_file)
+                else:
+                    print(f'{field.name}, ', end='', file=log_file)
+        print(file=log_file)
+        log_file.flush()
+
+        while (
+                not self._stoppage.wait(
+                    (
+                        self
+                        .environment
+                        .settings
+                        .power_log_timeout
+                    ),
                 )
-                log_file.flush()
+        ):
+            print(f'{datetime.now().time()}, ', end='', file=log_file)
+            with self.environment.contexts() as contexts:
+                for field in fields(Contexts):
+                    if isinstance(getattr(contexts, field.name), dict):
+                        for value in getattr(contexts, field.name).values():
+                            print(f'{value}, ', end='', file=log_file)
+                    elif isinstance(getattr(contexts, field.name), list):
+                        for i in range(len(getattr(contexts, field.name))):
+                            value = getattr(contexts, field.name)[i]
+                            print(f'{value}, ', end='', file=log_file)
+                    else:
+                        print(
+                            f'{getattr(contexts, field.name)}, ',
+                            end='',
+                            file=log_file
+                        )
+            print(file=log_file)
+            log_file.flush()
+
+        log_file.close()

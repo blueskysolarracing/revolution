@@ -1,7 +1,5 @@
-from dataclasses import dataclass, fields
-from datetime import datetime
+from dataclasses import dataclass
 from logging import getLogger
-from os import makedirs
 from time import sleep, time
 from typing import ClassVar
 
@@ -10,7 +8,6 @@ from can import Message
 
 from revolution.application import Application
 from revolution.battery_management_system import (
-    BatteryFlag,
     BATTERY_CELL_COUNT,
     CellVoltagesInformation,
     HVBusVoltageAndCurrentInformation,
@@ -39,20 +36,17 @@ class Power(Application):
         self._steering_wheel_led_worker = Worker(
             target=self._steering_wheel_led,
         )
-        self._power_log_worker = Worker(target=self._power_log)
 
         self._monitor_worker.start()
         self._soc_worker.start()
         self._psm_worker.start()
         self._steering_wheel_led_worker.start()
-        self._power_log_worker.start()
 
     def _teardown(self) -> None:
         self._monitor_worker.join()
         self._soc_worker.join()
         self._psm_worker.join()
         self._steering_wheel_led_worker.join()
-        self._power_log_worker.join()
 
     def _monitor(self) -> None:
         def array_relay(status: bool) -> None:
@@ -298,141 +292,6 @@ class Power(Application):
             self.environment.peripheries.driver_steering_wheel.set_fault_light(
                 status,
             )
-
-    def _power_log(self) -> None:
-        filepath = (
-            self.environment.settings.general_log_filepath
-        )
-
-        print_log = filepath != ''
-
-        if not print_log:
-            return
-
-        @dataclass
-        class PowerLogData:
-            miscellaneous_brake_status_input: bool
-            miscellaneous_orientation: dict[str, float]
-            miscellaneous_angular_velocity: dict[str, float]
-            miscellaneous_linear_acceleration: dict[str, float]
-            miscellaneous_imu_working: bool
-            miscellaneous_latitude: float
-            miscellaneous_longitude: float
-            miscellaneous_altitude: float
-            miscellaneous_gps_fix_quality: int
-
-            motor_status_input: bool
-            motor_acceleration_input: float
-            motor_cruise_control_velocity: float
-            motor_regeneration_status_input: bool
-            motor_variable_field_magnet_position: int
-            motor_velocity: float
-            motor_heartbeat_timestamp: float
-            motor_heartbeat_working: bool
-
-            motor_controller_sent_current: float
-            motor_controller_sent_velocity: float
-            motor_controller_limit_flags: int
-            motor_controller_error_flags: int
-            motor_controller_active_motor: int
-            motor_controller_transmit_error_count: int
-            motor_controller_receive_error_count: int
-            motor_controller_bus_voltage: float
-            motor_controller_bus_current: float
-            motor_controller_vehicle_velocity: float
-            motor_controller_phase_B_current: float
-            motor_controller_phase_C_current: float
-            motor_controller_Vq: float
-            motor_controller_Vd: float
-            motor_controller_Iq: float
-            motor_controller_Id: float
-            motor_controller_BEMFq: float
-            motor_controller_BEMFd: float
-            motor_controller_supply_15v: float
-            motor_controller_supply_1_9v: float
-            motor_controller_supply_3_3v: float
-            motor_controller_motor_temp: float
-            motor_controller_heat_sink_temp: float
-            motor_controller_dsp_board_temp: float
-            motor_controller_odometer: float
-            motor_controller_dc_bus_amphours: float
-            motor_controller_slip_speed: float
-
-            power_array_relay_status_input: bool
-            power_array_relay_status: bool
-            power_battery_relay_status_input: bool
-
-            power_battery_min_cell_voltage: float
-            power_battery_max_cell_voltage: float
-            power_battery_mean_cell_voltage: float
-            power_battery_min_thermistor_temperature: float
-            power_battery_max_thermistor_temperature: float
-            power_battery_mean_thermistor_temperature: float
-
-            power_battery_HV_bus_voltage: float
-            power_battery_HV_current: float
-            power_battery_LV_bus_voltage: float
-            power_battery_LV_current: float
-            power_battery_supp_voltage: float
-
-            power_battery_relay_status: bool
-            power_battery_electric_safe_discharge_status: bool
-            power_battery_discharge_status: bool
-            power_battery_flags: BatteryFlag
-            power_battery_flags_hold: BatteryFlag
-            power_battery_heartbeat_timestamp: float
-            power_battery_heartbeat_working: bool
-
-            power_battery_min_state_of_charge: float
-            power_battery_max_state_of_charge: float
-            power_battery_mean_state_of_charge: float
-
-            power_psm_battery_current: float
-            power_psm_battery_voltage: float
-            power_psm_array_current: float
-            power_psm_array_voltage: float
-            power_psm_motor_current: float
-            power_psm_motor_voltage: float
-
-        makedirs(filepath, exist_ok=True)
-        now = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-        log_file = open(f'{filepath}{now}_power_log.csv', 'w')
-
-        print('time, ', end='', file=log_file)
-        with self.environment.contexts() as contexts:
-            for field in fields(PowerLogData):
-                if isinstance(getattr(contexts, field.name), dict):
-                    for key in getattr(contexts, field.name).keys():
-                        print(f'{field.name}.{key}, ', end='', file=log_file)
-                else:
-                    print(f'{field.name}, ', end='', file=log_file)
-        print(file=log_file)
-        log_file.flush()
-
-        while (
-                not self._stoppage.wait(
-                    (
-                        self
-                        .environment
-                        .settings
-                        .power_log_timeout
-                    ),
-                )
-        ):
-            print(f'{datetime.now().time()}, ', end='', file=log_file)
-            with self.environment.contexts() as contexts:
-                for field in fields(PowerLogData):
-                    if isinstance(getattr(contexts, field.name), dict):
-                        for value in getattr(contexts, field.name).values():
-                            print(f'{value}, ', end='', file=log_file)
-                    else:
-                        print(
-                            f'{getattr(contexts, field.name)}, ',
-                            end='',
-                            file=log_file
-                        )
-            print(file=log_file)
-            log_file.flush()
 
     def _handle_can(self, message: Message) -> None:
         super()._handle_can(message)
