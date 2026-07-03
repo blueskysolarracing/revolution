@@ -10,6 +10,7 @@ from can import Message
 
 from revolution.application import Application
 from revolution.battery_management_system import (
+    BatteryFlag
     BATTERY_CELL_COUNT,
     BATTERY_CELL_PER_PACK_COUNT,
     BATTERY_THERMISTOR_COUNT,
