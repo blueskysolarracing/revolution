@@ -34,7 +34,7 @@ class Miscellaneous(Application):
         self._indicator_light_worker.start()
         self._imu_worker.start()
         self._gps_worker.start()
-        self._front_wheels_worker.start()
+        # self._front_wheels_worker.start()
         self._runtime_log_worker.start()
 
     def _teardown(self) -> None:
@@ -42,7 +42,7 @@ class Miscellaneous(Application):
         self._indicator_light_worker.join()
         self._imu_worker.join()
         self._gps_worker.join()
-        self._front_wheels_worker.join()
+        # self._front_wheels_worker.join()
         self._runtime_log_worker.join()
 
     def update_pwm(self, pwm: PWM, previous_input: bool, input: bool) -> None:
