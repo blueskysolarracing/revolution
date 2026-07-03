@@ -43,9 +43,9 @@ class Power(Application):
         filepath = (
             self.environment.settings.general_log_filepath
         )
-        filepath += 'phub_battery_flag_log/'
-        print_log = filepath != ''
-        if print_log:
+        self.print_log = filepath != ''
+        if self.print_log:
+            filepath += 'phub_battery_flag_log/'
             makedirs(filepath, exist_ok=True)
             now = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
             filename = f'{filepath}{now}_flag_log.txt'
@@ -69,7 +69,8 @@ class Power(Application):
         self._psm_worker.join()
         self._steering_wheel_led_worker.join()
 
-        self.phub_battery_flag_log_file.close()
+        if self.print_log:
+            self.phub_battery_flag_log_file.close()
 
     def _monitor(self) -> None:
         def array_relay(status: bool) -> None:
@@ -330,7 +331,8 @@ class Power(Application):
         if information is None:
             return
 
-        log_file = self.phub_battery_flag_log_file
+        if self.print_log:
+            log_file = self.phub_battery_flag_log_file
 
         with self.environment.contexts() as contexts:
             # Important
@@ -395,7 +397,6 @@ class Power(Application):
                         ),
                     )
             ):
-                print(f'{datetime.now().time()} ', end='', file=log_file)
                 if isinstance(information, OverBatteryFlagsHoldInformation):
                     voltage_str = 'OV flag: '
                     temperature_str = 'OT flag: '
@@ -436,11 +437,13 @@ class Power(Application):
                 if not information.current_flag:
                     current_str = ''
 
-                print(
-                    f'{voltage_str} {temperature_str} {current_str}',
-                    file=log_file
-                )
-                log_file.flush()
+                if self.print_log:
+                    print(
+                        f'{datetime.now().time()} '
+                        f'{voltage_str} {temperature_str} {current_str}',
+                        file=log_file
+                    )
+                    log_file.flush()
 
             elif isinstance(information, OvervoltageHoldInformation):
                 contexts.power_battery_hold_elapsed_count = max(
@@ -453,14 +456,16 @@ class Power(Application):
                 contexts.power_battery_hold_OV_max = (
                     information.hold_OV_max
                 )
-                print(
-                    f'{datetime.now().time()} OV_hold '
-                    f'elapsed_count={information.hold_elapsed_count} '
-                    f'OV_count={information.hold_OV_count}'
-                    f'OV_max={information.hold_OV_max}',
-                    file=log_file
-                )
-                log_file.flush()
+
+                if self.print_log:
+                    print(
+                        f'{datetime.now().time()} OV_hold '
+                        f'elapsed_count={information.hold_elapsed_count} '
+                        f'OV_count={information.hold_OV_count}'
+                        f'OV_max={information.hold_OV_max}',
+                        file=log_file
+                    )
+                    log_file.flush()
             elif isinstance(information, UndervoltageHoldInformation):
                 contexts.power_battery_hold_elapsed_count = max(
                     information.hold_elapsed_count,
@@ -472,14 +477,16 @@ class Power(Application):
                 contexts.power_battery_hold_UV_min = (
                     information.hold_UV_min
                 )
-                print(
-                    f'{datetime.now().time()} UV_hold '
-                    f'elapsed_count={information.hold_elapsed_count} '
-                    f'UV_count={information.hold_UV_count}'
-                    f'UV_min={information.hold_UV_min}',
-                    file=log_file
-                )
-                log_file.flush()
+
+                if self.print_log:
+                    print(
+                        f'{datetime.now().time()} UV_hold '
+                        f'elapsed_count={information.hold_elapsed_count} '
+                        f'UV_count={information.hold_UV_count}'
+                        f'UV_min={information.hold_UV_min}',
+                        file=log_file
+                    )
+                    log_file.flush()
             elif isinstance(information, OvertemperatureHoldInformation):
                 contexts.power_battery_hold_elapsed_count = max(
                     information.hold_elapsed_count,
@@ -491,14 +498,16 @@ class Power(Application):
                 contexts.power_battery_hold_OT_max = (
                     information.hold_OT_max
                 )
-                print(
-                    f'{datetime.now().time()} OT_hold '
-                    f'elapsed_count={information.hold_elapsed_count} '
-                    f'OT_count={information.hold_OT_count}'
-                    f'OT_max={information.hold_OT_max}',
-                    file=log_file
-                )
-                log_file.flush()
+
+                if self.print_log:
+                    print(
+                        f'{datetime.now().time()} OT_hold '
+                        f'elapsed_count={information.hold_elapsed_count} '
+                        f'OT_count={information.hold_OT_count}'
+                        f'OT_max={information.hold_OT_max}',
+                        file=log_file
+                    )
+                    log_file.flush()
             elif isinstance(information, UndertemperatureHoldInformation):
                 contexts.power_battery_hold_elapsed_count = max(
                     information.hold_elapsed_count,
@@ -510,14 +519,16 @@ class Power(Application):
                 contexts.power_battery_hold_UT_min = (
                     information.hold_UT_min
                 )
-                print(
-                    f'{datetime.now().time()} UT_hold '
-                    f'elapsed_count={information.hold_elapsed_count} '
-                    f'UT_count={information.hold_UT_count}'
-                    f'UT_min={information.hold_UT_min}',
-                    file=log_file
-                )
-                log_file.flush()
+
+                if self.print_log:
+                    print(
+                        f'{datetime.now().time()} UT_hold '
+                        f'elapsed_count={information.hold_elapsed_count} '
+                        f'UT_count={information.hold_UT_count}'
+                        f'UT_min={information.hold_UT_min}',
+                        file=log_file
+                    )
+                    log_file.flush()
             elif isinstance(information, OvercurrentHoldInformation):
                 contexts.power_battery_hold_elapsed_count = max(
                     information.hold_elapsed_count,
@@ -529,14 +540,16 @@ class Power(Application):
                 contexts.power_battery_hold_OC_max = (
                     information.hold_OC_max
                 )
-                print(
-                    f'{datetime.now().time()} OC_hold '
-                    f'elapsed_count={information.hold_elapsed_count} '
-                    f'OC_count={information.hold_OC_count}'
-                    f'OC_max={information.hold_OC_max}',
-                    file=log_file
-                )
-                log_file.flush()
+
+                if self.print_log:
+                    print(
+                        f'{datetime.now().time()} OC_hold '
+                        f'elapsed_count={information.hold_elapsed_count} '
+                        f'OC_count={information.hold_OC_count}'
+                        f'OC_max={information.hold_OC_max}',
+                        file=log_file
+                    )
+                    log_file.flush()
             elif isinstance(information, UndercurrentHoldInformation):
                 contexts.power_battery_hold_elapsed_count = max(
                     information.hold_elapsed_count,
@@ -548,14 +561,16 @@ class Power(Application):
                 contexts.power_battery_hold_UC_min = (
                     information.hold_UC_min
                 )
-                print(
-                    f'{datetime.now().time()} UC_hold '
-                    f'elapsed_count={information.hold_elapsed_count} '
-                    f'UC_count={information.hold_UC_count}'
-                    f'UC_min={information.hold_UC_min}',
-                    file=log_file
-                )
-                log_file.flush()
+
+                if self.print_log:
+                    print(
+                        f'{datetime.now().time()} UC_hold '
+                        f'elapsed_count={information.hold_elapsed_count} '
+                        f'UC_count={information.hold_UC_count}'
+                        f'UC_min={information.hold_UC_min}',
+                        file=log_file
+                    )
+                    log_file.flush()
 
             # Voltages / Temperatures
             elif isinstance(information, CellVoltagesInformation):
