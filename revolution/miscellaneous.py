@@ -553,17 +553,26 @@ class Miscellaneous(Application):
                 for field in fields(Contexts):
                     if isinstance(getattr(contexts, field.name), dict):
                         for value in getattr(contexts, field.name).values():
+                            if isinstance(value, float):
+                                value = f'{value:.3f}'
+                            elif isinstance(value, bool):
+                                value = 'T' if value else 'F'
                             print(f'{value}, ', end='', file=log_file)
                     elif isinstance(getattr(contexts, field.name), list):
                         for i in range(len(getattr(contexts, field.name))):
                             value = getattr(contexts, field.name)[i]
+                            if isinstance(value, float):
+                                value = f'{value:.3f}'
+                            elif isinstance(value, bool):
+                                value = 'T' if value else 'F'
                             print(f'{value}, ', end='', file=log_file)
                     else:
-                        print(
-                            f'{getattr(contexts, field.name)}, ',
-                            end='',
-                            file=log_file
-                        )
+                        value = getattr(contexts, field.name)
+                        if isinstance(value, float):
+                            value = f'{value:.3f}'
+                        elif isinstance(value, bool):
+                            value = 'T' if value else 'F'
+                        print(f'{value}, ', end='', file=log_file)
             print(file=log_file)
             log_file.flush()
 
