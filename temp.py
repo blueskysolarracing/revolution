@@ -56,7 +56,7 @@ while True:
         #     f'battery_v={ctx.power_psm_battery_voltage:6.2f}  '
         #     f'battery_i={ctx.power_psm_battery_current:6.2f}  '
         #     f'bms_HV_i={ctx.power_battery_HV_current:6.2f}  '
-        #     f'bms_LV_v={ctx.power_battery_LV_bus_voltage:6.2f}  '
+        #     f'bms_LV_v={ctx.power_battery_LV_voltage:6.2f}  '
         #     f'supp={ctx.power_battery_supp_voltage:6.2f}'
         # )
 
