@@ -132,6 +132,7 @@ class Power(Application):
                 array_relay_status_input = (
                     contexts.power_array_relay_status_input
                 )
+                array_relay_status = contexts.power_array_relay_status
                 battery_relay_status_input = (
                     contexts.power_battery_relay_status_input
                 )
@@ -159,6 +160,7 @@ class Power(Application):
                     .settings
                     .power_disable_charging_battery_soc_threshold
                 ) or not battery_relay_status
+                or not battery_relay_status_input
             ):
                 array_relay_status_input = False
 
@@ -187,7 +189,11 @@ class Power(Application):
                     .power_battery_management_system
                     .close_relay()
                 )
-            elif battery_relay_status and not battery_relay_status_input:
+            elif (
+                battery_relay_status
+                and not battery_relay_status_input
+                and not array_relay_status
+            ):
                 (
                     self
                     .environment
