@@ -464,7 +464,7 @@ class Power(Application):
                     print(
                         f'{datetime.now().time()} OV_hold '
                         f'elapsed_count={information.hold_elapsed_count} '
-                        f'OV_count={information.hold_OV_count}'
+                        f'OV_count={information.hold_OV_count} '
                         f'OV_max={information.hold_OV_max}',
                         file=log_file
                     )
@@ -485,7 +485,7 @@ class Power(Application):
                     print(
                         f'{datetime.now().time()} UV_hold '
                         f'elapsed_count={information.hold_elapsed_count} '
-                        f'UV_count={information.hold_UV_count}'
+                        f'UV_count={information.hold_UV_count} '
                         f'UV_min={information.hold_UV_min}',
                         file=log_file
                     )
@@ -506,7 +506,7 @@ class Power(Application):
                     print(
                         f'{datetime.now().time()} OT_hold '
                         f'elapsed_count={information.hold_elapsed_count} '
-                        f'OT_count={information.hold_OT_count}'
+                        f'OT_count={information.hold_OT_count} '
                         f'OT_max={information.hold_OT_max}',
                         file=log_file
                     )
@@ -527,7 +527,7 @@ class Power(Application):
                     print(
                         f'{datetime.now().time()} UT_hold '
                         f'elapsed_count={information.hold_elapsed_count} '
-                        f'UT_count={information.hold_UT_count}'
+                        f'UT_count={information.hold_UT_count} '
                         f'UT_min={information.hold_UT_min}',
                         file=log_file
                     )
@@ -548,7 +548,7 @@ class Power(Application):
                     print(
                         f'{datetime.now().time()} OC_hold '
                         f'elapsed_count={information.hold_elapsed_count} '
-                        f'OC_count={information.hold_OC_count}'
+                        f'OC_count={information.hold_OC_count} '
                         f'OC_max={information.hold_OC_max}',
                         file=log_file
                     )
@@ -569,7 +569,7 @@ class Power(Application):
                     print(
                         f'{datetime.now().time()} UC_hold '
                         f'elapsed_count={information.hold_elapsed_count} '
-                        f'UC_count={information.hold_UC_count}'
+                        f'UC_count={information.hold_UC_count} '
                         f'UC_min={information.hold_UC_min}',
                         file=log_file
                     )
