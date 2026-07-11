@@ -121,8 +121,7 @@ class Display(Application):
         display_counter = 0
 
         while not self._stoppage.wait(timeout):
-            if (display_counter % config_period == 0):
-                config_display()
+            config_display()
 
             with self.environment.contexts() as contexts:
                 # Motor

@@ -207,7 +207,7 @@ CAN_BUS: BusABC = ThreadSafeBus(  # type: ignore[no-untyped-call]
     interface='socketcan',
 )
 
-STEERING_WHEEL_SPI: SPI = SPI('/dev/spidev0.0', 0b00, 1e5)
+STEERING_WHEEL_SPI: SPI = SPI('/dev/spidev0.0', 0b00, 5e5)
 STEERING_WHEEL_SPI_LOCK: Lock = Lock()
 
 STEERING_WHEEL: SteeringWheel = SteeringWheel(
@@ -543,7 +543,7 @@ SETTINGS: Settings = Settings(
 
     motor_acceleration_input_max_increase=0.5,
     motor_acceleration_input_max_decrease=0.5,
-    motor_filtered_acceleration_input_factor=0.9,
+    motor_filtered_acceleration_input_factor=1,
     motor_bus_current_limit=1,
     motor_regeneration_strength=0.3,
     motor_can_timeout=5.0,
