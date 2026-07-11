@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum, IntEnum
+from functools import reduce
+from operator import xor
 from typing import ClassVar
 from warnings import warn
 
@@ -121,6 +123,9 @@ class SteeringWheel:
         elif (self.fault_light_gpio.inverted != self.FAULT_LIGHT_INVERTED):
             raise ValueError('invalid fault light GPIO inverted status')
 
+    def _parity(self, message: list) -> int:
+        return reduce(xor, message, 0) & 0xFF
+
     def clear_screen(self) -> None:
         for i in range(32):
             self.set_text_mode(i, 0)
@@ -136,6 +141,7 @@ class SteeringWheel:
 
         message = [(1 << 7) | ((slot & 0x1F) << 2) | 0b00]
         message += [(x >> 8) & 0xFF, x & 0xFF, (y >> 8) & 0xFF, y & 0xFF]
+        message.append(self._parity(message))
         self.spi.transfer(message)
 
     def set_text_size(self, slot: int | DisplayItem, size: int) -> None:
@@ -144,6 +150,8 @@ class SteeringWheel:
 
         message = [(1 << 7) | ((slot & 0x1F) << 2) | 0b01]
         message.append(size - 1)
+        message.append(self._parity(message))
+        print(f"{[bin(x) for x in message]} | {slot} {size - 1}")
         self.spi.transfer(message)
 
     def set_text_mode(self, slot: int | DisplayItem, mode: int) -> None:
@@ -152,6 +160,7 @@ class SteeringWheel:
 
         message = [(1 << 7) | ((slot & 0x1F) << 2) | 0b10]
         message.append(mode)
+        message.append(self._parity(message))
         self.spi.transfer(message)
 
     def draw_word(self, slot: int | DisplayItem, text: str) -> None:
@@ -161,6 +170,7 @@ class SteeringWheel:
         message = [(1 << 7) | ((slot & 0x1F) << 2) | 0b11]
         message.append(len(text))
         message += list(text.encode('utf-8'))
+        message.append(self._parity(message))
         self.spi.transfer(message)
 
     def set_display_brightness(self, brightness: int) -> None:
@@ -168,15 +178,18 @@ class SteeringWheel:
             return
 
         message = [0x03, brightness]
+        message.append(self._parity(message))
         self.spi.transfer(message)
 
     def set_indicator_light(self, left: bool, right: bool) -> None:
         status = (left*2) + right
         message = [0x02, status]
+        message.append(self._parity(message))
         self.spi.transfer(message)
 
     def set_fault_light(self, status: bool) -> None:
         message = [0x01, int(status)]
+        message.append(self._parity(message))
         self.spi.transfer(message)
 
     def get_input(self) -> list[int]:
