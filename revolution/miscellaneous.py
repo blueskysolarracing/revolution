@@ -2,7 +2,7 @@ from dataclasses import asdict, dataclass, fields
 from datetime import datetime
 from logging import getLogger
 from os import makedirs
-from time import sleep
+from time import sleep, strftime, struct_time
 from typing import ClassVar
 
 from periphery import PWM, I2CError
@@ -322,6 +322,10 @@ class Miscellaneous(Application):
                         contexts.miscellaneous_longitude = periphery.longitude
                     if periphery.altitude_m is not None:
                         contexts.miscellaneous_altitude = periphery.altitude_m
+                    if periphery.timestamp_utc is not None:
+                        contexts.miscellaneous_gps_time = (
+                            periphery.timestamp_utc
+                        )
                 if periphery.fix_quality is not None:
                     contexts.miscellaneous_gps_fix_quality = (
                         periphery.fix_quality
@@ -572,6 +576,8 @@ class Miscellaneous(Application):
                             value = f'{value:.3f}'
                         elif isinstance(value, bool):
                             value = 'T' if value else 'F'
+                        elif isinstance(value, struct_time):
+                            value = strftime('%Y-%m-%d_%H-%M-%S', value)
                         print(f'{value}, ', end='', file=log_file)
             print(file=log_file)
             log_file.flush()

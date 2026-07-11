@@ -5,6 +5,7 @@ from logging import getLogger
 from operator import or_
 from queue import Queue
 from statistics import mean
+from time import struct_time
 from typing import Any
 
 from adafruit_gps import GPS  # type: ignore[import-untyped]
@@ -83,6 +84,7 @@ class Contexts:
     miscellaneous_gps_fix_quality: int
     miscellaneous_gps_fix_quality_3d: int
     miscellaneous_gps_satellites: int
+    miscellaneous_gps_time: struct_time
 
     miscellaneous_left_wheel_accelerations: list[float]
     miscellaneous_right_wheel_accelerations: list[float]

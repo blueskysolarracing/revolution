@@ -1,6 +1,7 @@
 from collections import defaultdict
 from dataclasses import make_dataclass
 from math import inf
+from time import struct_time
 from unittest.mock import MagicMock
 
 from adafruit_gps import GPS  # type: ignore[import-untyped]
@@ -77,6 +78,7 @@ CONTEXTS: Contexts = Contexts(
     miscellaneous_gps_fix_quality=0,
     miscellaneous_gps_fix_quality_3d=0,
     miscellaneous_gps_satellites=0,
+    miscellaneous_gps_time=struct_time((0, 0, 0, 0, 0, 0, 0, 0, 0)),
 
     miscellaneous_left_wheel_accelerations=[0, 0, 0],
     miscellaneous_right_wheel_accelerations=[0, 0, 0],

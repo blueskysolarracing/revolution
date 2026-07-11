@@ -1,6 +1,7 @@
 from math import inf
 from os import system
 from threading import Lock
+from time import struct_time
 from typing import cast
 from unittest.mock import MagicMock
 
@@ -79,6 +80,7 @@ CONTEXTS: Contexts = Contexts(
     miscellaneous_gps_fix_quality=0,
     miscellaneous_gps_fix_quality_3d=0,
     miscellaneous_gps_satellites=0,
+    miscellaneous_gps_time=struct_time((0, 0, 0, 0, 0, 0, 0, 0, 0)),
 
     miscellaneous_left_wheel_accelerations=[0, 0, 0],
     miscellaneous_right_wheel_accelerations=[0, 0, 0],
