@@ -117,9 +117,6 @@ class Display(Application):
 
         timeout = 1 / self.environment.settings.display_frame_rate
 
-        config_period = self.environment.settings.display_frame_rate
-        display_counter = 0
-
         while not self._stoppage.wait(timeout):
             config_display()
 
@@ -311,5 +308,3 @@ class Display(Application):
 
             battery_relay_label = 'B' if power_battery_relay_status else ''
             periphery.draw_word(DisplayItem.BATTERY_RELAY, battery_relay_label)
-
-            display_counter += 1
