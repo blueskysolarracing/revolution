@@ -123,7 +123,7 @@ class SteeringWheel:
         elif (self.fault_light_gpio.inverted != self.FAULT_LIGHT_INVERTED):
             raise ValueError('invalid fault light GPIO inverted status')
 
-    def _parity(self, message: list) -> int:
+    def _parity(self, message: list[int]) -> int:
         return reduce(xor, message, 0) & 0xFF
 
     def clear_screen(self) -> None:
