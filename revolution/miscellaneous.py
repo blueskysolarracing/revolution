@@ -326,6 +326,10 @@ class Miscellaneous(Application):
                         contexts.miscellaneous_gps_time = (
                             periphery.timestamp_utc
                         )
+                    if periphery.speed_kmh is not None:
+                        contexts.miscellaneous_gps_speed_kmh = (
+                            periphery.speed_kmh
+                        )
                 if periphery.fix_quality is not None:
                     contexts.miscellaneous_gps_fix_quality = (
                         periphery.fix_quality

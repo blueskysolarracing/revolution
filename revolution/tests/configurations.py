@@ -82,6 +82,7 @@ CONTEXTS: Contexts = Contexts(
     miscellaneous_gps_fix_quality_3d=0,
     miscellaneous_gps_satellites=0,
     miscellaneous_gps_time=struct_time((0, 0, 0, 0, 0, 0, 0, 0, 0)),
+    miscellaneous_gps_speed_kmh=0,
 
     miscellaneous_left_wheel_accelerations=[0, 0, 0],
     miscellaneous_right_wheel_accelerations=[0, 0, 0],

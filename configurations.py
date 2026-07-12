@@ -84,6 +84,7 @@ CONTEXTS: Contexts = Contexts(
     miscellaneous_gps_fix_quality_3d=0,
     miscellaneous_gps_satellites=0,
     miscellaneous_gps_time=struct_time((0, 0, 0, 0, 0, 0, 0, 0, 0)),
+    miscellaneous_gps_speed_kmh=0,
 
     miscellaneous_left_wheel_accelerations=[0, 0, 0],
     miscellaneous_right_wheel_accelerations=[0, 0, 0],
@@ -285,7 +286,7 @@ BRAKE_LIGHTS_PWM.duty_cycle = 0.10
 
 BACKUP_CAMERA_CONTROL_SWITCH_GPIO: GPIO = GPIO('/dev/gpiochip6', 21, 'out')
 
-GPS_SERIAL: Serial = Serial('/dev/ttyLP0', timeout=10)
+GPS_SERIAL: Serial = Serial("/dev/ttyLP3", baudrate=9600, timeout=10)
 GPS_PA1616S: GPS = GPS(GPS_SERIAL, debug=False)
 
 IMU_BNO055_I2C: I2C = I2C('/dev/apalis-i2c3')

@@ -88,6 +88,7 @@ class Contexts:
     miscellaneous_gps_fix_quality_3d: int
     miscellaneous_gps_satellites: int
     miscellaneous_gps_time: struct_time
+    miscellaneous_gps_speed_kmh: float
 
     miscellaneous_left_wheel_accelerations: list[float]
     miscellaneous_right_wheel_accelerations: list[float]

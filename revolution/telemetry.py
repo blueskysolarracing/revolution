@@ -18,12 +18,15 @@ class Telemetry(Application):
 
     @dataclass
     class Data:
+        driver_steering_wheel_heartbeat_working: bool
+
         motor_acceleration_input: float
         motor_cruise_control_status_input: bool
         motor_cruise_control_velocity: float
         motor_variable_field_magnet_position: int
         motor_velocity: float
         motor_heartbeat_working: bool
+        motor_controller_error_flags: int
 
         power_array_relay_status_input: bool
         power_array_relay_status: bool
@@ -35,7 +38,6 @@ class Telemetry(Application):
         power_battery_max_thermistor_temperature: float
         power_battery_mean_thermistor_temperature: float
 
-        power_battery_HV_voltage: float
         power_battery_HV_current: float
         power_battery_LV_voltage: float
         power_battery_LV_current: float
@@ -59,10 +61,10 @@ class Telemetry(Application):
         power_psm_motor_current: float
         power_psm_motor_voltage: float
 
-        miscellaneous_orientation: dict[str, float]
         miscellaneous_latitude: float
         miscellaneous_longitude: float
         miscellaneous_altitude: float
+        miscellaneous_gps_speed_kmh: float
 
         def serialize(self) -> bytes:
             return dump(self, 2, 2)
