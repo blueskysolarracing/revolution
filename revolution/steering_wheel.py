@@ -151,7 +151,6 @@ class SteeringWheel:
         message = [(1 << 7) | ((slot & 0x1F) << 2) | 0b01]
         message.append(size - 1)
         message.append(self._parity(message))
-        print(f"{[bin(x) for x in message]} | {slot} {size - 1}")
         self.spi.transfer(message)
 
     def set_text_mode(self, slot: int | DisplayItem, mode: int) -> None:

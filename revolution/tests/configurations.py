@@ -59,6 +59,9 @@ CONTEXTS: Contexts = Contexts(
 
     # Driver
 
+    driver_steering_wheel_heartbeat_timestamp=inf,
+    driver_steering_wheel_heartbeat_working=False,
+
     # Miscellaneous
 
     miscellaneous_left_indicator_light_status_input=False,
@@ -383,7 +386,8 @@ SETTINGS: Settings = Settings(
 
     # Driver
 
-    driver_timeout=0.001,
+    driver_timeout=0.01,
+    driver_steering_wheel_spi_timeout=1,
 
     # Miscellaneous
 

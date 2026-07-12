@@ -1,6 +1,7 @@
 from collections import defaultdict
 from dataclasses import dataclass
 from logging import getLogger
+from time import time
 from typing import ClassVar
 
 from revolution.application import Application
@@ -89,6 +90,21 @@ class Driver(Application):
                     self.environment.settings.driver_timeout,
                 )
         ):
+            with self.environment.contexts() as contexts:
+                steering_wheel_heartbeat_timestamp = (
+                    contexts.driver_steering_wheel_heartbeat_timestamp
+                )
+
+            steering_wheel_heartbeat_working = (
+                (time() - steering_wheel_heartbeat_timestamp)
+                < self.environment.settings.driver_steering_wheel_spi_timeout
+            )
+
+            with self.environment.contexts() as contexts:
+                contexts.driver_steering_wheel_heartbeat_working = (
+                    steering_wheel_heartbeat_working
+                )
+
             steering_wheel = self.environment.peripheries.driver_steering_wheel
             raw_bytes = steering_wheel.get_input()
             if not raw_bytes:
@@ -103,6 +119,7 @@ class Driver(Application):
                     )
 
             with self.environment.contexts() as contexts:
+                contexts.driver_steering_wheel_heartbeat_timestamp = time()
                 for raw_prbs, value in self.MOMENTARY_SWITCHES.items():
                     prbs = getattr(self.environment.peripheries, raw_prbs)
 

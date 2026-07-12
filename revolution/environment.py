@@ -65,6 +65,9 @@ class Contexts:
 
     # Driver
 
+    driver_steering_wheel_heartbeat_timestamp: float
+    driver_steering_wheel_heartbeat_working: bool
+
     # Miscellaneous
 
     miscellaneous_left_indicator_light_status_input: bool
@@ -336,6 +339,7 @@ class Settings:
     # Driver
 
     driver_timeout: float
+    driver_steering_wheel_spi_timeout: float
 
     # Miscellaneous
 
