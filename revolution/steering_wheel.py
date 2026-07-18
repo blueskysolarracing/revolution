@@ -1,7 +1,5 @@
 from dataclasses import dataclass
 from enum import Enum, IntEnum
-from functools import reduce
-from operator import xor
 from typing import ClassVar
 from warnings import warn
 
@@ -123,8 +121,17 @@ class SteeringWheel:
         elif (self.fault_light_gpio.inverted != self.FAULT_LIGHT_INVERTED):
             raise ValueError('invalid fault light GPIO inverted status')
 
-    def _parity(self, message: list[int]) -> int:
-        return reduce(xor, message, 0) & 0xFF
+    def _crc8(self, data: list[int]) -> int:
+        crc = 0x00
+        poly = 0x07
+        for i in range(len(data)):
+            crc ^= (data[i] & 0xFF)
+            for _ in range(8):
+                if (crc & 0x80):
+                    crc = (crc << 1) ^ poly
+                else:
+                    crc <<= 1
+        return crc & 0xFF
 
     def clear_screen(self) -> None:
         for i in range(32):
@@ -141,7 +148,7 @@ class SteeringWheel:
 
         message = [(1 << 7) | ((slot & 0x1F) << 2) | 0b00]
         message += [(x >> 8) & 0xFF, x & 0xFF, (y >> 8) & 0xFF, y & 0xFF]
-        message.append(self._parity(message))
+        message.append(self._crc8(message))
         self.spi.transfer(message)
 
     def set_text_size(self, slot: int | DisplayItem, size: int) -> None:
@@ -150,7 +157,7 @@ class SteeringWheel:
 
         message = [(1 << 7) | ((slot & 0x1F) << 2) | 0b01]
         message.append(size - 1)
-        message.append(self._parity(message))
+        message.append(self._crc8(message))
         self.spi.transfer(message)
 
     def set_text_mode(self, slot: int | DisplayItem, mode: int) -> None:
@@ -159,7 +166,7 @@ class SteeringWheel:
 
         message = [(1 << 7) | ((slot & 0x1F) << 2) | 0b10]
         message.append(mode)
-        message.append(self._parity(message))
+        message.append(self._crc8(message))
         self.spi.transfer(message)
 
     def draw_word(self, slot: int | DisplayItem, text: str) -> None:
@@ -169,7 +176,7 @@ class SteeringWheel:
         message = [(1 << 7) | ((slot & 0x1F) << 2) | 0b11]
         message.append(len(text))
         message += list(text.encode('utf-8'))
-        message.append(self._parity(message))
+        message.append(self._crc8(message))
         self.spi.transfer(message)
 
     def set_display_brightness(self, brightness: int) -> None:
@@ -177,22 +184,22 @@ class SteeringWheel:
             return
 
         message = [0x03, brightness]
-        message.append(self._parity(message))
+        message.append(self._crc8(message))
         self.spi.transfer(message)
 
     def set_indicator_light(self, left: bool, right: bool) -> None:
         status = (left*2) + right
         message = [0x02, status]
-        message.append(self._parity(message))
+        message.append(self._crc8(message))
         self.spi.transfer(message)
 
     def set_fault_light(self, status: bool) -> None:
         message = [0x01, int(status)]
-        message.append(self._parity(message))
+        message.append(self._crc8(message))
         self.spi.transfer(message)
 
     def get_input(self) -> list[int]:
-        parity_success = False
+        crc8_success = False
 
         for _ in range(2):
             self.spi.transfer([0x00, 0x00, 0x00, 0x00, 0x00])
@@ -214,9 +221,9 @@ class SteeringWheel:
         data_0 = (~ordered_raw[1]) & 0xFF
         data_1 = (~ordered_raw[2]) & 0xFF
         inputs = [data_0, data_1]
-        parity_success = (ordered_raw[3] & 0xFF) == (data_0 ^ data_1)
-
-        if not parity_success:
+        crc8_check = self._crc8([ordered_raw[1], ordered_raw[2]])
+        crc8_success = (ordered_raw[3] & 0xFF) == crc8_check
+        if not crc8_success:
             return []
 
         # print(f'{shift}, [', end='')

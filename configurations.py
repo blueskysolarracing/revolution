@@ -536,7 +536,7 @@ SETTINGS: Settings = Settings(
 
     # Miscellaneous
 
-    miscellaneous_light_timeout=0.1,
+    miscellaneous_light_timeout=0.05,
     miscellaneous_light_flash_timeout=0.5,
     miscellaneous_imu_timeout=0.1,
     miscellaneous_imu_mode_timeout=0.05,

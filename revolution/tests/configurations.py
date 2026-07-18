@@ -392,7 +392,7 @@ SETTINGS: Settings = Settings(
 
     # Miscellaneous
 
-    miscellaneous_light_timeout=0.1,
+    miscellaneous_light_timeout=0.05,
     miscellaneous_light_flash_timeout=0.5,
     miscellaneous_imu_timeout=0.1,
     miscellaneous_imu_mode_timeout=0.05,
@@ -406,7 +406,7 @@ SETTINGS: Settings = Settings(
 
     motor_acceleration_input_max_increase=0.1,
     motor_acceleration_input_max_decrease=0.1,
-    motor_filtered_acceleration_input_factor=0.9,
+    motor_filtered_acceleration_input_factor=1,
     motor_bus_current_limit=1,
     motor_regeneration_strength=0.3,
     motor_can_timeout=5.0,
