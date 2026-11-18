@@ -1,7 +1,6 @@
 from collections import defaultdict
 from dataclasses import make_dataclass
-from math import inf
-from time import struct_time
+from time import struct_time, time
 from unittest.mock import MagicMock
 
 from adafruit_gps import GPS  # type: ignore[import-untyped]
@@ -48,6 +47,8 @@ APPLICATION_TYPES: tuple[type[Application], ...] = (
     Telemetry,
 )
 
+start_time = time()
+
 CONTEXTS: Contexts = Contexts(
     # General
 
@@ -59,7 +60,7 @@ CONTEXTS: Contexts = Contexts(
 
     # Driver
 
-    driver_steering_wheel_heartbeat_timestamp=inf,
+    driver_steering_wheel_heartbeat_timestamp=start_time,
     driver_steering_wheel_heartbeat_working=False,
 
     # Miscellaneous
@@ -101,7 +102,7 @@ CONTEXTS: Contexts = Contexts(
     motor_variable_field_magnet_down_input=0,
     motor_variable_field_magnet_position=0,
     motor_velocity=0,
-    motor_heartbeat_timestamp=inf,
+    motor_heartbeat_timestamp=start_time,
     motor_heartbeat_working=False,
 
     motor_controller_sent_current=0,
@@ -178,7 +179,7 @@ CONTEXTS: Contexts = Contexts(
     power_battery_hold_OC_max=0,
     power_battery_hold_UC_min=0,
 
-    power_battery_heartbeat_timestamp=inf,
+    power_battery_heartbeat_timestamp=start_time,
     power_battery_heartbeat_working=False,
 
     power_battery_state_of_charges=[0 for _ in range(BATTERY_CELL_COUNT)],
