@@ -1,3 +1,7 @@
+from time import sleep
+
+sleep(10)
+
 while True:
     with environment.contexts() as ctx:
         print(
