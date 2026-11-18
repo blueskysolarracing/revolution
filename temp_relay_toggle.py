@@ -5,7 +5,7 @@ sleep(10)
 while True:
     with environment.contexts() as ctx:
         print(
-            f'array input: {ctx.power_array_relay_status_input} '
+            f'\n----\narray input: {ctx.power_array_relay_status_input} '
             f'battery input: {ctx.power_battery_relay_status_input}\n'
             f'array status: {ctx.power_array_relay_status} '
             f'battery status: {ctx.power_battery_relay_status}\n'
