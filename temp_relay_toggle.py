@@ -19,4 +19,4 @@ while True:
     if toggle_array or toggle_battery:
         with environment.contexts() as ctx:
             ctx.power_array_relay_status_input ^= toggle_array
-            ctx.power_battery_relay_status ^= toggle_battery
+            ctx.power_battery_relay_status_input ^= toggle_battery
